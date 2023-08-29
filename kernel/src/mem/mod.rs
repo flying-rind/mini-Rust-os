@@ -2,7 +2,7 @@
 
 use core::usize;
 
-use crate::mem::page_table::PageTable;
+// use crate::mem::page_table::PageTable;
 
 use self::page_table::PageTableOldv;
 use bootloader_api::info::MemoryRegions;
@@ -76,16 +76,6 @@ pub fn init(memory_regions: &'static mut MemoryRegions) {
 pub fn kernel_base() -> usize {
     Cr3::read().0.start_address().as_u64() as _
 }
-
-// pub fn get_pagetable_entry(of0: usize, of1: usize, of2: usize, of3: usize) -> usize {
-//     let root = kernel_base();
-//     let l0entry = unsafe { core::ptr::read((root + of0 * 8 + KERNEL_PHY_OFFSET) as *mut usize) };
-//     let l1addr = (l0entry >> 12) << 12;
-//     let l1entry = unsafe { core::ptr::read((l1addr + of1 * 8 + KERNEL_PHY_OFFSET) as *mut usize) };
-//     let l2addr = (l1entry >> 12) << 12;
-//     let l2entry = unsafe { core::ptr::read((l2addr + of1 * 8 + KERNEL_PHY_OFFSET) as *mut usize) };
-//     let l3addr = (l2entry >> 12) << 12;
-// }
 
 pub fn set_pagetable_to_user() {
     let root = kernel_base();

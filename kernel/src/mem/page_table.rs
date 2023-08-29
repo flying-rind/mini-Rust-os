@@ -211,22 +211,12 @@ impl PageTable {
     pub fn new() -> Self {
         let root_frame = PhysFrame::alloc_zero().unwrap();
         let p4 = table_of(root_frame.start_pa());
-        // p4[p4_index(VirtAddr(KERNEL_OFFSET))] = *KERNEL_PTE;
-        // p4[p4_index(VirtAddr(PHYS_OFFSET))] = *PHYS_PTE;
         let current_pte = table_of(PhysAddr(get_cr3()));
         for (index, entry) in current_pte.iter().enumerate() {
-            p4[index] = *entry;
+            if entry.0 != 0 {
+                p4[index] = *entry;
+            }
         }
-        // p4[1] = to_user(current_pte[1]);
-        // // p4[1] = current_pte[1];
-        // p4[2] = to_user(current_pte[2]);
-        // // p4[2] = current_pte[2];
-        // p4[3] = to_user(current_pte[3]);
-        // // p4[3] = current_pte[3];
-        // p4[4] = to_user(current_pte[4]);
-        // // p4[4] = current_pte[4];
-        // p4[511] = to_user(current_pte[511]);
-        // // p4[511] = current_pte[511];
         Self {
             root_pa: root_frame.start_pa(),
             tables: vec![root_frame],

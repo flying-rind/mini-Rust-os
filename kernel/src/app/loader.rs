@@ -3,15 +3,13 @@ use core::arch::global_asm;
 use x86_64::structures::paging::PageTableFlags;
 
 use crate::mem::memory_set::{MapArea, MemorySet};
-use crate::mem::{align_down, page_offset, VirtAddr};
-use crate::{zero, Cell};
+use crate::mem::VirtAddr;
 
 use xmas_elf::{
     program::{SegmentData, Type},
     {header, ElfFile},
 };
 
-const APP_BASE: usize = 0x0000008003000000;
 pub const USTACK_SIZE: usize = 4096 * 4;
 pub const USTACK_TOP: usize = 0x300000;
 
@@ -70,15 +68,6 @@ pub fn get_app_data_by_name(name: &str) -> Option<&'static [u8]> {
         .find(|&i| get_app_name(i) == name)
         .map(get_app_data)
 }
-
-pub fn get_app_base_addr() -> usize {
-    static NEXT_BASE_ADDR: Cell<usize> = Cell::new(APP_BASE - 0x100_0000);
-    let next = *NEXT_BASE_ADDR + 0x100_0000;
-    *NEXT_BASE_ADDR.get() = next;
-    next
-}
-
-const USTACK_TOP_OFFSET: usize = 0x100_0000;
 
 pub fn load_app(elf_data: &[u8]) -> (usize, MemorySet) {
     // let elf_data = get_app_data(id);

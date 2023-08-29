@@ -4,9 +4,6 @@ use crate::trap::{set_user_rsp, syscall_return, CallerRegs};
 use core::ops::Deref;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
-// added by mangp
-// use crate::app::loader::_app_count;
-
 const APP_BASE_ADDRESS: usize = 0x8003000000;
 pub const KERNEL_STACK_SIZE: usize = 4096;
 const APP_SIZE_LIMIT: usize = 0x20000;
