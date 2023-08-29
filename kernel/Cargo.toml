@@ -1,0 +1,29 @@
+[package]
+name = "kernel"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bootloader_api = "0.11"
+uart_16550 = "0.2"
+spin = { version = "0.9" }
+x86_64 = "0.14"
+noto-sans-mono-bitmap = "0.2"
+pic8259 = "0.10"
+pc-keyboard = "0.7"
+bitmap-allocator = { git = "https://github.com/rcore-os/bitmap-allocator" }
+buddy_system_allocator = { version = "0.9" }
+ps2-mouse = "0.1"
+crossbeam-queue = { version = "0.3", default-features = false, features = [
+    "alloc",
+] }
+futures-util = { version = "0.3", default-features = false }
+
+trapframe = "0.9.0"
+log = "0.4.19"
+xmas-elf = "0.8"
+bitflags = "1"
+
+[[bin]]
+name = "kernel"
+test = false

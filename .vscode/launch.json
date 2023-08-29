@@ -1,0 +1,30 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            // "preLaunchTask": "gdb",
+            "name": "Attach to gdbserver",
+            "program": "/home/azufre/nudt-os-dev/kernel/target/x86_64-unknown-none/debug/kernel",
+            "miDebuggerServerAddress": "localhost:1234",
+            "miDebuggerPath": "gdb",
+            "cwd": "/home/azufre/nudt-os-dev/kernel",
+            "setupCommands": [
+                {
+                    "description": "enable pretty print for gdb",
+                    "text": "-enable=pretty-printing",
+                    "ignoreFailures": true,
+                },
+                // {
+                //     "description": "execute .gdbinit file",
+                //     "text": "-x /home/azufre/nudt-os-dev/.gdbinit",
+                //     "ignoreFailures": true,
+                // }
+            ]
+        }
+    ]
+}
