@@ -56,6 +56,7 @@ pub fn init() -> ! {
             // Running idle and recycle orphans.
             loop {
                 my_x86_64::disable_interrupts();
+                serial_println!("Root proc waitpid");
                 cur.proc.waitpid(-1);
                 my_x86_64::enable_interrupts_and_hlt();
             }

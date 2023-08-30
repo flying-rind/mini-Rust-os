@@ -6,7 +6,7 @@ fn main() {
     insert_app_data().unwrap();
 }
 
-static TARGET_PATH: &str = "../user/target/x86_64/release/";
+static TARGET_PATH: &str = "../user/target/x86_64/debug/";
 
 fn insert_app_data() -> Result<()> {
     let mut apps: Vec<_> = read_dir("../user/src/bin")

@@ -15,10 +15,10 @@ bitflags::bitflags! {
 }
 
 const SERIAL_DATA: u16 = 0x3F8;
-const SERIAL_INT_EN: u16 = SERIAL_DATA + 1;
-const SERIAL_FIFO_CTRL: u16 = SERIAL_DATA + 2;
-const SERIAL_LINE_CTRL: u16 = SERIAL_DATA + 3;
-const SERIAL_MODEM_CTRL: u16 = SERIAL_DATA + 4;
+// const SERIAL_INT_EN: u16 = SERIAL_DATA + 1;
+// const SERIAL_FIFO_CTRL: u16 = SERIAL_DATA + 2;
+// const SERIAL_LINE_CTRL: u16 = SERIAL_DATA + 3;
+// const SERIAL_MODEM_CTRL: u16 = SERIAL_DATA + 4;
 const SERIAL_LINE_STS: u16 = SERIAL_DATA + 5;
 
 fn line_sts() -> LineSts {

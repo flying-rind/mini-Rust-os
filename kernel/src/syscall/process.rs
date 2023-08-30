@@ -1,6 +1,6 @@
 //! 与进程相关的系统调用实现
 use super::*;
-use crate::process::{self, proc};
+use crate::process;
 use crate::syscall::uaccess::read_cstr;
 use crate::syscall::EFAULT;
 use crate::trap::SyscallFrame;
@@ -18,7 +18,7 @@ pub fn sys_getpid() -> isize {
     process::current().proc.pid as _
 }
 
-pub fn sys_fork(f: &SyscallFrame) -> isize {
+pub fn sys_fork(_f: &SyscallFrame) -> isize {
     process::current().proc.fork().pid as _
 }
 

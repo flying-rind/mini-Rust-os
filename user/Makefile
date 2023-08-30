@@ -1,6 +1,6 @@
 ARCH := x86_64
 TARGET := $(shell cat ../targets.txt | grep $(ARCH))
-MODE := release
+MODE := debug
 APP_DIR := src/bin
 TARGET_DIR := target/$(ARCH)/$(MODE)
 APPS := $(wildcard $(APP_DIR)/*.rs)
