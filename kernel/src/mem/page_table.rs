@@ -203,15 +203,15 @@ pub struct PageTable {
     tables: Vec<PhysFrame>,
 }
 
-fn to_user(s: PageTableEntry) -> PageTableEntry {
-    PageTableEntry(s.0 | PageTableFlags::USER_ACCESSIBLE.bits() as usize)
-}
+// fn to_user(s: PageTableEntry) -> PageTableEntry {
+//     PageTableEntry(s.0 | PageTableFlags::USER_ACCESSIBLE.bits() as usize)
+// }
 
 impl PageTable {
     pub fn new() -> Self {
         let root_frame = PhysFrame::alloc_zero().unwrap();
         let p4 = table_of(root_frame.start_pa());
-        let current_pte = table_of(PhysAddr(get_cr3()));
+        let current_pte = table_of(PhysAddr(0x2000));
         for (index, entry) in current_pte.iter().enumerate() {
             if entry.0 != 0 {
                 p4[index] = *entry;
