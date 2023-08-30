@@ -1,6 +1,7 @@
 # 基于Rust的实验内核
 
-## 使用方法
+## 说明
+This is the os labs from NUDT with extended modules of process management. Don't propagate!!!
 
 ### 运行
 
