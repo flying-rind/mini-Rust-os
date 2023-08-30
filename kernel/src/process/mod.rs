@@ -2,62 +2,20 @@ pub mod manager;
 pub mod proc;
 pub mod task;
 
-use core::ops::DerefMut;
-// use mem;
-use core::mem::{self, size_of, transmute};
-use core::{cell::UnsafeCell, ops::Deref};
-
-use task::{TaskPtr, TASK_SIZE};
-
+use crate::my_x86_64;
 use crate::process::proc::{new_id, Proc};
 use crate::process::task::Context;
 use crate::process::task::{context_switch, Task};
+use crate::zero;
+use crate::Cell;
+use core::mem::{size_of, transmute};
+use task::{TaskPtr, TASK_SIZE};
 
 use self::manager::TaskManager;
 use self::proc::ProcPtr;
 
 use alloc::boxed::Box;
 use alloc::vec::Vec;
-
-#[inline(always)]
-pub const fn zero<T>() -> T {
-    unsafe { mem::MaybeUninit::zeroed().assume_init() }
-}
-
-#[derive(Debug, Default)]
-#[repr(transparent)]
-pub struct Cell<T>(UnsafeCell<T>);
-
-unsafe impl<T> Sync for Cell<T> {}
-
-impl<T> Cell<T> {
-    /// User is responsible to guarantee that inner struct is only used in
-    /// uniprocessor.
-    #[inline(always)]
-    pub const fn new(val: T) -> Self {
-        Self(UnsafeCell::new(val))
-    }
-
-    #[inline(always)]
-    pub fn get(&self) -> &mut T {
-        unsafe { &mut *self.0.get() }
-    }
-}
-
-impl<T> Deref for Cell<T> {
-    type Target = T;
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        self.get()
-    }
-}
-
-impl<T> DerefMut for Cell<T> {
-    #[inline(always)]
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.get()
-    }
-}
 
 static ROOT_PROC: Cell<usize> = zero();
 static TASK_MANAGER: Cell<TaskManager> = unsafe { transmute([1u8; size_of::<TaskManager>()]) };
@@ -95,28 +53,18 @@ pub fn init() -> ! {
         root,
         |_| {
             let cur = current();
-            // loop {
-            unsafe {
-                core::arch::asm!("cli");
-                // waitpid
-                // serial_println!("[proc 0] kfc crazy Thirsday v me 50");
-                serial_println!("[proc {}] kfc crazy Thirsday v me 50", cur.proc.pid);
-                fb_println!("[proc {}] kfc crazy Thirsday v me 50", cur.proc.pid);
-                // cur.proc.waitpid(-1);
-                core::arch::asm!("sti; hlt");
-                TASK_MANAGER.get().resched();
-                // serial_println!("task mc stone stopped.");
+            // Running idle and recycle orphans.
+            loop {
+                my_x86_64::disable_interrupts();
+                cur.proc.waitpid(-1);
+                my_x86_64::enable_interrupts_and_hlt();
             }
-            0x114514
-            // }
         },
         0,
     );
 
-    // let shell = root.fork();
-    // shell.exec(5, Vec::new());
-    let another_shell = root.fork();
-    another_shell.exec("user_shell", Vec::new());
+    let shell = root.fork();
+    shell.exec("00hello_world", Vec::new());
     unsafe {
         context_switch(&mut Context::default(), &TASK_MANAGER.get().dequene().ctx);
     }

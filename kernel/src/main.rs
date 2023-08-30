@@ -1,11 +1,56 @@
 #![no_std]
 #![no_main]
+#![feature(const_maybe_uninit_zeroed)]
 // #![warn(missing_docs)]
 // #![deny(warnings)]
 
 //! 内核主函数
 use bootloader_api::{config::Mapping, BootInfo, BootloaderConfig};
+use core::cell::UnsafeCell;
+use core::mem;
+use core::ops::Deref;
+use core::ops::DerefMut;
 use kernel::{app::loader::list_apps, mem::KERNEL_PHY_OFFSET};
+
+#[inline(always)]
+pub const fn zero<T>() -> T {
+    unsafe { mem::MaybeUninit::zeroed().assume_init() }
+}
+
+#[derive(Debug, Default)]
+#[repr(transparent)]
+pub struct Cell<T>(UnsafeCell<T>);
+
+unsafe impl<T> Sync for Cell<T> {}
+
+impl<T> Cell<T> {
+    /// User is responsible to guarantee that inner struct is only used in
+    /// uniprocessor.
+    #[inline(always)]
+    pub const fn new(val: T) -> Self {
+        Self(UnsafeCell::new(val))
+    }
+
+    #[inline(always)]
+    pub fn get(&self) -> &mut T {
+        unsafe { &mut *self.0.get() }
+    }
+}
+
+impl<T> Deref for Cell<T> {
+    type Target = T;
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        self.get()
+    }
+}
+
+impl<T> DerefMut for Cell<T> {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.get()
+    }
+}
 
 /// bootloader配置
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {

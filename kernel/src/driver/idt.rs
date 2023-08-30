@@ -3,6 +3,9 @@
 // use crate::app::batch::run_next_app;
 use crate::driver::pic::{notify_eoi, InterruptIndex};
 use crate::driver::serial::receive;
+use crate::process::current_yield;
+use crate::zero;
+use crate::Cell;
 use spin::Lazy;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
 
@@ -19,6 +22,8 @@ static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     idt.page_fault.set_handler_fn(page_fault_handler);
     idt
 });
+
+static TICKS: Cell<usize> = zero();
 
 /// 初始化中断描述符表
 pub fn init() {
@@ -37,13 +42,6 @@ extern "x86-interrupt" fn double_fault_handler(
 }
 
 extern "x86-interrupt" fn gpfault_handler(stack_frame: InterruptStackFrame, code: u64) {
-    // for cch2 test
-    // serial_println!(
-    //     "EXCEPTION: Genral Protection with code {}\n{:#?}",
-    //     code,
-    //     stack_frame
-    // );
-    // run_next_app();
     panic!(
         "EXCEPTION: Genral Protection with code {}\n{:#?}",
         code, stack_frame
@@ -54,13 +52,6 @@ extern "x86-interrupt" fn page_fault_handler(
     stack_frame: InterruptStackFrame,
     code: PageFaultErrorCode,
 ) {
-    // ch2测试
-    // serial_println!(
-    //     "EXCEPTION: Page Fault with code {:#?}\n{:#?}",
-    //     code,
-    //     stack_frame
-    // );
-    // run_next_app();
     panic!(
         "EXCEPTION: Page Fault with code {:#?}\n{:#?}",
         code, stack_frame
@@ -69,7 +60,11 @@ extern "x86-interrupt" fn page_fault_handler(
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
     crate::task::sleep::timer_tick();
+    *TICKS.get() += 1;
     notify_eoi(InterruptIndex::Timer as u8);
+    if *TICKS.get() % 5 == 0 {
+        current_yield();
+    }
 }
 
 extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {

@@ -1,12 +1,7 @@
 //! 内存管理模块
-
-use core::usize;
-
-// use crate::mem::page_table::PageTable;
-
-use self::page_table::PageTableOldv;
 use bootloader_api::info::MemoryRegions;
 use buddy_system_allocator::LockedHeap;
+use core::usize;
 use x86_64::{registers::control::Cr3, structures::paging::PageTableFlags};
 
 mod frame_allocator;
@@ -161,10 +156,6 @@ pub struct PhysAddr(pub usize);
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 #[repr(transparent)]
 pub struct VirtAddr(pub usize);
-
-// pub const fn phys_to_virt(pa: usize) -> usize {
-//     pa + PHYS_OFFSET
-// }
 
 pub const fn virt_to_phys(va: usize) -> usize {
     va - PHYS_OFFSET
