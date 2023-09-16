@@ -15,7 +15,7 @@ use self::manager::TaskManager;
 use self::proc::ProcPtr;
 
 use alloc::boxed::Box;
-// use alloc::vec::Vec;
+use alloc::vec::Vec;
 
 static ROOT_PROC: Cell<usize> = zero();
 static TASK_MANAGER: Cell<TaskManager> = unsafe { transmute([1u8; size_of::<TaskManager>()]) };
@@ -53,34 +53,35 @@ pub fn init() -> ! {
         root,
         |_| {
             let cur = current();
-            // Running idle and recycle orphans.
             loop {
-                my_x86_64::disable_interrupts();
-                serial_println!("proc 1: hello, world");
-                cur.proc.waitpid(-1);
-                my_x86_64::enable_interrupts_and_hlt();
+                fb_println!("[proc {} task {}] Hello world!", cur.proc.pid, cur.tid);
+                serial_println!("[proc {} task {}] Hello world!", cur.proc.pid, cur.tid);
+                TASK_MANAGER.get().resched();
             }
         },
         0,
     );
+
+    let another = Box::leak(Box::new(Proc {
+        pid: new_id(),
+        ..Proc::default()
+    }));
 
     Task::new(
-        root,
+        another,
         |_| {
             let cur = current();
-            // Running idle and recycle orphans.
             loop {
-                my_x86_64::disable_interrupts();
-                serial_println!("proc 2: goodbye, world");
-                cur.proc.waitpid(-1);
-                my_x86_64::enable_interrupts_and_hlt();
+                fb_println!("[proc {} task {}] Goodbye world!", cur.proc.pid, cur.tid);
+                serial_println!("[proc {} task {}] Goodbye world!", cur.proc.pid, cur.tid);
+                TASK_MANAGER.get().resched();
             }
         },
         0,
     );
 
-    // let shell = root.fork();
-    // shell.exec("00hello_world", Vec::new());
+    //
+
     unsafe {
         context_switch(&mut Context::default(), &TASK_MANAGER.get().dequene().ctx);
     }
