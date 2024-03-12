@@ -70,7 +70,7 @@ pub fn sys_read(fd: usize, buf: *mut u8, len: usize) -> isize {
                         EFAULT
                     };
                 } else {
-                    crate::process::task::current_yield();
+                    crate::process::current_yield();
                 }
             }
         }

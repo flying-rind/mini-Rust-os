@@ -31,7 +31,7 @@ static mut HEAP_SPACE: [u8; HEAP_PAGES * PAGE_SIZE] = [0; HEAP_PAGES * PAGE_SIZE
 /// 初始化内存管理
 pub fn init(memory_regions: &'static mut MemoryRegions) {
     // serial_println!("[dbg] {}.", kernel_base());
-    init_frame_allocator(memory_regions);
+    frame_allocator::init(memory_regions);
     page_table::init();
     // 初始化堆内存
     unsafe {
@@ -45,67 +45,6 @@ pub fn init(memory_regions: &'static mut MemoryRegions) {
 pub fn kernel_base() -> usize {
     Cr3::read().0.start_address().as_u64() as _
 }
-
-// pub fn set_pagetable_to_user() {
-//     let root = kernel_base();
-//     // let l0entr = unsafe { core::ptr::read(l0addr as *mut u64) };
-//     unsafe {
-//         for i in 0..512 {
-//             let l1entry = core::ptr::read((root + i * 8 + KERNEL_OFFSET) as *mut usize);
-//             if l1entry == 0 {
-//                 continue;
-//             } else {
-//                 core::ptr::write(
-//                     (root + i * 8 + KERNEL_OFFSET) as *mut usize,
-//                     0x7fff_ffff_ffff_ffff & l1entry
-//                         | PageTableFlags::USER_ACCESSIBLE.bits() as usize,
-//                 );
-//                 let l2addr = (l1entry >> 12) << 12;
-//                 for j in 0..512 {
-//                     let l2entry = core::ptr::read((l2addr + j * 8 + KERNEL_OFFSET) as *mut usize);
-//                     if l2entry == 0 {
-//                         continue;
-//                     } else {
-//                         core::ptr::write(
-//                             (l2addr + j * 8 + KERNEL_OFFSET) as *mut usize,
-//                             0x7fff_ffff_ffff_ffff & l2entry
-//                                 | PageTableFlags::USER_ACCESSIBLE.bits() as usize,
-//                         );
-//                         let l3addr = (l2entry >> 12) << 12;
-//                         for k in 0..512 {
-//                             let l3entry =
-//                                 core::ptr::read((l3addr + k * 8 + KERNEL_OFFSET) as *mut usize);
-//                             if l3entry == 0 {
-//                                 continue;
-//                             } else {
-//                                 core::ptr::write(
-//                                     (l3addr + k * 8 + KERNEL_OFFSET) as *mut usize,
-//                                     0x7fff_ffff_ffff_ffff & l3entry
-//                                         | PageTableFlags::USER_ACCESSIBLE.bits() as usize,
-//                                 );
-//                                 let l4addr = (l3entry >> 12) << 12;
-//                                 for l in 0..512 {
-//                                     let l4entry = core::ptr::read(
-//                                         (l4addr + l * 8 + KERNEL_OFFSET) as *mut usize,
-//                                     );
-//                                     if l4entry == 0 {
-//                                         continue;
-//                                     } else {
-//                                         core::ptr::write(
-//                                             (l4addr + l * 8 + KERNEL_OFFSET) as *mut usize,
-//                                             0x7fff_ffff_ffff_ffff & l4entry
-//                                                 | PageTableFlags::USER_ACCESSIBLE.bits() as usize,
-//                                         );
-//                                     }
-//                                 }
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
 
 #[test_case]
 fn test_heap() {

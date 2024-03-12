@@ -10,10 +10,10 @@ use xmas_elf::{
     {header, ElfFile},
 };
 
-global_asm!(include_str!("../link_app.S"));
+global_asm!(include_str!("link_app.S"));
 
 pub const USTACK_SIZE: usize = 4096 * 4;
-pub const USTACK_TOP: usize = 0x4000_0000_0000;
+pub const USTACK_TOP: usize = 0x8000_0000_0000;
 
 extern "C" {
     pub static _app_count: usize;

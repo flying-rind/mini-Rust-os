@@ -1,6 +1,6 @@
 //! 系统调用号和总控函数
 use self::process::*;
-use crate::process::task;
+use crate::process::*;
 
 const SYSCALL_READ: usize = 63;
 const SYSCALL_WRITE: usize = 64;
@@ -28,7 +28,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         SYSCALL_YIELD => sys_yield(),
         _ => {
             serial_println!("Unsupported syscall: {}", syscall_id);
-            task::current_exit(-1);
+            current_exit(-1);
         }
     };
     ret

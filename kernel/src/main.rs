@@ -7,7 +7,7 @@ use core::cell::UnsafeCell;
 use core::mem;
 use core::ops::Deref;
 use core::ops::DerefMut;
-use kernel::{app::loader::list_apps, mem::KERNEL_OFFSET};
+use kernel::{loader::list_apps, mem::KERNEL_OFFSET};
 
 #[inline(always)]
 pub const fn zero<T>() -> T {

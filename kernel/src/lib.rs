@@ -29,14 +29,13 @@ pub mod syscall;
 // 进程管理
 pub mod process;
 
+pub mod loader;
+
 // 中断时切换栈和中断处理模块
 pub mod trap;
 
 // 简化版的x86_64库
 pub mod my_x86_64;
-
-// 用户程序管理
-pub mod app;
 
 /// 各类初始化函数
 pub fn init(boot_info: &'static mut bootloader_api::BootInfo) {

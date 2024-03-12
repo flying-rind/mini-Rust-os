@@ -10,7 +10,7 @@ use super::PAGE_SIZE;
 static BIT_ALLOCATOR: Mutex<BitAlloc256M> = Mutex::new(BitAlloc256M::DEFAULT);
 
 /// 初始化页帧分配器
-pub fn init_frame_allocator(memory_regions: &'static mut MemoryRegions) {
+pub fn init(memory_regions: &'static mut MemoryRegions) {
     let mut ba = BIT_ALLOCATOR.lock();
     serial_println!("[Kernel] Memory regions:");
     for region in memory_regions.into_iter() {
