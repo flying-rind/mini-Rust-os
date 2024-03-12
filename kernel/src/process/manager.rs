@@ -1,44 +1,39 @@
-use core::mem::transmute;
-
-use alloc::collections::VecDeque;
-
-use super::{
-    current,
-    task::{Task, TaskPtr, TaskStatus},
-};
+use super::{task::*, *};
+use crate::*;
+use alloc::vec::Vec;
 
 #[derive(Default)]
 pub struct TaskManager {
-    runnable: VecDeque<TaskPtr>,
+    pub tasks: Vec<Box<Task>>,
 }
 
 impl TaskManager {
-    pub fn enquene(&mut self, t: &mut Task) {
-        self.runnable.push_back(unsafe { transmute(t) });
-    }
-
-    pub fn dequene(&mut self) -> TaskPtr {
-        self.runnable.pop_front().unwrap()
-    }
-
-    pub fn clear_zombie(&mut self) {
-        let len: usize = self.runnable.len();
-        for _ in 0..len {
-            let t = self.runnable.pop_front().unwrap();
-            if t.status == TaskStatus::Runnable {
-                self.runnable.push_back(t);
+    fn pick_next_task(&mut self) -> &mut Task {
+        let cur = current();
+        let start = if cur.status == TaskStatus::UnInit {
+            0
+        } else {
+            cur.id + 1
+        };
+        let mut i = 0;
+        let n = self.tasks.len();
+        loop {
+            let id = start + i;
+            let id = if id >= n { id - n } else { id };
+            if self.tasks[id].status == TaskStatus::Runnable {
+                if start == 1 && id == 0 {
+                    panic!("All applications completed! only idle task remains");
+                }
+                return &mut self.tasks[id];
             }
+            i += 1;
         }
     }
 
     pub fn resched(&mut self) {
-        serial_println!("[TaskManager] reschedule happened.");
         let cur = current();
-        if cur.status == TaskStatus::Runnable {
-            self.enquene(cur);
-        }
-        let nxt = self.dequene();
-        if cur as *const _ != nxt as *const _ {
+        let nxt = self.pick_next_task();
+        if cur as *const Task != nxt as *const Task {
             cur.switch_to(nxt);
         }
     }

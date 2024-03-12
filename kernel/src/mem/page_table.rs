@@ -1,160 +1,8 @@
-//! 虚拟内存映射
-
-use x86_64::{instructions::tlb, structures::paging::PageTableFlags};
-
-use super::{allocate_frame, phys_to_virt, PAGE_SIZE};
-
-/// 每个页表中页表项的数量
-const ENTRY_COUNT: usize = 512;
-
-/// 页表项中代表物理地址的区域掩码
-const PHYS_ADDR_MASK: usize = 0x000F_FFFF_FFFF_F000;
-
-/// 主要实现页表映射相关功能
-#[derive(Debug, Default)]
-pub struct PageTableOldv {
-    /// 页表的基地址
-    paddr: usize,
-}
-
-impl PageTableOldv {
-    /// 使用已有物理页帧作为基地址创建页表
-    pub fn new(paddr: usize) -> Self {
-        PageTableOldv { paddr }
-    }
-
-    /// 获取页表基地址
-    pub fn paddr(&self) -> usize {
-        self.paddr
-    }
-
-    /// 将paddr所在物理页帧映射至虚拟页page，并设置标记flags
-    pub fn map(&self, vaddr: usize, paddr: usize, flags: PageTableFlags) {
-        let vaddr = align_down(vaddr);
-        let paddr = align_down(paddr);
-
-        let entry = self.leaf_entry(vaddr);
-
-        if !pte_is_empty(*entry) {
-            let addr = pte_addr(*entry);
-            if addr == paddr {
-                pte_set_flags(entry, flags);
-            } else {
-                panic!("Already mapped");
-            }
-        } else {
-            pte_set_addr(entry, paddr);
-            pte_set_flags(entry, flags);
-        }
-
-        tlb::flush_all();
-    }
-
-    /// 返回给定虚地址的3级页表对应的页表项（期间可能需要创建中间页）
-    pub fn leaf_entry(&self, vaddr: usize) -> &mut usize {
-        let vaddr = align_down(vaddr);
-
-        let l0 = self.as_table(self.paddr());
-        let l0e = &mut l0[pte_l4_index(vaddr)];
-
-        let l1 = self.next_table(l0e);
-        let l1e = &mut l1[pte_l3_index(vaddr)];
-
-        let l2 = self.next_table(l1e);
-        let l2e = &mut l2[pte_l2_index(vaddr)];
-
-        let l3 = self.next_table(l2e);
-        let l3e = &mut l3[pte_l1_index(vaddr)];
-        l3e
-    }
-
-    /// 给定页表项，获取此页表项对应的下一级页表
-    pub fn next_table(&self, entry: &mut usize) -> &mut [usize] {
-        if pte_is_empty(*entry) {
-            let paddr = allocate_frame().expect("Failed to allocate frame");
-            unsafe { core::ptr::write_bytes((phys_to_virt(paddr)) as *mut u8, 0, PAGE_SIZE) };
-            pte_set_addr(entry, paddr);
-
-            // 准备映射时的标识
-            let flags = PageTableFlags::PRESENT
-                | PageTableFlags::WRITABLE
-                | PageTableFlags::USER_ACCESSIBLE;
-            // let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
-            pte_set_flags(entry, flags);
-
-            self.as_table(paddr)
-        } else {
-            if !pte_is_valid(*entry) {
-                panic!("Not mapped");
-            } else {
-                self.as_table(pte_addr(*entry))
-            }
-        }
-    }
-
-    /// 给定物理地址paddr，将此地址对应的页帧解析为页表项列表
-    pub fn as_table<'a>(&self, paddr: usize) -> &'a mut [usize] {
-        let ptr = (phys_to_virt(paddr)) as *mut usize;
-        unsafe { core::slice::from_raw_parts_mut(ptr, ENTRY_COUNT) }
-    }
-}
-
-/// 向下对齐
-fn align_down(addr: usize) -> usize {
-    addr & !(PAGE_SIZE - 1)
-}
-
-/// 获取4级页表目录
-fn pte_l4_index(pte: usize) -> usize {
-    (pte >> (12 + 27)) & (ENTRY_COUNT - 1)
-}
-
-/// 获取3级页表目录
-fn pte_l3_index(pte: usize) -> usize {
-    (pte >> (12 + 18)) & (ENTRY_COUNT - 1)
-}
-
-/// 获取2级页表目录
-fn pte_l2_index(pte: usize) -> usize {
-    (pte >> (12 + 9)) & (ENTRY_COUNT - 1)
-}
-
-/// 获取1级页表目录
-fn pte_l1_index(pte: usize) -> usize {
-    (pte >> 12) & (ENTRY_COUNT - 1)
-}
-
-/// 返回页表项包含的物理地址
-pub fn pte_addr(pte: usize) -> usize {
-    pte & PHYS_ADDR_MASK
-}
-
-/// 页表项是否为空
-pub fn pte_is_empty(pte: usize) -> bool {
-    pte == 0
-}
-
-/// 页表项是否有效
-pub fn pte_is_valid(pte: usize) -> bool {
-    (pte & 1) != 0
-}
-
-/// 设置页表项包含的物理地址
-pub fn pte_set_addr(pte: &mut usize, paddr: usize) {
-    *pte = paddr & PHYS_ADDR_MASK;
-}
-
-/// 设置页表项包含的标识
-pub fn pte_set_flags(pte: &mut usize, flags: PageTableFlags) {
-    *pte = (*pte & PHYS_ADDR_MASK) | flags.bits() as usize;
-    *pte = (*pte) & 0x7fff_ffff_ffff_ffff;
-}
-
 // 拿来主义
 
 use super::*;
 use crate::mem::memory_set::MapArea;
-use crate::my_x86_64::get_cr3;
+// use crate::my_x86_64::get_cr3;
 use crate::*;
 use alloc::vec;
 use alloc::vec::Vec;
@@ -217,6 +65,8 @@ impl PageTable {
                 p4[index] = *entry;
             }
         }
+        p4[p4_index(VirtAddr(KERNEL_OFFSET))] = *KERNEL_PTE;
+        p4[p4_index(VirtAddr(PHYS_OFFSET))] = *PHYS_PTE;
         Self {
             root_pa: root_frame.start_pa(),
             tables: vec![root_frame],
@@ -354,5 +204,5 @@ pub(crate) fn init() {
     *KERNEL_PTE.get() = p4[p4_index(VirtAddr(KERNEL_OFFSET))];
     *PHYS_PTE.get() = p4[p4_index(VirtAddr(PHYS_OFFSET))];
     // Cancel mapping in lowest addresses.
-    p4[0].0 = 0;
+    // p4[0].0 = 0;
 }

@@ -1,45 +1,29 @@
 ENTRY(_start)
 
-KERNEL_BEGIN = 0x0000008000000000;
+KERNEL_BEGIN = 0x8000000000;
 
 SECTIONS {
-
   . = KERNEL_BEGIN;
 
-  .rodata ALIGN(4K):
-  {
+  .rodata ALIGN(4K): {
     *(.rodata .rodata.*)
   }
 
-  .text ALIGN(4K):
-  {
-    stext = .;
-    _copy_user_start = .;
-    *(.text.copy_user)
-    _copy_user_end = .;
+  .text ALIGN(4K): {
     *(.text .text.*)
-    etext = .;
   }
 
-  .data ALIGN(4K):
-  {
+  .data ALIGN(4K): {
     *(.data .data.*)
     *(.sdata .sdata.*)
   }
 
-  .got ALIGN(4K):
-  {
+  .got ALIGN(4K): {
     *(.got .got.*)
   }
 
-  .bss ALIGN(4K):
-  {
+  .bss ALIGN(4K): {
     *(.bss .bss.*)
     *(.sbss .sbss.*)
-  }
-
-  ._user_section 0x0000008003000000:
-  {
-    KEEP(*(._user_section));
   }
 }

@@ -3,7 +3,7 @@
 // use crate::app::batch::run_next_app;
 use crate::driver::pic::{notify_eoi, InterruptIndex};
 use crate::driver::serial::receive;
-use crate::process::current_yield;
+use crate::process::task::current_yield;
 use crate::zero;
 use crate::Cell;
 use spin::Lazy;

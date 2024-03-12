@@ -37,8 +37,8 @@ pub struct CalleeRegs {
 #[derive(Debug, Default, Clone, Copy)]
 #[repr(C)]
 pub struct SyscallFrame {
-    pub caller: CallerRegs,
-    pub callee: CalleeRegs,
+    pub regs: CallerRegs,
+    pub rsp: usize,
 }
 
 #[derive(Debug, Default, Clone, Copy)]

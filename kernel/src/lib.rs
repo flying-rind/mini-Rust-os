@@ -1,7 +1,5 @@
 #![no_std]
 #![no_main]
-// // #![warn(missing_docs)]
-// // #![deny(warnings)]
 #![feature(custom_test_frameworks)]
 #![feature(alloc_error_handler)]
 #![test_runner(crate::test::test_runner)]
