@@ -4,9 +4,9 @@
 // 串口
 pub mod serial;
 
-#[macro_use]
+// #[macro_use]
 // FrameBuffer
-pub mod fb;
+// pub mod fb;
 
 // 中断描述符表
 pub mod idt;
@@ -14,5 +14,5 @@ pub mod idt;
 // 中断控制器
 pub mod pic;
 
-// 鼠标驱动
-pub mod mouse;
+// // 鼠标驱动
+// pub mod mouse;

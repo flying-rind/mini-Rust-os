@@ -5,7 +5,6 @@
 #![test_runner(crate::test::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 #![feature(abi_x86_interrupt)]
-#![feature(const_maybe_uninit_zeroed)]
 #![feature(new_uninit)]
 
 //! 包括内核主要模块和初始化部分，使集成测试程序和主程序可以复用大部分代码
@@ -24,20 +23,11 @@ pub mod driver;
 // 内存管理
 pub mod mem;
 
-// 任务管理
-pub mod task;
-
-// shell管理
-pub mod shell;
-
 // 添加系统调用
 pub mod syscall;
 
 // 进程管理
 pub mod process;
-
-// 测试管理
-pub mod test;
 
 // 中断时切换栈和中断处理模块
 pub mod trap;
@@ -52,13 +42,6 @@ pub mod app;
 pub fn init(boot_info: &'static mut bootloader_api::BootInfo) {
     // 初始化串口
     driver::serial::init();
-
-    // 初始化FrameBuffer
-    driver::fb::init(boot_info.framebuffer.as_mut().unwrap());
-
-    // 初始化鼠标设备
-    driver::mouse::init();
-
     // 初始化中断和陷入
     trap::init();
 
@@ -124,7 +107,6 @@ impl<T> DerefMut for Cell<T> {
 fn panic(info: &core::panic::PanicInfo) -> ! {
     // 格式化打印PanicInfo，通过串口输出至终端
     serial_println!("{}", info);
-    test::exit_qemu(test::QemuExitCode::Failed);
     hlt_loop();
 }
 

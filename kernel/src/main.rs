@@ -1,8 +1,5 @@
 #![no_std]
 #![no_main]
-#![feature(const_maybe_uninit_zeroed)]
-// #![warn(missing_docs)]
-// #![deny(warnings)]
 
 //! 内核主函数
 use bootloader_api::{config::Mapping, BootInfo, BootloaderConfig};
@@ -65,11 +62,7 @@ bootloader_api::entry_point!(kernel_main, config = &BOOTLOADER_CONFIG);
 /// 内核入口函数，参数为bootloader收集的硬件信息
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     kernel::init(boot_info);
-    // kernel::mem::set_pagetable_to_user();
-    // kernel::app::batch::init();
-    // kernel::app::batch::run_next_app();
-    // kernel::process::init();
     list_apps();
     kernel::process::init();
-    unreachable!("test only");
+    // unreachable!("test only");
 }

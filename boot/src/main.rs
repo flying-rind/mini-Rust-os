@@ -75,6 +75,9 @@ fn main() {
     // 添加串口设备
     qemu_cmd.arg("-serial").arg("mon:stdio");
 
+    // 去掉图形界面
+    qemu_cmd.arg("-nographic");
+
     // 执行测试时支持退出qemu操作
     qemu_cmd
         .arg("-device")
