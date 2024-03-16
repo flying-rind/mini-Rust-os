@@ -236,5 +236,5 @@ pub fn init() {
     let cr3 = my_x86_64::get_cr3();
     let p4 = table_of(PhysAddr(cr3));
     *KERNEL_PTE.get() = p4[p4_index(VirtAddr(KERNEL_OFFSET))];
-    *PHYS_PTE.get() = p4[p4_index(VirtAddr(PHYS_OFFSET))];
+    // *PHYS_PTE.get() = p4[p4_index(VirtAddr(PHYS_OFFSET))];
 }

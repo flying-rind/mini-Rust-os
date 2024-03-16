@@ -2,7 +2,7 @@
 use bootloader_api::info::MemoryRegions;
 use buddy_system_allocator::LockedHeap;
 use core::usize;
-use x86_64::{registers::control::Cr3, structures::paging::PageTableFlags};
+use x86_64::structures::paging::PageTableFlags;
 
 mod frame_allocator;
 pub mod memory_set;
@@ -16,13 +16,8 @@ pub const PAGE_SIZE: usize = 4096;
 /// 堆内存页数量
 pub const HEAP_PAGES: usize = 1024;
 
-pub const KERNEL_OFFSET: usize = 0x0000_0008_0000_0000;
+pub const KERNEL_OFFSET: usize = 0x80_0000_0000;
 pub const PHYS_OFFSET: usize = 0xFFFF_8000_0000_0000;
-
-/// 物理地址转虚拟地址
-pub const fn phys_to_virt(paddr: usize) -> usize {
-    KERNEL_OFFSET + paddr
-}
 
 #[global_allocator]
 static KERNEL_HEAP_ALLOCATOR: LockedHeap<32> = LockedHeap::new();
@@ -39,11 +34,6 @@ pub fn init(memory_regions: &'static mut MemoryRegions) {
             .lock()
             .init(HEAP_SPACE.as_ptr() as _, HEAP_PAGES * PAGE_SIZE);
     }
-}
-
-/// 获取内核态虚存基地址
-pub fn kernel_base() -> usize {
-    Cr3::read().0.start_address().as_u64() as _
 }
 
 #[test_case]
@@ -65,6 +55,11 @@ pub struct PhysAddr(pub usize);
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 #[repr(transparent)]
 pub struct VirtAddr(pub usize);
+
+/// 物理地址转虚拟地址
+pub const fn phys_to_virt(pa: usize) -> usize {
+    PHYS_OFFSET + pa
+}
 
 pub const fn virt_to_phys(va: usize) -> usize {
     va - PHYS_OFFSET

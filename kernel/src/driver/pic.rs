@@ -66,7 +66,7 @@ pub fn init() {
     unsafe { PICS.lock().write_masks(masks[0], masks[1]) };
 
     // CPU端开启中断
-    x86_64::instructions::interrupts::enable();
+    // x86_64::instructions::interrupts::enable();
 }
 
 /// 通知完成中断

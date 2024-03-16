@@ -1,11 +1,10 @@
 //! 中断描述符表模块
 
-// use crate::app::batch::run_next_app;
 use crate::driver::pic::{notify_eoi, InterruptIndex};
 use crate::driver::serial::receive;
-// use crate::process::task::current_yield;
-// use crate::zero;
-// use crate::Cell;
+use crate::process::current_yield;
+use crate::zero;
+use crate::Cell;
 use spin::Lazy;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
 
@@ -22,7 +21,7 @@ static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     idt
 });
 
-// static TICKS: Cell<usize> = zero();
+static TICKS: Cell<usize> = zero();
 
 /// 初始化中断描述符表
 pub fn init() {
@@ -59,11 +58,11 @@ extern "x86-interrupt" fn page_fault_handler(
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
     // crate::task::sleep::timer_tick();
-    // *TICKS.get() += 1;
+    *TICKS.get() += 1;
     notify_eoi(InterruptIndex::Timer as u8);
-    // if *TICKS.get() % 5 == 0 {
-    //     current_yield();
-    // }
+    if *TICKS.get() % 5 == 0 {
+        current_yield();
+    }
 }
 
 // extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
