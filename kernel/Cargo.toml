@@ -19,7 +19,6 @@ crossbeam-queue = { version = "0.3", default-features = false, features = [
 ] }
 futures-util = { version = "0.3", default-features = false }
 
-trapframe = "0.9.0"
 log = "0.4.19"
 xmas-elf = "0.8"
 bitflags = "1"

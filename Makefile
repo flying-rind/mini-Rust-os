@@ -1,8 +1,8 @@
 boot ?= uefi
-
+BUILDARGS = -Z build-std=core,alloc,compiler_builtins
 build:
-	cd user && make build
-	cd kernel && cargo build 
+	cd user && make build 
+	cd kernel && cargo build $(BUILDARGS)
 	cd boot && cargo build
 
 test: build

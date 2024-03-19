@@ -1,5 +1,7 @@
 ARCH := x86_64
-TARGET := $(shell cat ../targets.txt | grep $(ARCH))
+# TARGET := $(shell cat ../targets.txt | grep $(ARCH))
+TARGET := x86_64-unknown-none
+
 MODE := debug
 APP_DIR := src/bin
 TARGET_DIR := target/$(ARCH)/$(MODE)
