@@ -1,5 +1,5 @@
 boot ?= uefi
-BUILDARGS = -Z build-std=core,alloc,compiler_builtins
+BUILDARGS = -Z build-std=core,alloc,compiler_builtins --target x86_64.json
 build:
 	cd user && make build 
 	cd kernel && cargo build $(BUILDARGS)

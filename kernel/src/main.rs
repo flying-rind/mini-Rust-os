@@ -7,7 +7,7 @@ use core::cell::UnsafeCell;
 use core::mem;
 use core::ops::Deref;
 use core::ops::DerefMut;
-use kernel::{loader::list_apps, mem::PHYS_OFFSET};
+use kernel::{loader::list_apps, mem::PHYS_OFFSET, mem::KERNEL_STACK_ADDRESS};
 
 #[inline(always)]
 pub const fn zero<T>() -> T {
@@ -49,10 +49,11 @@ impl<T> DerefMut for Cell<T> {
     }
 }
 
-/// bootloader配置
+/// bootloader config
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {
     let mut config = BootloaderConfig::new_default();
     config.mappings.physical_memory = Some(Mapping::FixedAddress(PHYS_OFFSET as _));
+    config.mappings.kernel_stack = Mapping::FixedAddress(KERNEL_STACK_ADDRESS as _);
     config
 };
 

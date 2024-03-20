@@ -1,11 +1,12 @@
 [build]
 target = "x86_64-unknown-none"
 
-[target.x86_64-unknown-none]
-# 在kernel目录下执行cargo test时，无法直接运行kernel（内核不能单独运行），因此设置runner命令
-# 详见：https://doc.rust-lang.org/nightly/cargo/reference/config.html#targettriplerunner
-runner = "../boot/target/debug/boot"
-
 rustflags = [
     "-Clink-arg=-Tsrc/linker.ld",
+    # "-Crelocation-model=static",
+    # "-Zbuild-std with panic=\"abort\"",
 ]
+
+[unstable]
+build-std = ["core", "compiler_builtins", "alloc"]
+build-std-features = ["compiler-builtins-mem"]

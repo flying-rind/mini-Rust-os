@@ -10,10 +10,8 @@ spin = { version = "0.9" }
 x86_64 = "0.14"
 noto-sans-mono-bitmap = "0.2"
 pic8259 = "0.10"
-pc-keyboard = "0.7"
 bitmap-allocator = { git = "https://github.com/rcore-os/bitmap-allocator" }
 buddy_system_allocator = { version = "0.9" }
-ps2-mouse = "0.1"
 crossbeam-queue = { version = "0.3", default-features = false, features = [
     "alloc",
 ] }

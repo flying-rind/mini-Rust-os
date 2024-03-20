@@ -16,7 +16,7 @@ fn main() {
         PathBuf::from(&args[1])
     } else {
         // 否则，说明是在boot目录下执行cargo run，读取kernel ELF文件目录
-        PathBuf::from("../kernel/target/x86_64-unknown-none/debug/kernel")
+        PathBuf::from("../kernel/target/x86_64/debug/kernel")
     };
 
     // 创建UEFI启动镜像
@@ -70,7 +70,7 @@ fn main() {
     }
 
     // 设置内存大小
-    qemu_cmd.arg("-m").arg("2G");
+    qemu_cmd.arg("-m").arg("4G");
 
     // 添加串口设备
     qemu_cmd.arg("-serial").arg("mon:stdio");
