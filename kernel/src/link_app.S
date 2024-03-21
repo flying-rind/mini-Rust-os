@@ -2,14 +2,16 @@
 .data
 .global _app_count
 _app_count:
-.quad 3
+.quad 4
 .quad app_0_name
 .quad app_0_start
 .quad app_1_name
 .quad app_1_start
 .quad app_2_name
 .quad app_2_start
-.quad app_2_end
+.quad app_3_name
+.quad app_3_start
+.quad app_3_end
 
 .data
 app_0_name:
@@ -34,3 +36,11 @@ app_2_name:
 app_2_start:
   .incbin "../user/target/x86_64/debug/02power_7"
 app_2_end:
+
+.data
+app_3_name:
+  .string "03sleep"
+.align 8
+app_3_start:
+  .incbin "../user/target/x86_64/debug/03sleep"
+app_3_end:

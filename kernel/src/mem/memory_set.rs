@@ -1,13 +1,8 @@
-use alloc::collections::btree_map::Entry;
-use alloc::collections::BTreeMap;
-use core::fmt;
-pub const USTACK_SIZE: usize = 4096 * 4;
-pub const USTACK_TOP: usize = 0x8000_0000_0000;
 use super::*;
-use crate::mem::page_table::PageTable;
-use crate::mem::PhysFrame;
-use crate::mem::VirtAddr;
+use crate::mem::{page_table::PageTable, PhysFrame, VirtAddr};
 use crate::my_x86_64::set_cr3;
+use alloc::collections::{btree_map::Entry, BTreeMap};
+use core::fmt;
 use x86_64::structures::paging::PageTableFlags;
 
 pub struct MapArea {
@@ -74,8 +69,6 @@ impl MapArea {
                 let tmp = pa.kvaddr().as_ptr().add(pgoff);
                 core::slice::from_raw_parts_mut(tmp, n)
                     .copy_from_slice(&data[processed..processed + n]);
-                // core::slice::from_raw_parts_mut(pa.kvaddr().as_ptr().add(pgoff), n)
-                //     .copy_from_slice(&data[processed..processed + n]);
             }
             start += n;
             processed += n;

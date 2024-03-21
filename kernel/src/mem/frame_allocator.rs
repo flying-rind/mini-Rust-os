@@ -58,14 +58,9 @@ impl PhysFrame {
     }
 
     pub fn alloc() -> Option<Self> {
-        // unsafe {
-        // NonZeroUsize::new(BIT_ALLOCATOR.lock().alloc().unwrap())
-        //     .map(|id| PhysFrame(NonZeroUsize::new_unchecked(usize::from(id) * PAGE_SIZE)))
         let mut ba = BIT_ALLOCATOR.lock();
         let paddr = ba.alloc().map(|id| id * PAGE_SIZE).unwrap();
-        // Some(PhysFrame(NonZeroUsize::new_unchecked(paddr)))
         Some(PhysFrame(paddr))
-        // }
     }
 
     pub fn dealloc(pa: usize) {

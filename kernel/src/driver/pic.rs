@@ -64,9 +64,6 @@ pub fn init() {
     // 在BIOS的基础上打开串口应该是[0xa8, 0x8e]
     let masks = [0xa8, 0x8e];
     unsafe { PICS.lock().write_masks(masks[0], masks[1]) };
-
-    // CPU端开启中断
-    // x86_64::instructions::interrupts::enable();
 }
 
 /// 通知完成中断

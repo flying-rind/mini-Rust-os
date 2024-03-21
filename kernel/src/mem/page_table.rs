@@ -2,7 +2,6 @@
 
 use super::*;
 use crate::mem::memory_set::MapArea;
-// use crate::my_x86_64::get_cr3;
 use crate::*;
 use alloc::vec;
 use alloc::vec::Vec;

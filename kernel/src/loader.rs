@@ -48,6 +48,12 @@ pub fn get_app_data(app_id: usize) -> &'static [u8] {
     }
 }
 
+pub fn get_app_data_by_name(name: &str) -> Option<&'static [u8]> {
+    (0..get_app_count())
+        .find(|&i| get_app_name(i) == name)
+        .map(get_app_data)
+}
+
 pub fn list_apps() {
     serial_println!("/**** APPS ****");
     let app_count = get_app_count();
@@ -63,10 +69,7 @@ pub fn list_apps() {
     serial_println!("**************/");
 }
 
-pub fn load_app(app_id: usize) -> (usize, MemorySet) {
-    assert!(app_id < get_app_count());
-
-    let elf_data = get_app_data(app_id);
+pub fn load_app(elf_data: &[u8]) -> (usize, MemorySet) {
     let elf = ElfFile::new(elf_data).expect("invalid ELF file");
     assert_eq!(
         elf.header.pt1.class(),
