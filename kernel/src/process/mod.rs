@@ -3,8 +3,7 @@ use crate::mem::memory_set::MemorySet;
 use crate::{trap::*, *};
 use alloc::boxed::Box;
 use alloc::vec::Vec;
-use core::mem::size_of;
-use core::mem::transmute;
+use core::mem::{size_of, transmute};
 use loader;
 use manager::TaskManager;
 
