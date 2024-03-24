@@ -16,7 +16,7 @@ pub const PAGE_SIZE: usize = 4096;
 /// 堆内存页数量
 pub const HEAP_PAGES: usize = 1024;
 
-pub const KERNEL_OFFSET: usize = 0x80_0000_0000;
+pub const KERNEL_OFFSET: usize = 0xFFFF_FF00_0000_0000;
 pub const PHYS_OFFSET: usize = 0xFFFF_8000_0000_0000;
 
 #[global_allocator]
