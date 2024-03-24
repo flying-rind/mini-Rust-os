@@ -16,7 +16,7 @@ fn main() {
         PathBuf::from(&args[1])
     } else {
         // 否则，说明是在boot目录下执行cargo run，读取kernel ELF文件目录
-        PathBuf::from("../kernel/target/x86_64-unknown-none/debug/kernel")
+        PathBuf::from("../kernel/target/x86_64/debug/kernel")
     };
 
     // 创建UEFI启动镜像
@@ -88,12 +88,6 @@ fn main() {
         // 给qemu传递参数"-S -s"，使qemu停在第一条指令
         qemu_cmd.arg("-S").arg("-s");
     }
-
-    // qemu_cmd
-    //     .arg("-D")
-    //     .arg("/home/azufre/nudt-os-dev/qemulog.txt")
-    //     .arg("-d")
-    //     .arg("guest_errors");
 
     // 执行qemu模拟器命令
     let mut child = qemu_cmd.spawn().unwrap();
