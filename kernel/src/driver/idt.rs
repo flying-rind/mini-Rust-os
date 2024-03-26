@@ -14,7 +14,7 @@ static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     idt.double_fault.set_handler_fn(double_fault_handler);
     idt[InterruptIndex::Timer as usize].set_handler_fn(timer_interrupt_handler);
     // idt[InterruptIndex::Keyboard as usize].set_handler_fn(keyboard_interrupt_handler);
-    idt[InterruptIndex::Com1 as usize].set_handler_fn(com1_interrupt_handler);
+    // idt[InterruptIndex::Com1 as usize].set_handler_fn(com1_interrupt_handler);
     // idt[InterruptIndex::Mouse as usize].set_handler_fn(mouse_interrupt_handler);
     idt.general_protection_fault.set_handler_fn(gpfault_handler);
     idt.page_fault.set_handler_fn(page_fault_handler);
@@ -60,9 +60,9 @@ extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFr
     // crate::task::sleep::timer_tick();
     *TICKS.get() += 1;
     notify_eoi(InterruptIndex::Timer as u8);
-    if *TICKS.get() % 5 == 0 {
-        current_yield();
-    }
+    // if *TICKS.get() % 5 == 0 {
+    current_yield();
+    // }
 }
 
 // extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
@@ -73,8 +73,8 @@ extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFr
 //     notify_eoi(InterruptIndex::Keyboard as u8);
 // }
 
-extern "x86-interrupt" fn com1_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    let chr = receive();
-    serial_print!("{}", chr as char);
-    notify_eoi(InterruptIndex::Com1 as u8);
-}
+// extern "x86-interrupt" fn com1_interrupt_handler(_stack_frame: InterruptStackFrame) {
+//     let chr = receive();
+//     serial_print!("{}", chr as char);
+//     notify_eoi(InterruptIndex::Com1 as u8);
+// }
