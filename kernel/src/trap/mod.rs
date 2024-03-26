@@ -37,8 +37,8 @@ pub struct CalleeRegs {
 #[derive(Debug, Default, Clone, Copy)]
 #[repr(C)]
 pub struct SyscallFrame {
-    pub regs: CallerRegs,
-    pub rsp: usize,
+    pub caller: CallerRegs,
+    pub callee: CalleeRegs,
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -62,7 +62,6 @@ extern "C" {
     // 系统调用入口函数，定义在trap.s中
     fn syscall_entry();
     // 系统调用返回前调用，定义在trap.s中
-    // pub fn syscall_return(f: &CallerRegs) -> !;
     pub fn syscall_return(f: &SyscallFrame) -> !;
 }
 

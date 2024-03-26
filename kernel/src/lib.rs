@@ -12,16 +12,20 @@
 extern crate alloc;
 use core::{
     cell::UnsafeCell,
+    mem,
     mem::MaybeUninit,
     ops::{Deref, DerefMut},
 };
+
+pub use alloc::{boxed::Box, string::String, vec, vec::Vec};
+pub use mem::{size_of, size_of_val, transmute};
 
 #[macro_use]
 // 驱动管理
 pub mod driver;
 
 // 内存管理
-pub mod mem;
+pub mod mm;
 
 // 添加系统调用
 pub mod syscall;
@@ -51,7 +55,7 @@ pub fn init(boot_info: &'static mut bootloader_api::BootInfo) {
     driver::pic::init();
 
     // 初始化内存管理
-    mem::init(&mut boot_info.memory_regions);
+    mm::init(&mut boot_info.memory_regions);
 }
 
 /// 进入休眠状态
@@ -119,7 +123,7 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 pub static BOOTLOADER_CONFIG: bootloader_api::BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
     config.mappings.physical_memory = Some(bootloader_api::config::Mapping::FixedAddress(
-        mem::KERNEL_PHY_OFFSET as _,
+        mm::KERNEL_PHY_OFFSET as _,
     ));
     config
 };

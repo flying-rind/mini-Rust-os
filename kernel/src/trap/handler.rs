@@ -4,7 +4,6 @@ use super::*;
 // 系统调用处理函数
 #[no_mangle]
 pub extern "C" fn syscall_handler(f: &'static mut SyscallFrame) -> isize {
-    let r = &f.regs;
-    let ret = syscall::syscall(r.rax, [r.rdi, r.rsi, r.rdx]);
-    ret
+    let r = &f.caller;
+    syscall::syscall(r.rax, [r.rdi, r.rsi, r.rdx], f)
 }

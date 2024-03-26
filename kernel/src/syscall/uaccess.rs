@@ -1,4 +1,4 @@
-use crate::mem::KERNEL_OFFSET;
+use crate::mm::KERNEL_OFFSET;
 use core::mem::size_of;
 core::arch::global_asm!(include_str!("uaccess.S"));
 use alloc::string::String;

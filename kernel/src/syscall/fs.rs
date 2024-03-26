@@ -1,6 +1,5 @@
 use super::*;
 use crate::driver::serial::receive;
-use crate::*;
 
 const FD_STDIN: usize = 0;
 const FD_STDOUT: usize = 1;

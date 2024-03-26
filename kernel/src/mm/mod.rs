@@ -1,14 +1,15 @@
 //! 内存管理模块
 use bootloader_api::info::MemoryRegions;
 use buddy_system_allocator::LockedHeap;
-use core::usize;
 use x86_64::structures::paging::PageTableFlags;
 
-mod frame_allocator;
-pub mod memory_set;
-mod page_table;
-
 pub use frame_allocator::*;
+pub use memory_set::{MapArea, MemorySet};
+pub use page_table::{PageTable, PageTableEntry};
+
+mod frame_allocator;
+mod memory_set;
+mod page_table;
 
 /// 内存页大小
 pub const PAGE_SIZE: usize = 4096;

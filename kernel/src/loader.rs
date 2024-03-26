@@ -1,9 +1,6 @@
+use crate::mm::*;
 use core::arch::global_asm;
-
 use x86_64::structures::paging::PageTableFlags;
-
-use crate::mem::memory_set::{MapArea, MemorySet};
-use crate::mem::VirtAddr;
 
 use xmas_elf::{
     program::{SegmentData, Type},

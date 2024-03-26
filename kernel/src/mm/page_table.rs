@@ -1,7 +1,7 @@
 // 拿来主义
 
 use super::*;
-use crate::mem::memory_set::MapArea;
+use crate::mm::memory_set::MapArea;
 use crate::*;
 use alloc::vec;
 use alloc::vec::Vec;

@@ -1,5 +1,5 @@
 use super::*;
-use crate::mem::{page_table::PageTable, PhysFrame, VirtAddr};
+use crate::mm::{page_table::PageTable, PhysFrame, VirtAddr};
 use crate::my_x86_64::set_cr3;
 use alloc::collections::{btree_map::Entry, BTreeMap};
 use core::fmt;

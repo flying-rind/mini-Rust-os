@@ -45,7 +45,7 @@ pub fn deallocate_frame(frame: usize) {
 
 // 拿来主义
 
-use crate::mem::PhysAddr;
+use crate::mm::PhysAddr;
 
 #[derive(Debug)]
 #[repr(transparent)]
