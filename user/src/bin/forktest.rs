@@ -12,11 +12,12 @@ const MAX_CHILD: usize = 30;
 pub fn main() -> i32 {
     for i in 0..MAX_CHILD {
         let pid = fork();
+        println!("[Debug]: pid = {}", pid);
         if pid == 0 {
             println!("I am child {}", i);
             exit(0);
         } else {
-            println!("forked child pid = {}", pid);
+            println!("I'm father, forked child pid = {}", pid);
         }
         assert!(pid > 0);
     }

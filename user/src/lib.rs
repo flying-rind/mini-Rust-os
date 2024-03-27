@@ -44,7 +44,7 @@ pub fn getpid() -> isize {
 }
 
 pub fn fork() -> isize {
-    println!("[Debug]: in fork");
+    // println!("[Debug]: in fork");
     sys_fork()
 }
 

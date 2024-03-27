@@ -14,7 +14,7 @@ app_0_name:
   .string "forktest"
 .align 8
 app_0_start:
-  .incbin "../user/target/x86_64/debug/forktest"
+  .incbin "../user/target/x86_64/release/forktest"
 app_0_end:
 
 .data
@@ -22,5 +22,5 @@ app_1_name:
   .string "user_shell"
 .align 8
 app_1_start:
-  .incbin "../user/target/x86_64/debug/user_shell"
+  .incbin "../user/target/x86_64/release/user_shell"
 app_1_end:
