@@ -23,17 +23,17 @@ pub fn main() -> i32 {
 
     loop {
         let c = getchar();
-        println!("c:{} ", c);
+        // println!("c:{} ", c);
         match c {
             LF | CR => {
                 println!("");
                 if cursor > 0 {
                     line[cursor] = b'\0';
                     let pid = fork();
-                    // println!("[Debug]: After fork");
+                    println!("[Debug]: After fork");
                     if pid == 0 {
                         let path = core::str::from_utf8(&line[..cursor]).unwrap();
-                        println!("Path: {}", path);
+                        println!("[Debug]: Path: {}", path);
                         if exec(path) == -1 {
                             println!("command not found: {:?}", path);
                             return -4;

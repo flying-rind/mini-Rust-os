@@ -55,7 +55,7 @@ pub fn root_task() -> &'static mut Task {
 }
 
 pub fn current() -> &'static mut Task {
-    unsafe { &mut *((my_x86_64::read_rsp() & !(TASK_SIZE - 1)) as *mut Task) }
+    unsafe { &mut *((my_x86_64::read_rsp() & !(TASK_SIZE - 1)) as *mut _) }
 }
 
 pub fn current_yield() {

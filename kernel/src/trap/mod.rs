@@ -41,20 +41,6 @@ pub struct SyscallFrame {
     pub callee: CalleeRegs,
 }
 
-#[derive(Debug, Default, Clone, Copy)]
-#[repr(C)]
-pub struct TrapFrame {
-    pub regs: CallerRegs,
-    pub id: usize,
-    pub err: usize,
-    // Pushed by CPU
-    pub rip: usize,
-    pub cs: usize,
-    pub rflags: usize,
-    pub rsp: usize,
-    pub ss: usize,
-}
-
 const TSS_SIZE: usize = 104;
 
 extern "C" {
@@ -63,15 +49,6 @@ extern "C" {
     fn syscall_entry();
     // 系统调用返回前调用，定义在trap.s中
     pub fn syscall_return(f: &SyscallFrame) -> !;
-}
-
-// pub static mut TSS: [u8; TSS_SIZE] = [0; TSS_SIZE];
-
-#[inline]
-pub fn set_user_rsp(rsp: u64) {
-    unsafe {
-        (TSS.as_ptr().add(3 * 4) as *mut u64).write(rsp);
-    }
 }
 
 pub fn init() {
@@ -98,11 +75,12 @@ pub fn init() {
         limit: size_of_val(&GDT) as u16 - 1,
         base: GDT.as_ptr() as _,
     });
-    unsafe {
-        write_msr(KERNEL_GSBASE_MSR, TSS.as_ptr() as _);
-    }
+    // unsafe {
+    //     write_msr(KERNEL_GSBASE_MSR, TSS.as_ptr() as _);
+    // }
     my_x86_64::set_cs((1 << 3) | my_x86_64::RING0);
     my_x86_64::set_ss((2 << 3) | my_x86_64::RING0);
+
     load_tss((5 << 3) | RING0);
     set_msr(EFER_MSR, get_msr(EFER_MSR) | 1); // enable system call extensions
     set_msr(STAR_MSR, (2 << 3 << 48) | (1 << 3 << 32));
