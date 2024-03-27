@@ -3,6 +3,7 @@ use bootloader_api::info::MemoryRegions;
 use buddy_system_allocator::LockedHeap;
 use x86_64::structures::paging::PageTableFlags;
 
+use core::fmt;
 pub use frame_allocator::*;
 pub use memory_set::{MapArea, MemorySet};
 pub use page_table::{PageTable, PageTableEntry};
@@ -24,6 +25,9 @@ pub const KERNEL_OFFSET: usize = 0xFFFF_FF00_0000_0000;
 pub const KERNEL_STACK_ADDRESS: usize = 0xFFFF_FF10_0000_0000;
 pub const PHYS_OFFSET: usize = 0xFFFF_8000_0000_0000;
 
+// pub const PAGE_SIZE: usize = 4096;
+pub const ENTRY_COUNT: usize = 512;
+
 #[global_allocator]
 static KERNEL_HEAP_ALLOCATOR: LockedHeap<32> = LockedHeap::new();
 
@@ -40,18 +44,6 @@ pub fn init(memory_regions: &'static mut MemoryRegions) {
             .init(HEAP_SPACE.as_ptr() as _, HEAP_PAGES * PAGE_SIZE);
     }
 }
-
-#[test_case]
-fn test_heap() {
-    alloc::vec![1, 2, 3, 4, 5, 6];
-}
-
-// 拿来主义
-
-use core::fmt;
-
-// pub const PAGE_SIZE: usize = 4096;
-pub const ENTRY_COUNT: usize = 512;
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 #[repr(transparent)]

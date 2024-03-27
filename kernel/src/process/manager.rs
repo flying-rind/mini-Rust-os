@@ -2,7 +2,6 @@ use super::*;
 use crate::*;
 use alloc::collections::VecDeque;
 
-#[derive(Default)]
 pub struct TaskManager {
     runnable: VecDeque<Box<Task>>,
 }
@@ -11,7 +10,7 @@ impl TaskManager {
     pub fn new() -> Self {
         Self {
             runnable: VecDeque::new(),
-        }
+        } // Not a const function.
     }
 
     pub fn enqueue(&mut self, t: Box<Task>) {
@@ -31,5 +30,7 @@ impl TaskManager {
         if cur as *const _ != nxt as *const _ {
             cur.switch_to(nxt);
         }
+
+        // serial_println!("[TaskManager]: resched happened");
     }
 }

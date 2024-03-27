@@ -1,7 +1,7 @@
 //! 中断描述符表模块
 
 use crate::driver::pic::{notify_eoi, InterruptIndex};
-use crate::driver::serial::receive;
+// use crate::driver::serial::receive;
 use crate::process::current_yield;
 use crate::zero;
 use crate::Cell;
@@ -50,19 +50,17 @@ extern "x86-interrupt" fn page_fault_handler(
     stack_frame: InterruptStackFrame,
     code: PageFaultErrorCode,
 ) {
-    panic!(
-        "EXCEPTION: Page Fault with code {:#?}\n{:#?}",
-        code, stack_frame
-    );
+    // panic!(
+    //     "EXCEPTION: Page Fault with code {:#?}\n{:#?}",
+    //     code, stack_frame
+    // );
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
     // crate::task::sleep::timer_tick();
     *TICKS.get() += 1;
     notify_eoi(InterruptIndex::Timer as u8);
-    // if *TICKS.get() % 5 == 0 {
     current_yield();
-    // }
 }
 
 // extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {

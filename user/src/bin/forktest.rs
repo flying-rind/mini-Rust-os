@@ -10,14 +10,16 @@ const MAX_CHILD: usize = 30;
 
 #[no_mangle]
 pub fn main() -> i32 {
+    println!("[Debug]: entering forktest now");
+
     for i in 0..MAX_CHILD {
         let pid = fork();
-        println!("[Debug]: pid = {}", pid);
+        println!("[Debug]: pid: {}", pid);
         if pid == 0 {
             println!("I am child {}", i);
             exit(0);
         } else {
-            println!("I'm father, forked child pid = {}", pid);
+            println!("forked child pid = {}", pid);
         }
         assert!(pid > 0);
     }

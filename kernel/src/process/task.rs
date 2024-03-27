@@ -135,6 +135,7 @@ impl Task {
         let ret = t.id as _;
         self.add_child(&mut t);
         TASK_MANAGER.get().enqueue(t);
+        // serial_println!("[Debug]: child task enqueued");
         ret
     }
 
@@ -161,7 +162,7 @@ impl Task {
                     let ret = (child.id as _, child.exit_code);
                     unsafe {
                         Box::from_raw(child);
-                    }
+                    } // Drop it.
                     return ret;
                 }
             }

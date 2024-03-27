@@ -1,10 +1,5 @@
-// 拿来主义
-
 use super::*;
-use crate::mm::memory_set::MapArea;
 use crate::*;
-use alloc::vec;
-use alloc::vec::Vec;
 use core::fmt;
 
 static KERNEL_PTE: Cell<PageTableEntry> = zero();
@@ -27,13 +22,13 @@ impl PageTableEntry {
         PhysAddr(self.0 as usize & Self::PHYS_ADDR_MASK)
     }
     const fn flags(self) -> PageTableFlags {
-        PageTableFlags::from_bits_truncate(self.0 as u64)
+        PageTableFlags::from_bits_truncate(self.0 as _)
     }
     const fn is_unused(self) -> bool {
         self.0 == 0
     }
     const fn is_present(self) -> bool {
-        (self.0 & PageTableFlags::PRESENT.bits() as usize) != 0
+        (self.0 & (PageTableFlags::PRESENT.bits()) as usize) != 0
     }
 }
 
@@ -203,7 +198,7 @@ const fn p1_index(va: VirtAddr) -> usize {
 }
 
 fn table_of<'a>(pa: PhysAddr) -> &'a mut [PageTableEntry] {
-    let ptr = pa.kvaddr().as_ptr() as *mut PageTableEntry;
+    let ptr = pa.kvaddr().as_ptr() as *mut _;
     unsafe { core::slice::from_raw_parts_mut(ptr, ENTRY_COUNT) }
 }
 
@@ -236,5 +231,6 @@ pub fn init() {
     let p4 = table_of(PhysAddr(cr3));
     *KERNEL_PTE.get() = p4[p4_index(VirtAddr(KERNEL_OFFSET))];
     *PHYS_PTE.get() = p4[p4_index(VirtAddr(PHYS_OFFSET))];
+    // Cancel mapping in lowest addresses.
     p4[0].0 = 0;
 }

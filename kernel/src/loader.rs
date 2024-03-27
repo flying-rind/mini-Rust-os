@@ -105,7 +105,6 @@ pub fn load_app(elf_data: &[u8]) -> (usize, MemorySet) {
         let mut area = MapArea::new(area_start, area_end.0 - area_start.0, flags);
         area.write_data(offset, data);
         ms.insert(area);
-        // crate::arch::flush_icache_all();
     }
     ms.insert(MapArea::new(
         VirtAddr(USTACK_TOP - USTACK_SIZE),

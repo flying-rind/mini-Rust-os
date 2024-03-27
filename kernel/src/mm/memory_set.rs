@@ -1,9 +1,7 @@
 use super::*;
-use crate::mm::{page_table::PageTable, PhysFrame, VirtAddr};
-use crate::my_x86_64::set_cr3;
-use alloc::collections::{btree_map::Entry, BTreeMap};
+use crate::*;
+use alloc::collections::btree_map::{BTreeMap, Entry};
 use core::fmt;
-use x86_64::structures::paging::PageTableFlags;
 
 pub struct MapArea {
     pub start: VirtAddr,
@@ -13,7 +11,7 @@ pub struct MapArea {
 }
 
 pub struct MemorySet {
-    pub pt: PageTable,
+    pt: PageTable,
     areas: BTreeMap<VirtAddr, MapArea>,
 }
 
@@ -64,10 +62,10 @@ impl MapArea {
             let start_align = align_down(start);
             let pgoff = start - start_align;
             let n = (PAGE_SIZE - pgoff).min(remain);
+
             let pa = self.map(VirtAddr(self.start.0 + start_align));
             unsafe {
-                let tmp = pa.kvaddr().as_ptr().add(pgoff);
-                core::slice::from_raw_parts_mut(tmp, n)
+                core::slice::from_raw_parts_mut(pa.kvaddr().as_ptr().add(pgoff), n)
                     .copy_from_slice(&data[processed..processed + n]);
             }
             start += n;
@@ -107,7 +105,7 @@ impl MemorySet {
     }
 
     pub fn activate(&self) {
-        set_cr3(self.pt.root_pa.0);
+        my_x86_64::set_cr3(self.pt.root_pa.0);
     }
 }
 

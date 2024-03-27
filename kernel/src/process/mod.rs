@@ -60,4 +60,5 @@ pub fn current() -> &'static mut Task {
 
 pub fn current_yield() {
     TASK_MANAGER.get().resched();
+    // serial_println!("[Debug]: current_yield");
 }
