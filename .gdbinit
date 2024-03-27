@@ -4,7 +4,5 @@ b kernel_main
 c
 # b kernel::syscall::proc::sys_fork
 b sys_exec
-b sys_write
-c
 layout src
 
