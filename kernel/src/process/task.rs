@@ -1,5 +1,7 @@
 use super::*;
 use crate::{mm::*, trap::*, *};
+// use alloc::sync::{Arc, Weak};
+// use alloc::rc::{Rc, Weak};
 
 core::arch::global_asm!(include_str!("switch.S"));
 
@@ -14,7 +16,7 @@ extern "C" {
     pub fn context_switch(cur: &mut Context, nxt: &Context);
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 #[repr(i32)]
 pub enum TaskStatus {
     Runnable,
@@ -23,7 +25,7 @@ pub enum TaskStatus {
 
 pub const TASK_SIZE: usize = 8192;
 
-#[repr(C, align(8192))]
+#[repr(C, align(8192))] // TASK_SIZE
 pub struct Task {
     pub id: usize,
     pub status: TaskStatus,
@@ -50,6 +52,84 @@ fn new_id() -> usize {
 fn user_task_entry(_: usize) -> usize {
     unsafe {
         syscall_return(current().syscall_frame());
+    }
+}
+
+impl Task {
+    pub fn exit(&mut self, exit_code: i32) -> ! {
+        println!("[kernel] Task {} exited with code {}", self.id, exit_code);
+        self.vm = None;
+        self.exit_code = exit_code;
+        self.status = TaskStatus::Zombie;
+        for ch in &mut self.children {
+            root_task().add_child(ch);
+        }
+        self.children.clear();
+        TASK_MANAGER.get().resched();
+        unreachable!("task exited!");
+    }
+
+    pub fn fork(&mut self, f: &SyscallFrame) -> isize {
+        let mut t = new_kernel(user_task_entry, 0);
+        t.vm = self.vm.clone();
+        let f1 = t.syscall_frame();
+        *f1 = *f;
+        f1.caller.rax = 0;
+        let ret = t.id as _;
+        self.add_child(&mut t);
+        TASK_MANAGER.get().enqueue(t);
+        ret
+    }
+
+    pub fn exec(&mut self, path: &str, f: &mut SyscallFrame) -> isize {
+        if let Some(elf_data) = loader::get_app_data_by_name(path) {
+            let (entry, vm) = loader::load_app(elf_data);
+            self.vm = Some(vm);
+            f.caller.rcx = entry;
+            f.caller.r11 = my_x86_64::RFLAGS_IF;
+            f.callee.rsp = loader::USTACK_TOP;
+            0
+        } else {
+            -1
+        }
+    }
+
+    pub fn waitpid(&mut self, pid: isize) -> (isize, i32) {
+        let mut found_pid = false;
+        for (idx, t) in self.children.iter().enumerate() {
+            if pid == -1 || t.id == pid as usize {
+                found_pid = true;
+                if t.status == TaskStatus::Zombie {
+                    let child = self.children.remove(idx);
+                    let ret = (child.id as _, child.exit_code);
+                    unsafe {
+                        drop(Box::from_raw(child));
+                    } // Drop it.
+                    return ret;
+                }
+            }
+        }
+        (if found_pid { -2 } else { -1 }, 0)
+    }
+
+    pub fn syscall_frame(&mut self) -> &mut SyscallFrame {
+        unsafe { &mut *(self.kstack.as_ptr_range().end as *mut SyscallFrame).sub(1) }
+    }
+
+    pub fn switch_to(&mut self, nxt: &Task) {
+        if let Some(vm) = &nxt.vm {
+            vm.activate(); // user task
+        }
+        unsafe {
+            context_switch(&mut self.ctx, &nxt.ctx);
+        }
+    }
+
+    pub fn add_child(&mut self, child: &mut Task) {
+        unsafe {
+            child.parent = transmute(self as *mut _);
+            self.children.push(transmute(child));
+        }
     }
 }
 
@@ -86,87 +166,4 @@ pub fn new_user(entry: usize, vm: MemorySet) -> Box<Task> {
     f.caller.r11 = my_x86_64::RFLAGS_IF;
     f.callee.rsp = loader::USTACK_TOP;
     t
-}
-
-impl Task {
-    pub fn syscall_frame(&mut self) -> &mut SyscallFrame {
-        unsafe { &mut *(self.kstack.as_ptr_range().end as *mut SyscallFrame).sub(1) }
-    }
-
-    pub fn add_child(&mut self, child: &mut Task) {
-        unsafe {
-            child.parent = transmute(self as *mut _);
-            self.children.push(transmute(child));
-        }
-    }
-
-    pub fn switch_to(&mut self, nxt: &Task) {
-        if let Some(vm) = &nxt.vm {
-            vm.activate();
-        }
-        unsafe {
-            context_switch(&mut self.ctx, &nxt.ctx);
-        }
-    }
-
-    pub fn exit(&mut self, exit_code: i32) -> ! {
-        serial_println!(
-            "[Kernel] Task {} exited with exit code {}",
-            self.id,
-            exit_code
-        );
-        self.vm = None;
-        self.exit_code = exit_code;
-        self.status = TaskStatus::Zombie;
-        for ch in &mut self.children {
-            root_task().add_child(ch);
-        }
-        self.children.clear();
-        TASK_MANAGER.get().resched();
-        unreachable!("Error, task exited");
-    }
-
-    pub fn fork(&mut self, f: &SyscallFrame) -> isize {
-        let mut t = new_kernel(user_task_entry, 0);
-        t.vm = self.vm.clone();
-        let f1 = t.syscall_frame();
-        *f1 = *f;
-        f1.caller.rax = 0;
-        let ret = t.id as _;
-        self.add_child(&mut t);
-        TASK_MANAGER.get().enqueue(t);
-        // serial_println!("[Debug]: child task enqueued");
-        ret
-    }
-
-    pub fn exec(&mut self, path: &str, f: &mut SyscallFrame) -> isize {
-        if let Some(elf_data) = loader::get_app_data_by_name(path) {
-            let (entry, vm) = loader::load_app(elf_data);
-            self.vm = Some(vm);
-            f.caller.rcx = entry;
-            f.caller.r11 = my_x86_64::RFLAGS_IF;
-            f.callee.rsp = loader::USTACK_TOP;
-            0
-        } else {
-            -1
-        }
-    }
-
-    pub fn waitpid(&mut self, pid: isize) -> (isize, i32) {
-        let mut found_pid = false;
-        for (idx, t) in self.children.iter().enumerate() {
-            if pid == -1 || t.id == pid as usize {
-                found_pid = true;
-                if t.status == TaskStatus::Zombie {
-                    let child = self.children.remove(idx);
-                    let ret = (child.id as _, child.exit_code);
-                    unsafe {
-                        Box::from_raw(child);
-                    } // Drop it.
-                    return ret;
-                }
-            }
-        }
-        (if found_pid { -2 } else { -1 }, 0)
-    }
 }

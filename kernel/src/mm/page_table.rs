@@ -107,7 +107,7 @@ impl PageTable {
 
     #[allow(unused)]
     pub fn dump(&self, limit: usize) {
-        serial_println!("Root: {:x?}", self.root_pa);
+        println!("Root: {:x?}", self.root_pa);
         self.walk(
             table_of(self.root_pa),
             0,
@@ -115,9 +115,9 @@ impl PageTable {
             limit,
             &|level: usize, idx: usize, va: usize, entry: &PageTableEntry| {
                 for _ in 0..level {
-                    serial_print!("  ");
+                    print!("  ");
                 }
-                serial_println!("[{} - {:x}], {:08x?}: {:x?}", level, idx, va, entry);
+                println!("[{} - {:x}], {:08x?}: {:x?}", level, idx, va, entry);
             },
         );
     }

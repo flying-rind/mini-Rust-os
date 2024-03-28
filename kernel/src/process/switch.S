@@ -1,8 +1,9 @@
 .text
 .global context_switch
 context_switch: # (cur: &mut Context, nxt: &Context)
+  # Save cur's registers
   mov rax, [rsp] # return address
-  mov [rdi + 56], rax # 56 = offsetof(Context, rip) 存的是ip
+  mov [rdi + 56], rax # 56 = offsetof(Context, rip)
   mov [rdi + 0], rsp
   mov [rdi + 8], rbx
   mov [rdi + 16], rbp

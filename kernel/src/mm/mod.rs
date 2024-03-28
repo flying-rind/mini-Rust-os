@@ -1,6 +1,5 @@
 //! 内存管理模块
 use bootloader_api::info::MemoryRegions;
-use buddy_system_allocator::LockedHeap;
 use x86_64::structures::paging::PageTableFlags;
 
 use core::fmt;
@@ -9,14 +8,12 @@ pub use memory_set::{MapArea, MemorySet};
 pub use page_table::{PageTable, PageTableEntry};
 
 mod frame_allocator;
+mod heap_allocator;
 mod memory_set;
 mod page_table;
 
 /// 内存页大小
 pub const PAGE_SIZE: usize = 4096;
-
-/// 堆内存页数量
-pub const HEAP_PAGES: usize = 1024;
 
 // The virt address of kernel
 pub const KERNEL_OFFSET: usize = 0xFFFF_FF00_0000_0000;
@@ -28,21 +25,12 @@ pub const PHYS_OFFSET: usize = 0xFFFF_8000_0000_0000;
 // pub const PAGE_SIZE: usize = 4096;
 pub const ENTRY_COUNT: usize = 512;
 
-#[global_allocator]
-static KERNEL_HEAP_ALLOCATOR: LockedHeap<32> = LockedHeap::new();
-
-static mut HEAP_SPACE: [u8; HEAP_PAGES * PAGE_SIZE] = [0; HEAP_PAGES * PAGE_SIZE];
 /// 初始化内存管理
 pub fn init(memory_regions: &'static mut MemoryRegions) {
-    // serial_println!("[dbg] {}.", kernel_base());
+    // println!("[dbg] {}.", kernel_base());
+    heap_allocator::init();
     frame_allocator::init(memory_regions);
     page_table::init();
-    // 初始化堆内存
-    unsafe {
-        KERNEL_HEAP_ALLOCATOR
-            .lock()
-            .init(HEAP_SPACE.as_ptr() as _, HEAP_PAGES * PAGE_SIZE);
-    }
 }
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]

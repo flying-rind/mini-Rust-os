@@ -30,7 +30,5 @@ impl TaskManager {
         if cur as *const _ != nxt as *const _ {
             cur.switch_to(nxt);
         }
-
-        // serial_println!("[TaskManager]: resched happened");
     }
 }

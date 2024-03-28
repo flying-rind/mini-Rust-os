@@ -1,8 +1,6 @@
-use crate::mm::KERNEL_OFFSET;
-use core::mem::size_of;
+use crate::{mm::PHYS_OFFSET, *};
+
 core::arch::global_asm!(include_str!("uaccess.S"));
-use alloc::string::String;
-use alloc::vec::Vec;
 
 extern "C" {
     pub fn copy_user_start();
@@ -28,7 +26,7 @@ macro_rules! gen {
         impl ReadUser<$t> for *const $t {
             fn read_user(self) -> Option<$t> {
                 let mut dst = 0;
-                if (self as usize) < KERNEL_OFFSET - size_of::<$t>()
+                if (self as usize) < PHYS_OFFSET - size_of::<$t>()
                     && unsafe { $f(&mut dst, self) == 0 }
                 {
                     Some(dst)
@@ -40,8 +38,7 @@ macro_rules! gen {
 
         impl WriteUser<$t> for *mut $t {
             fn write_user(self, src: $t) -> Option<()> {
-                if (self as usize) < KERNEL_OFFSET - size_of::<$t>()
-                    && unsafe { $f(self, &src) == 0 }
+                if (self as usize) < PHYS_OFFSET - size_of::<$t>() && unsafe { $f(self, &src) == 0 }
                 {
                     Some(())
                 } else {
@@ -59,8 +56,7 @@ gen!(usize, copy_user64);
 
 pub fn read_array<const N: usize>(src: *const u8, len: usize) -> Option<[u8; N]> {
     let mut dst = unsafe { core::mem::MaybeUninit::<[u8; N]>::uninit().assume_init() };
-    if (src as usize) < KERNEL_OFFSET - N && unsafe { copy_user_n(dst.as_mut_ptr(), src, len) == 0 }
-    {
+    if (src as usize) < PHYS_OFFSET - N && unsafe { copy_user_n(dst.as_mut_ptr(), src, len) == 0 } {
         Some(dst)
     } else {
         None

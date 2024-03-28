@@ -11,7 +11,6 @@ pub fn read_rsp() -> usize {
 
 #[inline(always)]
 pub fn in8(port: u16) -> u8 {
-    // ::x86_64::instructions::port::Port::read()
     let val: u8;
     unsafe {
         asm!("in al, dx", out("al") val, in("dx") port, options(nomem, nostack, preserves_flags));
@@ -20,41 +19,9 @@ pub fn in8(port: u16) -> u8 {
 }
 
 #[inline(always)]
-pub fn in16(port: u16) -> u16 {
-    let val: u16;
-    unsafe {
-        asm!("in ax, dx", out("ax") val, in("dx") port, options(nomem, nostack, preserves_flags));
-    }
-    val
-}
-
-#[inline(always)]
-pub fn in32(port: u16) -> u32 {
-    let val: u32;
-    unsafe {
-        asm!("in eax, dx", out("eax") val, in("dx") port, options(nomem, nostack, preserves_flags));
-    }
-    val
-}
-
-#[inline(always)]
 pub fn out8(port: u16, val: u8) {
     unsafe {
         asm!("out dx, al", in("dx") port, in("al") val, options(nomem, nostack, preserves_flags));
-    }
-}
-
-#[inline(always)]
-pub fn out16(port: u16, val: u16) {
-    unsafe {
-        asm!("out dx, ax", in("dx") port, in("ax") val, options(nomem, nostack, preserves_flags));
-    }
-}
-
-#[inline(always)]
-pub fn out32(port: u16, val: u32) {
-    unsafe {
-        asm!("out dx, eax", in("dx") port, in("eax") val, options(nomem, nostack, preserves_flags));
     }
 }
 
@@ -137,14 +104,14 @@ pub fn load_tss(sel: u16) {
 pub fn set_cs(sel: u16) {
     unsafe {
         asm!(
-        "push {sel}",
-        "lea {tmp}, [1f + rip]",
-        "push {tmp}",
-        "retfq",
-        "1:",
-        sel = in(reg) sel as usize,
-        tmp = lateout(reg) _,
-        options(preserves_flags),
+          "push {sel}",
+          "lea {tmp}, [1f + rip]",
+          "push {tmp}",
+          "retfq",
+          "1:",
+          sel = in(reg) sel as usize,
+          tmp = lateout(reg) _,
+          options(preserves_flags),
         );
     }
 }
@@ -170,14 +137,5 @@ pub fn get_cr3() -> usize {
 pub fn set_cr3(pa: usize) {
     unsafe {
         asm!("mov cr3, {}", in(reg) pa, options(nostack, preserves_flags));
-    }
-}
-
-pub const KERNEL_GSBASE_MSR: u32 = 0xC000_0102;
-pub fn write_msr(id: u32, val: u64) {
-    let low = val as u32;
-    let high = (val >> 32) as u32;
-    unsafe {
-        asm!("wrmsr", in("ecx") id, in("eax") low, in("edx") high, options(nostack, preserves_flags));
     }
 }

@@ -1,70 +1,79 @@
 //! 物理页帧初始化
 
-use bitmap_allocator::{BitAlloc, BitAlloc256M};
+use super::*;
+use crate::*;
 use bootloader_api::info::{MemoryRegionKind, MemoryRegions};
-use spin::Mutex;
+use core::num::NonZeroUsize;
 
 use super::PAGE_SIZE;
 
-/// 使用bitmap_allocator库定义全局BIT_ALLOCATOR
-static BIT_ALLOCATOR: Mutex<BitAlloc256M> = Mutex::new(BitAlloc256M::DEFAULT);
+static FRAME_ALLOCATOR: Cell<FreeListAllocator> = Cell::new(FreeListAllocator {
+    current: 0,
+    end: 0,
+    free_list: Vec::new(),
+});
+
+trait FrameAllocator {
+    fn alloc(&mut self) -> Option<usize>;
+    fn dealloc(&mut self, value: usize);
+}
+
+pub struct FreeListAllocator {
+    current: usize,
+    end: usize,
+    free_list: Vec<usize>,
+}
+
+impl FreeListAllocator {
+    fn alloc(&mut self) -> Option<NonZeroUsize> {
+        let mut ret = 0;
+        if let Some(x) = self.free_list.pop() {
+            ret = x;
+        } else if self.current < self.end {
+            ret = self.current;
+            self.current += PAGE_SIZE;
+        };
+        NonZeroUsize::new(ret)
+    }
+
+    fn dealloc(&mut self, value: usize) {
+        assert!(!self.free_list.contains(&value));
+        self.free_list.push(value);
+    }
+}
 
 /// 初始化页帧分配器
 pub fn init(memory_regions: &'static mut MemoryRegions) {
-    let mut ba = BIT_ALLOCATOR.lock();
-    serial_println!("[Kernel] Memory regions:");
+    let (mut start, mut size) = (0, 0);
+    println!("[Kernel] Memory regions:");
     for region in memory_regions.into_iter() {
-        serial_println!("    {:x?}", region);
+        println!("    {:x?}", region);
         if region.kind == MemoryRegionKind::Usable {
-            let start = region.start as usize;
-            let end = region.end;
-            let start_frame = start as usize / PAGE_SIZE;
-            let end_frame = end as usize / PAGE_SIZE;
-            ba.insert(start_frame..end_frame);
+            let region_start = region.start as usize;
+            let region_end = region.end as usize;
+            let start_frame = region_start as usize / PAGE_SIZE;
+            let end_frame = region_end as usize / PAGE_SIZE;
+            if end_frame - start_frame > size {
+                size = end_frame - start_frame;
+                start = region_start;
+            }
         }
     }
+    FRAME_ALLOCATOR.get().current = start;
+    FRAME_ALLOCATOR.get().end = start + size;
 }
-
-/// 申请一个可用页帧，返回首地址
-pub fn allocate_frame() -> Option<usize> {
-    let mut ba = BIT_ALLOCATOR.lock();
-    ba.alloc().map(|id| id * PAGE_SIZE)
-}
-
-/// 申请一组连续的页帧，返回第一个页帧的首地址
-pub fn allocate_frame_cont(size: usize) -> Option<usize> {
-    let mut ba = BIT_ALLOCATOR.lock();
-    ba.alloc_contiguous(size, 0).map(|id| id * PAGE_SIZE)
-}
-
-/// 释放给定地址的物理页帧
-pub fn deallocate_frame(frame: usize) {
-    let mut ba = BIT_ALLOCATOR.lock();
-    ba.dealloc(frame / PAGE_SIZE)
-}
-
-// 拿来主义
-
-use crate::mm::PhysAddr;
 
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct PhysFrame(usize);
+pub struct PhysFrame(NonZeroUsize);
 
 impl PhysFrame {
     pub const fn start_pa(&self) -> PhysAddr {
-        // PhysAddr(self.0.get())
-        PhysAddr(self.0)
+        PhysAddr(self.0.get())
     }
 
     pub fn alloc() -> Option<Self> {
-        let mut ba = BIT_ALLOCATOR.lock();
-        let paddr = ba.alloc().map(|id| id * PAGE_SIZE).unwrap();
-        Some(PhysFrame(paddr))
-    }
-
-    pub fn dealloc(pa: usize) {
-        BIT_ALLOCATOR.lock().dealloc(pa)
+        FRAME_ALLOCATOR.get().alloc().map(Self)
     }
 
     pub fn alloc_zero() -> Option<Self> {
@@ -84,6 +93,6 @@ impl PhysFrame {
 
 impl Drop for PhysFrame {
     fn drop(&mut self) {
-        BIT_ALLOCATOR.lock().dealloc(self.0);
+        FRAME_ALLOCATOR.get().dealloc(self.0.get());
     }
 }

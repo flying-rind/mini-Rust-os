@@ -3,51 +3,7 @@
 
 //! 内核主函数
 use bootloader_api::{config::Mapping, BootInfo, BootloaderConfig};
-use core::cell::UnsafeCell;
-use core::mem;
-use core::ops::Deref;
-use core::ops::DerefMut;
 use kernel::{loader::list_apps, mm::KERNEL_STACK_ADDRESS, mm::PHYS_OFFSET};
-
-#[inline(always)]
-pub const fn zero<T>() -> T {
-    unsafe { mem::MaybeUninit::zeroed().assume_init() }
-}
-
-#[derive(Debug, Default)]
-#[repr(transparent)]
-pub struct Cell<T>(UnsafeCell<T>);
-
-unsafe impl<T> Sync for Cell<T> {}
-
-impl<T> Cell<T> {
-    /// User is responsible to guarantee that inner struct is only used in
-    /// uniprocessor.
-    #[inline(always)]
-    pub const fn new(val: T) -> Self {
-        Self(UnsafeCell::new(val))
-    }
-
-    #[inline(always)]
-    pub fn get(&self) -> &mut T {
-        unsafe { &mut *self.0.get() }
-    }
-}
-
-impl<T> Deref for Cell<T> {
-    type Target = T;
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        self.get()
-    }
-}
-
-impl<T> DerefMut for Cell<T> {
-    #[inline(always)]
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.get()
-    }
-}
 
 /// bootloader config
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {

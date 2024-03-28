@@ -5,6 +5,7 @@ use crate::*;
 use manager::TaskManager;
 use task::*;
 
+// Dirty hack. rustc is unhappy about zero value in VecDeque.
 static TASK_MANAGER: Cell<TaskManager> = unsafe { transmute([1u8; size_of::<TaskManager>()]) };
 static ROOT_TASK: Cell<usize> = zero();
 
@@ -14,6 +15,7 @@ pub fn init() -> ! {
     m.enqueue(new_kernel(
         |_| {
             let cur = current();
+            // Running idle and recycle orphans.
             loop {
                 my_x86_64::disable_interrupts();
                 cur.waitpid(-1);
@@ -22,23 +24,20 @@ pub fn init() -> ! {
         },
         0,
     ));
-
     m.enqueue(new_kernel(
         |arg| {
-            serial_println!("test kernel task 0: arg = {:#x}", arg);
+            println!("test kernel task 0: arg = {:#x}", arg);
             0
         },
         0xdead,
     ));
-
     m.enqueue(new_kernel(
         |arg| {
-            serial_println!("test kernel task 1: arg = {:#x}", arg);
+            println!("test kernel task 1: arg = {:#x}", arg);
             0
         },
         0xbeef,
     ));
-
     let (entry, vm) = loader::load_app(loader::get_app_data_by_name("user_shell").unwrap());
     m.enqueue(new_user(entry, vm));
     let root = m.dequeue();
@@ -60,5 +59,4 @@ pub fn current() -> &'static mut Task {
 
 pub fn current_yield() {
     TASK_MANAGER.get().resched();
-    // serial_println!("[Debug]: current_yield");
 }

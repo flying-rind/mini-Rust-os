@@ -89,12 +89,6 @@ fn main() {
         qemu_cmd.arg("-S").arg("-s");
     }
 
-    // qemu_cmd
-    //     .arg("-D")
-    //     .arg("/home/azufre/nudt-os-dev/qemulog.txt")
-    //     .arg("-d")
-    //     .arg("guest_errors");
-
     // 执行qemu模拟器命令
     let mut child = qemu_cmd.spawn().unwrap();
     child.wait().unwrap();

@@ -1,7 +1,3 @@
-//! 系统调用号和总控函数
-use crate::{trap::SyscallFrame, *};
-use proc::*;
-
 const SYSCALL_READ: usize = 63;
 const SYSCALL_WRITE: usize = 64;
 const SYSCALL_EXIT: usize = 93;
@@ -11,13 +7,17 @@ const SYSCALL_GETPID: usize = 172;
 const SYSCALL_FORK: usize = 220;
 const SYSCALL_EXEC: usize = 221;
 const SYSCALL_WAITPID: usize = 260;
+
 const EFAULT: isize = -1;
 
 mod fs;
 mod proc;
 mod uaccess;
 
+use crate::{trap::SyscallFrame, *};
 use fs::*;
+use proc::*;
+
 pub use uaccess::*;
 
 pub fn syscall(syscall_id: usize, args: [usize; 3], f: &mut SyscallFrame) -> isize {
@@ -26,13 +26,12 @@ pub fn syscall(syscall_id: usize, args: [usize; 3], f: &mut SyscallFrame) -> isi
         SYSCALL_WRITE => sys_write(args[0], args[1] as _, args[2]),
         SYSCALL_EXIT => sys_exit(args[0] as i32),
         SYSCALL_YIELD => sys_yield(),
-        // SYSCALL_GET_TIME => ,
         SYSCALL_GETPID => sys_getpid(),
         SYSCALL_FORK => sys_fork(f),
         SYSCALL_EXEC => sys_exec(args[0] as _, f),
         SYSCALL_WAITPID => sys_waitpid(args[0] as _, args[1] as _),
         _ => {
-            serial_println!("Unsupported syscall: {}", syscall_id);
+            println!("Unsupported syscall: {}", syscall_id);
             process::current().exit(-1);
         }
     };

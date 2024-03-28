@@ -52,18 +52,18 @@ pub fn get_app_data_by_name(name: &str) -> Option<&'static [u8]> {
 }
 
 pub fn list_apps() {
-    serial_println!("/**** APPS ****");
+    println!("/**** APPS ****");
     let app_count = get_app_count();
     for i in 0..app_count {
         let data = get_app_data(i);
-        serial_println!(
+        println!(
             "{}: [{:?}, {:?})",
             get_app_name(i),
             data.as_ptr_range().start,
             data.as_ptr_range().end
         );
     }
-    serial_println!("**************/");
+    println!("**************/");
 }
 
 pub fn load_app(elf_data: &[u8]) -> (usize, MemorySet) {
@@ -111,6 +111,8 @@ pub fn load_app(elf_data: &[u8]) -> (usize, MemorySet) {
         USTACK_SIZE,
         PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
     ));
+
+    println!("[Debug]: entry {:?}", elf.header.pt2.entry_point() as usize);
 
     (elf.header.pt2.entry_point() as usize, ms)
 }

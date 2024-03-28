@@ -29,6 +29,20 @@ TSS:
   pop r11
 .endm
 
+.global __trap_entry
+__trap_entry:
+  save
+  mov rdi, rsp
+  call trap_handler
+  mov rax, [rsp + 96] # 96 = offsetof(TrapFrame, cs)
+  and rax, 0x3
+  jz __from_kernel
+  lea rax, [rsp + 128] # prepare new TSS.sp0, 128 = sizeof(TrapFrame)
+  mov [TSS + rip + 4], rax
+__from_kernel:
+  restore
+  add rsp, 16 # skip TrapFrame.err and id
+  iretq
 
 .global syscall_entry
 syscall_entry:
