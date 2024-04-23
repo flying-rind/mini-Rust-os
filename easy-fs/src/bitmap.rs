@@ -1,6 +1,6 @@
 use crate::BLOCK_SIZE;
 
-use super::{block_dev::BlockDevice, block_cache::get_block_cache};
+use super::{BlockDevice, get_block_cache};
 use alloc::sync::Arc;
 
 /// 磁盘数据结构
