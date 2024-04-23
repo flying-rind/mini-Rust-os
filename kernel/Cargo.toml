@@ -20,6 +20,7 @@ futures-util = { version = "0.3", default-features = false }
 log = "0.4.19"
 xmas-elf = "0.8"
 bitflags = "1"
+easy-fs = {path = "../easy-fs"}
 
 [[bin]]
 name = "kernel"

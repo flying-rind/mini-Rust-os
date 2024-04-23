@@ -9,21 +9,16 @@
             "request": "launch",
             // "preLaunchTask": "gdb",
             "name": "Attach to gdbserver",
-            "program": "/home/azufre/nudt-os-dev/kernel/target/x86_64-unknown-none/debug/kernel",
+            "program": "/home/mangp/nudt-os-dev-process/easy-fs-fuse/target/release/easy-fs-fuse",
             "miDebuggerServerAddress": "localhost:1234",
             "miDebuggerPath": "gdb",
-            "cwd": "/home/azufre/nudt-os-dev/kernel",
+            "cwd": "/home/mangp/nudt-os-dev-process/easy-fs-fuse",
             "setupCommands": [
                 {
                     "description": "enable pretty print for gdb",
                     "text": "-enable=pretty-printing",
                     "ignoreFailures": true,
                 },
-                // {
-                //     "description": "execute .gdbinit file",
-                //     "text": "-x /home/azufre/nudt-os-dev/.gdbinit",
-                //     "ignoreFailures": true,
-                // }
             ]
         }
     ]

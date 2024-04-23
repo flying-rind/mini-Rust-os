@@ -1,15 +1,10 @@
-use crate::BLOCK_SIZE;
-
-use super::{BlockDevice, get_block_cache};
+use super::{get_block_cache, BlockDevice, BLOCK_SIZE};
 use alloc::sync::Arc;
 
-/// 磁盘数据结构
 type BitmapBlock = [u64; 64];
 
 const BLOCK_BITS: usize = BLOCK_SIZE * 8;
 
-
-/// 驻留在内存中
 pub struct Bitmap {
     start_block_id: usize,
     blocks: usize,
@@ -17,9 +12,9 @@ pub struct Bitmap {
 
 /// Return (block_pos, bits64_pos, inner_pos)
 fn decomposition(mut bit: usize) -> (usize, usize, usize) {
-    let block_pos = bit/BLOCK_BITS;
+    let block_pos = bit / BLOCK_BITS;
     bit %= BLOCK_BITS;
-    (block_pos, bit / 64, bit %64)
+    (block_pos, bit / 64, bit % 64)
 }
 
 impl Bitmap {
