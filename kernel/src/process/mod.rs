@@ -1,7 +1,7 @@
 mod manager;
 mod task;
 
-use crate::*;
+use crate::{fs::OpenFlags, *};
 use manager::TaskManager;
 use task::*;
 
@@ -38,7 +38,11 @@ pub fn init() -> ! {
         },
         0xbeef,
     ));
-    let (entry, vm) = loader::load_app(loader::get_app_data_by_name("user_shell").unwrap());
+    let (entry, vm) = mm::load_app(
+        &fs::open_file("user_shell", OpenFlags::RDONLY)
+            .unwrap()
+            .read_all(),
+    );
     m.enqueue(new_user(entry, vm));
     let root = m.dequeue();
     unsafe {

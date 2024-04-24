@@ -101,6 +101,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "isomorphic_drivers"
+version = "0.1.0"
+source = "git+https://github.com/rcore-os/isomorphic_drivers#f7cd97a867057142f06de7f254accf7960514a79"
+dependencies = [
+ "bit_field",
+ "bitflags",
+ "spin 0.9.8",
+ "volatile 0.3.0",
+]
+
+[[package]]
 name = "kernel"
 version = "0.1.0"
 dependencies = [
@@ -111,9 +122,10 @@ dependencies = [
  "crossbeam-queue",
  "easy-fs",
  "futures-util",
+ "isomorphic_drivers",
  "log",
  "noto-sans-mono-bitmap",
- "pic8259",
+ "pci",
  "spin 0.9.8",
  "uart_16550",
  "x86_64",
@@ -152,12 +164,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a27daf9557165efe1d09b52f97393bf6283cadb0a76fbe64a1061e15553a994a"
 
 [[package]]
-name = "pic8259"
-version = "0.10.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb844b5b01db1e0b17938685738f113bfc903846f18932b378bc0eabfa40e194"
+name = "pci"
+version = "0.1.0"
+source = "git+https://github.com/rcore-os/pci-rs#e3e143e966ff24072d079222fef2e11dc4b23af7"
 dependencies = [
- "x86_64",
+ "bitflags",
+ "log",
 ]
 
 [[package]]
@@ -212,6 +224,12 @@ dependencies = [
 
 [[package]]
 name = "volatile"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8e76fae08f03f96e166d2dfda232190638c10e0383841252416f9cfe2ae60e6"
+
+[[package]]
+name = "volatile"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "442887c63f2c839b346c192d047a7c87e73d0689c9157b00b53dcc27dd5ea793"
@@ -225,7 +243,7 @@ dependencies = [
  "bit_field",
  "bitflags",
  "rustversion",
- "volatile",
+ "volatile 0.4.6",
 ]
 
 [[package]]

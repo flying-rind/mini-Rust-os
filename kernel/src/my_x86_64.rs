@@ -19,9 +19,41 @@ pub fn in8(port: u16) -> u8 {
 }
 
 #[inline(always)]
+pub fn in16(port: u16) -> u16 {
+    let val: u16;
+    unsafe {
+        asm!("in ax, dx", out("ax") val, in("dx") port, options(nomem, nostack, preserves_flags));
+    }
+    val
+}
+
+#[inline(always)]
+pub fn in32(port: u32) -> u32 {
+    let val: u32;
+    unsafe {
+        asm!("in eax, dx", out("eax") val, in("dx") port, options(nomem, nostack, preserves_flags));
+    }
+    val
+}
+
+#[inline(always)]
 pub fn out8(port: u16, val: u8) {
     unsafe {
         asm!("out dx, al", in("dx") port, in("al") val, options(nomem, nostack, preserves_flags));
+    }
+}
+
+#[inline(always)]
+pub fn out16(port: u16, val: u16) {
+    unsafe {
+        asm!("out dx, ax", in("dx") port, in("ax") val, options(nomem, nostack, preserves_flags));
+    }
+}
+
+#[inline(always)]
+pub fn out32(port: u32, val: u32) {
+    unsafe {
+        asm!("out dx, eax", in("dx") port, in("eax") val, options(nomem, nostack, preserves_flags));
     }
 }
 

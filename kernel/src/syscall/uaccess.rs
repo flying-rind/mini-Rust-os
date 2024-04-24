@@ -1,4 +1,4 @@
-use crate::{mm::PHYS_OFFSET, *};
+use crate::{mm::*, *};
 
 core::arch::global_asm!(include_str!("uaccess.S"));
 
@@ -80,20 +80,27 @@ pub fn read_cstr(user: *const u8) -> Option<String> {
     }
 }
 
-pub fn read_cstr_array(user: *const *const u8) -> Option<Vec<String>> {
-    if user.is_null() {
-        Some(Vec::new())
-    } else {
-        let mut buf = Vec::new();
-        for i in 0.. {
-            let p = unsafe { user.add(i) };
-            let str = (p as *const usize).read_user()? as *const u8;
-            if str.is_null() {
-                break;
-            }
-            let str = read_cstr(str)?;
-            buf.push(str);
-        }
-        Some(buf)
+///
+pub fn validate_buf(
+    root_pa: PhysAddr,
+    ptr: *const u8,
+    len: usize,
+    write: bool,
+) -> Option<&'static mut [u8]> {
+    let mut require = PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
+    if write {
+        require |= PageTableFlags::WRITABLE;
     }
+    let mut p = ptr as _;
+    let mut n = len;
+    while n != 0 {
+        let (_, flags) = query(root_pa, VirtAddr(p))?;
+        if !flags.contains(require) {
+            return None;
+        }
+        let next = align_down(p) + PAGE_SIZE;
+        n -= n.min((next - p) as _);
+        p = next;
+    }
+    return unsafe { Some(core::slice::from_raw_parts_mut(ptr as _, len)) };
 }

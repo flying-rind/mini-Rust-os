@@ -68,6 +68,15 @@ fn main() {
             .arg("-drive")
             .arg(format!("format=raw,file={}", uefi_path.to_str().unwrap()));
     }
+    qemu_cmd
+        .arg("-drive")
+        .arg("file=../user/target/x86_64/release/fs.img,if=none,id=fsimg");
+
+    qemu_cmd.arg("-device").arg("ahci,id=ahci0");
+
+    qemu_cmd
+        .arg("-device")
+        .arg("ide-hd,drive=fsimg,bus=ahci0.0");
 
     // 设置内存大小
     qemu_cmd.arg("-m").arg("4G");

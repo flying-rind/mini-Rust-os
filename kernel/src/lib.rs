@@ -16,12 +16,13 @@ use core::{
     panic::PanicInfo,
 };
 
+pub use easy_fs::BlockDevice;
+
 pub use alloc::{boxed::Box, string::String, vec, vec::Vec};
 pub use mem::{size_of, size_of_val, transmute};
 
 #[macro_use]
-// 驱动管理
-// pub mod driver;
+
 pub mod console;
 
 pub mod pic;
@@ -35,13 +36,17 @@ pub mod syscall;
 // 进程管理
 pub mod process;
 
-pub mod loader;
-
 // 中断时切换栈和中断处理模块
 pub mod trap;
 
 // 简化版的x86_64库
 pub mod my_x86_64;
+
+// 内核中的文件系统抽象
+pub mod fs;
+
+// 内核设备驱动
+pub mod drivers;
 
 /// 各类初始化函数
 pub fn init(boot_info: &'static mut bootloader_api::BootInfo) {
@@ -51,6 +56,12 @@ pub fn init(boot_info: &'static mut bootloader_api::BootInfo) {
     pic::init();
     // 初始化内存管理
     mm::init(&mut boot_info.memory_regions);
+    // 初始化驱动
+    drivers::init();
+    // 初始化文件系统
+    fs::init();
+    // 初始化进程
+    process::init();
 }
 
 #[inline(always)]

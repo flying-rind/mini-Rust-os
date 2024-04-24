@@ -1,11 +1,11 @@
 //! 内存管理模块
 use bootloader_api::info::MemoryRegions;
-use x86_64::structures::paging::PageTableFlags;
+pub use x86_64::structures::paging::PageTableFlags;
 
 use core::fmt;
 pub use frame_allocator::*;
-pub use memory_set::{MapArea, MemorySet};
-pub use page_table::{PageTable, PageTableEntry};
+pub use memory_set::*;
+pub use page_table::*;
 
 mod frame_allocator;
 mod heap_allocator;
@@ -22,7 +22,6 @@ pub const KERNEL_OFFSET: usize = 0xFFFF_FF00_0000_0000;
 pub const KERNEL_STACK_ADDRESS: usize = 0xFFFF_FF10_0000_0000;
 pub const PHYS_OFFSET: usize = 0xFFFF_8000_0000_0000;
 
-// pub const PAGE_SIZE: usize = 4096;
 pub const ENTRY_COUNT: usize = 512;
 
 /// 初始化内存管理

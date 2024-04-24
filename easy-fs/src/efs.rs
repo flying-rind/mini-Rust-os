@@ -79,6 +79,9 @@ impl EasyFileSystem {
         Arc::new(Mutex::new(efs))
     }
 
+    /// 打开一个块设备
+    ///
+    /// 读取超级块，返回`EasyFileSystem`对象
     pub fn open(block_device: Arc<dyn BlockDevice>) -> Arc<Mutex<Self>> {
         // read SuperBlock
         get_block_cache(0, Arc::clone(&block_device))
@@ -101,6 +104,9 @@ impl EasyFileSystem {
             })
     }
 
+    /// 为根节点（第0个Inode）建立Inode
+    ///
+    /// 返回一个Inode类型
     pub fn root_inode(efs: &Arc<Mutex<Self>>) -> Inode {
         let block_device = Arc::clone(&efs.lock().block_device);
         // acquire efs lock temporarily
@@ -109,6 +115,7 @@ impl EasyFileSystem {
         Inode::new(block_id, block_offset, Arc::clone(efs), block_device)
     }
 
+    /// 给定Inode编号，返回其在磁盘上的块编号和块中偏移
     pub fn get_disk_inode_pos(&self, inode_id: u32) -> (u32, usize) {
         let inode_size = core::mem::size_of::<DiskInode>();
         let inodes_per_block = (BLOCK_SIZE / inode_size) as u32;

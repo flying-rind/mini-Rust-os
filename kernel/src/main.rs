@@ -3,7 +3,7 @@
 
 //! 内核主函数
 use bootloader_api::{config::Mapping, BootInfo, BootloaderConfig};
-use kernel::{loader::list_apps, mm::KERNEL_STACK_ADDRESS, mm::PHYS_OFFSET};
+use kernel::{mm::KERNEL_STACK_ADDRESS, mm::PHYS_OFFSET};
 
 /// bootloader config
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {
@@ -19,7 +19,5 @@ bootloader_api::entry_point!(kernel_main, config = &BOOTLOADER_CONFIG);
 /// 内核入口函数，参数为bootloader收集的硬件信息
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     kernel::init(boot_info);
-    list_apps();
-    kernel::process::init();
-    // unreachable!("test only");
+    unreachable!();
 }

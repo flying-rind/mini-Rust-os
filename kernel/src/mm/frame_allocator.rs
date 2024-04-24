@@ -43,7 +43,7 @@ impl FreeListAllocator {
 }
 
 /// 初始化页帧分配器
-pub fn init(memory_regions: &'static mut MemoryRegions) {
+pub(crate) fn init(memory_regions: &'static mut MemoryRegions) {
     let (mut start, mut size) = (0, 0);
     println!("[Kernel] Memory regions:");
     for region in memory_regions.into_iter() {
@@ -74,6 +74,10 @@ impl PhysFrame {
 
     pub fn alloc() -> Option<Self> {
         FRAME_ALLOCATOR.get().alloc().map(Self)
+    }
+
+    pub fn dealloc(pa: usize) {
+        FRAME_ALLOCATOR.get().dealloc(pa)
     }
 
     pub fn alloc_zero() -> Option<Self> {

@@ -68,7 +68,7 @@ pub fn fork() -> isize {
 }
 
 pub fn exec(path: &str) -> isize {
-    print!("in user exec now");
+    // print!("in user exec now");
     sys_exec(path)
 }
 

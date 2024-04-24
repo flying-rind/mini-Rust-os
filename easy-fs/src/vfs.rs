@@ -140,7 +140,7 @@ impl Inode {
         )))
     }
 
-    /// 遍历当前I结点下的所有文件，返回文件名列表
+    /// 遍历当前Inode下的所有文件，返回文件名列表
     pub fn ls(&self) -> Vec<String> {
         let _fs = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
