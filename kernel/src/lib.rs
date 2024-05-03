@@ -18,7 +18,7 @@ use core::{
 
 pub use easy_fs::BlockDevice;
 
-pub use alloc::{boxed::Box, string::String, vec, vec::Vec};
+pub use alloc::{boxed::Box, rc::Rc, string::String, vec, vec::Vec};
 pub use mem::{size_of, size_of_val, transmute};
 
 #[macro_use]
@@ -34,7 +34,7 @@ pub mod mm;
 pub mod syscall;
 
 // 进程管理
-pub mod process;
+pub mod task;
 
 // 中断时切换栈和中断处理模块
 pub mod trap;
@@ -61,7 +61,7 @@ pub fn init(boot_info: &'static mut bootloader_api::BootInfo) {
     // 初始化文件系统
     fs::init();
     // 初始化进程
-    process::init();
+    task::init();
 }
 
 #[inline(always)]

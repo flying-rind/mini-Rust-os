@@ -20,11 +20,12 @@ impl File for Stdin {
                 buf[0] = c as _;
                 return 1;
             } else {
-                process::current_yield();
+                task::current_yield();
             }
         }
     }
 
+    #[allow(unused)]
     fn write(&self, buf: &[u8]) -> usize {
         panic!("Cannot write to stdin!");
     }
@@ -39,6 +40,7 @@ impl File for Stdout {
         true
     }
 
+    #[allow(unused)]
     fn read(&self, buf: &mut [u8]) -> usize {
         panic!("Cannot read from stdout!")
     }

@@ -70,6 +70,11 @@ syscall_entry:
 syscall_return: # (CallerRegs *)
   mov rsp, rdi
 __syscall_return:
+  # sysretq instruction do:
+  # - rip <- rcx
+  # - rflags <- r11
+  # - cs, ss <- STAR MSR
+  
   lea rax, [rsp + 128] # prepare new TSS.sp0, 128 = sizeof(SyscallFrame)
   mov [TSS + rip + 4], rax
   restore

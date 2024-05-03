@@ -24,11 +24,11 @@ pub extern "C" fn trap_handler(f: &'static mut TrapFrame) {
         TIMER => {
             pic::ack();
             *pic::TICKS.get() += 1;
-            process::current_yield();
+            task::current_yield();
         }
         _ => {
             println!("trap {:x?}", f);
-            process::current().exit(-1);
+            task::current().exit(-1);
         }
     }
 }

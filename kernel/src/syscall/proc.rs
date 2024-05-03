@@ -2,20 +2,20 @@ use super::*;
 use crate::{trap::SyscallFrame, *};
 
 pub fn sys_exit(exit_code: i32) -> ! {
-    process::current().exit(exit_code)
+    task::current().exit(exit_code)
 }
 
 pub fn sys_yield() -> isize {
-    process::current_yield();
+    task::current_yield();
     0
 }
 
 pub fn sys_getpid() -> isize {
-    process::current().id as _
+    task::current().id as _
 }
 
 pub fn sys_fork(f: &SyscallFrame) -> isize {
-    process::current().fork(f)
+    task::current().fork(f)
 }
 
 pub fn sys_exec(path: *const u8, f: &mut SyscallFrame) -> isize {
@@ -24,13 +24,13 @@ pub fn sys_exec(path: *const u8, f: &mut SyscallFrame) -> isize {
     } else {
         return EFAULT;
     };
-    process::current().exec(&path, f)
+    task::current().exec(&path, f)
 }
 
 /// If there is no child process has the same pid as the given, return -1.
 /// Else if there is a child process but it is still running, return -2.
 pub fn sys_waitpid(pid: isize, exit_code_p: *mut u32) -> isize {
-    let (pid, exit_code) = process::current().waitpid(pid);
+    let (pid, exit_code) = task::current().waitpid(pid);
     if pid >= 0 && !exit_code_p.is_null() {
         exit_code_p.write_user(exit_code as _);
     }

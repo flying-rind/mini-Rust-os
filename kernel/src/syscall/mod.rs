@@ -50,7 +50,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 3], f: &mut SyscallFrame) -> isi
         SYSCALL_WAITPID => sys_waitpid(args[0] as _, args[1] as _),
         _ => {
             println!("Unsupported syscall: {}", syscall_id);
-            process::current().exit(-1);
+            task::current().exit(-1);
         }
     };
     ret
