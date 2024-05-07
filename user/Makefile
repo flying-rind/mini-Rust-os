@@ -9,7 +9,7 @@ APPS := $(wildcard $(APP_DIR)/*.rs)
 ELFS := $(patsubst $(APP_DIR)/%.rs, $(TARGET_DIR)/%, $(APPS))
 ASMS := $(patsubst %, %.asm, $(ELFS))
 
-BUILD_ARGS := --target $(ARCH).json -Zbuild-std=core
+BUILD_ARGS := --target $(ARCH).json -Zbuild-std=core,alloc
 ifeq ($(MODE), release)
   BUILD_ARGS += --release
 endif

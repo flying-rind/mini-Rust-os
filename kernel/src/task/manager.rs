@@ -18,7 +18,7 @@ impl ThreadManager {
         self.runnable.pop_front().unwrap()
     }
 
-    /// 清理已退出的线程
+    /// 从就绪线程队列中移除不能运行的线程
     pub fn clear_zombie(&mut self) {
         let len = self.runnable.len();
         for _ in 0..len {
@@ -29,7 +29,7 @@ impl ThreadManager {
         }
     }
 
-    /// 调度，运行下一个就绪线程
+    /// 调度，从就绪线程队列中弹出并运行下一个就绪线程
     pub fn resched(&mut self) {
         let cur = current();
         if cur.state == ThreadState::Runnable {

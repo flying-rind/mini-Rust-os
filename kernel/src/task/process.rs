@@ -47,6 +47,7 @@ impl Process {
         let f = t.syscall_frame();
         // 复制根线程的syscall_frame
         *f = *self.threads[0].syscall_frame();
+        // 设置子进程的返回值为0
         f.caller.rax = 0;
         child
     }
@@ -94,13 +95,15 @@ impl Process {
     pub fn waitpid(&mut self, pid: isize) -> (isize, i32) {
         let mut found_pid = false;
         for (idx, p) in self.children.iter().enumerate() {
+            // 若pid为-1，表示回收所有子线程
             if pid == -1 || p.pid == pid as usize {
                 found_pid = true;
                 if p.zombie {
                     let child = self.children.remove(idx);
                     let ret = (child.pid as _, child.exit_code);
                     unsafe {
-                        Box::from_raw(child);
+                        // drop it
+                        drop(Box::from_raw(child));
                     }
                     return ret;
                 }

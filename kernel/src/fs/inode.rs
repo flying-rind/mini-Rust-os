@@ -79,24 +79,24 @@ impl OpenFlags {
 }
 
 /// 根据OpenFlags打开根节点下的文件
-pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
+pub fn open_file(name: &str, flags: OpenFlags) -> Option<Rc<OSInode>> {
     let (readable, writable) = flags.read_write();
     if flags.contains(OpenFlags::CREATE) {
         if let Some(inode) = ROOT_INODE.find(name) {
             inode.clear();
-            Some(Arc::new(OSInode::new(readable, writable, inode)))
+            Some(Rc::new(OSInode::new(readable, writable, inode)))
         } else {
             // create file
             ROOT_INODE
                 .create(name)
-                .map(|inode| Arc::new(OSInode::new(readable, writable, inode)))
+                .map(|inode| Rc::new(OSInode::new(readable, writable, inode)))
         }
     } else {
         ROOT_INODE.find(name).map(|inode| {
             if flags.contains(OpenFlags::TRUNC) {
                 inode.clear();
             }
-            Arc::new(OSInode::new(readable, writable, inode))
+            Rc::new(OSInode::new(readable, writable, inode))
         })
     }
 }

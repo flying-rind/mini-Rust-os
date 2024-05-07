@@ -40,7 +40,7 @@ pub fn main() -> i32 {
                         let mut exit_code: i32 = 0;
                         let exit_pid = waitpid(pid as usize, &mut exit_code);
                         assert_eq!(pid, exit_pid);
-                        println!("Shell: Process {} exited with code {}", pid, exit_code);
+                        println!("[Shell]: Process {} exited with code {}", pid, exit_code);
                     }
                     cursor = 0;
                 }

@@ -11,6 +11,7 @@ use xmas_elf::{
 pub const USTACK_SIZE: usize = 4096 * 4;
 pub const USTACK_TOP: usize = 0x8000_0000_0000;
 
+/// 一段连续的内存区域
 pub struct MapArea {
     pub start: VirtAddr,
     pub size: usize,
@@ -18,6 +19,7 @@ pub struct MapArea {
     pub mapper: BTreeMap<VirtAddr, PhysFrame>,
 }
 
+/// 一个地址空间
 pub struct MemorySet {
     pub pt: PageTable,
     areas: BTreeMap<VirtAddr, MapArea>,

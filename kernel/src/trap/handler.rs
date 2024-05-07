@@ -4,7 +4,7 @@ use crate::*;
 #[no_mangle]
 pub extern "C" fn syscall_handler(f: &'static mut SyscallFrame) -> isize {
     let r = &f.caller;
-    syscall::syscall(r.rax, [r.rdi, r.rsi, r.rdx], f)
+    syscall::syscall(r.rax, [r.rdi, r.rsi, r.rdx])
 }
 
 const PAGE_FAULT: usize = 14;

@@ -54,15 +54,6 @@ gen!(u16, copy_user16);
 gen!(u32, copy_user32);
 gen!(usize, copy_user64);
 
-pub fn read_array<const N: usize>(src: *const u8, len: usize) -> Option<[u8; N]> {
-    let mut dst = unsafe { core::mem::MaybeUninit::<[u8; N]>::uninit().assume_init() };
-    if (src as usize) < PHYS_OFFSET - N && unsafe { copy_user_n(dst.as_mut_ptr(), src, len) == 0 } {
-        Some(dst)
-    } else {
-        None
-    }
-}
-
 pub fn read_cstr(user: *const u8) -> Option<String> {
     if user.is_null() {
         Some(String::new())
@@ -77,6 +68,24 @@ pub fn read_cstr(user: *const u8) -> Option<String> {
             buf.push(ch);
         }
         String::from_utf8(buf).ok()
+    }
+}
+
+pub fn read_cstr_array(user: *const *const u8) -> Option<Vec<String>> {
+    if user.is_null() {
+        Some(Vec::new())
+    } else {
+        let mut buf = Vec::new();
+        for i in 0.. {
+            let p = unsafe { user.add(i) };
+            let str = (p as *const usize).read_user()? as *const u8;
+            if str.is_null() {
+                break;
+            }
+            let str = read_cstr(str)?;
+            buf.push(str);
+        }
+        Some(buf)
     }
 }
 

@@ -72,6 +72,7 @@ impl Thread {
             let entry: fn(usize) -> usize = unsafe { transmute(cur.ctx.regs.rbx) };
             let arg = cur.ctx.regs.rbp;
             let ret = entry(arg);
+            // 若是用户态线程，则不会执行下面的exit，需要手动在线程函数中exit
             cur.exit(ret as _);
         }
         let (t, need_stack);
@@ -85,6 +86,7 @@ impl Thread {
                         need_stack = false;
                         break;
                     }
+                // 遍历结束,没有Waited状态的线程
                 } else {
                     let mut t1 = Box::<Thread>::new_uninit();
                     t = &mut *t1.as_mut_ptr();
@@ -108,7 +110,7 @@ impl Thread {
 
     /// 线程退出
     ///
-    /// 在每个线程的入口函数中，执行完线程函数后调用
+    /// 在每个内核线程的入口函数中，执行完线程函数后调用
     pub fn exit(&mut self, exit_code: i32) -> ! {
         println!(
             "[kernel] Process {} Thread {} exited with code {}",

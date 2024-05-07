@@ -9,6 +9,9 @@ const SYSCALL_GETPID: usize = 172;
 const SYSCALL_FORK: usize = 220;
 const SYSCALL_EXEC: usize = 221;
 const SYSCALL_WAITPID: usize = 260;
+const SYSCALL_THREAD_CREATE: usize = 1000;
+const SYSCALL_GETTID: usize = 1001;
+const SYSCALL_WAITTID: usize = 1002;
 
 const EFAULT: isize = -1;
 
@@ -30,13 +33,12 @@ mod fs;
 mod proc;
 mod uaccess;
 
-use crate::{trap::SyscallFrame, *};
+use crate::*;
 use fs::*;
 use proc::*;
-
 pub use uaccess::*;
 
-pub fn syscall(syscall_id: usize, args: [usize; 3], f: &mut SyscallFrame) -> isize {
+pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
     let ret = match syscall_id {
         SYSCALL_OPEN => sys_open(args[0] as _, args[1] as _),
         SYSCALL_CLOSE => sys_close(args[0]),
@@ -45,9 +47,12 @@ pub fn syscall(syscall_id: usize, args: [usize; 3], f: &mut SyscallFrame) -> isi
         SYSCALL_EXIT => sys_exit(args[0] as i32),
         SYSCALL_YIELD => sys_yield(),
         SYSCALL_GETPID => sys_getpid(),
-        SYSCALL_FORK => sys_fork(f),
-        SYSCALL_EXEC => sys_exec(args[0] as _, f),
+        SYSCALL_FORK => sys_fork(),
+        SYSCALL_EXEC => sys_exec(args[0] as _, args[1] as _),
         SYSCALL_WAITPID => sys_waitpid(args[0] as _, args[1] as _),
+        SYSCALL_THREAD_CREATE => sys_thread_create(args[0], args[1]),
+        SYSCALL_GETTID => sys_gettid(),
+        SYSCALL_WAITTID => sys_waittid(args[0]),
         _ => {
             println!("Unsupported syscall: {}", syscall_id);
             task::current().exit(-1);
