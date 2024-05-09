@@ -57,6 +57,9 @@ impl Process {
 
     /// 将当前进程的进程入口设置为elf文件入口
     ///
+    /// 将命令行参数放在用户栈上(用户程序的main函数不是使用call指令
+    /// 调用的，而是手动修改rip跳转的，因此需要手动设置rdi和rsi参数)
+    ///
     /// 目前只支持单线程的进程
     pub fn exec(&mut self, path: &str, args: Vec<String>) -> isize {
         assert_eq!(self.threads.len(), 1);
