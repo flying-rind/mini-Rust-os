@@ -48,6 +48,9 @@ pub mod fs;
 // 内核设备驱动
 pub mod drivers;
 
+// 同步互斥模块
+pub mod sync;
+
 /// 各类初始化函数
 pub fn init(boot_info: &'static mut bootloader_api::BootInfo) {
     console::init();
