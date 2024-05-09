@@ -1,8 +1,6 @@
 //! 进程抽象
-use self::sync::Mutex;
-
 use super::*;
-use crate::{fs::*, mm::*, *};
+use crate::{fs::*, mm::*, sync::*, *};
 use alloc::{collections::BTreeMap, rc::Rc};
 
 pub type ProcPtr = &'static mut Process;
@@ -19,6 +17,7 @@ pub struct Process {
     pub threads: Vec<Box<Thread>>,
     pub files: Vec<Option<Rc<dyn File>>>,
     pub mutexes: Vec<Box<dyn Mutex>>,
+    pub sems: Vec<Sem>,
 }
 
 /// 获取一个新的进程ID

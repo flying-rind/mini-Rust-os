@@ -20,6 +20,9 @@ const SYSCALL_WAITTID: usize = 1002;
 const SYSCALL_MUTEX_CREATE: usize = 1010;
 const SYSCALL_MUTEX_LOCK: usize = 1011;
 const SYSCALL_MUTEX_UNLOCK: usize = 1012;
+const SYSCALL_SEMAPHORE_CREATE: usize = 1020;
+const SYSCALL_SEMAPHORE_UP: usize = 1021;
+const SYSCALL_SEMAPHORE_DOWN: usize = 1022;
 
 #[inline(always)]
 fn syscall(id: usize, arg0: usize, arg1: usize, arg2: usize) -> isize {
@@ -119,4 +122,16 @@ pub fn sys_mutex_lock(mutex_id: usize) -> isize {
 
 pub fn sys_mutex_unlock(mutex_id: usize) -> isize {
     syscall(SYSCALL_MUTEX_UNLOCK, mutex_id as _, 0, 0)
+}
+
+pub fn sys_semaphore_create(count: usize) -> isize {
+    syscall(SYSCALL_SEMAPHORE_CREATE, count, 0, 0)
+}
+
+pub fn sys_semaphore_up(sem_id: usize) -> isize {
+    syscall(SYSCALL_SEMAPHORE_UP, sem_id, 0, 0)
+}
+
+pub fn sys_semaphore_down(sem_id: usize) -> isize {
+    syscall(SYSCALL_SEMAPHORE_DOWN, sem_id, 0, 0)
 }
