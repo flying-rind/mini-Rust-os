@@ -23,12 +23,14 @@ pub fn init() -> ! {
         ],
         ..Process::default()
     }));
+    // [Debug]
+    // print!("Debug, root.vm = {:#?}", root.vm);
     *ROOT_PROC.get() = root as *mut _ as _;
     Thread::new(
         root,
         |_| {
             let cur = current();
-            // 回收已退出线程
+            // 回收已退出子进程
             loop {
                 my_x86_64::disable_interrupts();
                 cur.proc.waitpid(-1);

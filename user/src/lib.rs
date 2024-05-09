@@ -69,12 +69,20 @@ bitflags::bitflags! {
     }
 }
 
+pub fn dup(fd: usize) -> isize {
+    sys_dup(fd)
+}
+
 pub fn open(path: &str, flags: OpenFlags) -> isize {
     sys_open(path, flags.bits)
 }
 
 pub fn close(fd: usize) -> isize {
     sys_close(fd)
+}
+
+pub fn pipe(pipe: &mut [usize]) -> isize {
+    sys_pipe(pipe)
 }
 
 pub fn read(fd: usize, buf: &mut [u8]) -> isize {
@@ -103,9 +111,9 @@ pub fn fork() -> isize {
     sys_fork()
 }
 
-pub fn exec(path: &str) -> isize {
+pub fn exec(path: &str, args: &[*const u8]) -> isize {
     // print!("in user exec now");
-    sys_exec(path)
+    sys_exec(path, args)
 }
 
 pub fn wait(exit_code: &mut i32) -> isize {

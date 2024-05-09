@@ -1,3 +1,4 @@
+//! 定义内核使用的Inode结构，为其实现文件访问接口
 use super::File;
 use crate::{drivers::BLOCK_DEVICE, *};
 

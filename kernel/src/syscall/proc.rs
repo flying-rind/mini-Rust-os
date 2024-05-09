@@ -1,3 +1,4 @@
+//! 进程抽象
 use super::*;
 use crate::{mm::*, task::*, *};
 
@@ -29,7 +30,7 @@ pub fn sys_exec(path: *const u8, args: *const *const u8) -> isize {
     task::current().proc.exec(&path, args)
 }
 
-/// 回收子进程
+/// 回收子进程,将退出码写入用户态的指针中去
 /// 没有找到符合pid的子线程，返回-1
 /// 找到子线程，但尚不能回收，返回-2
 pub fn sys_waitpid(pid: isize, exit_code_p: *mut u32) -> isize {

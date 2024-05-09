@@ -1,3 +1,4 @@
+//! 定义标准输入输出，为其实现文件访问接口
 use super::File;
 use crate::*;
 
@@ -13,6 +14,7 @@ impl File for Stdin {
         false
     }
 
+    /// 从串口读取一个字符到buf中
     fn read(&self, buf: &mut [u8]) -> usize {
         assert_eq!(buf.len(), 1);
         loop {
@@ -20,6 +22,7 @@ impl File for Stdin {
                 buf[0] = c as _;
                 return 1;
             } else {
+                // 当前不能立即读取，则当前线程主动放弃CPU
                 task::current_yield();
             }
         }
@@ -45,6 +48,7 @@ impl File for Stdout {
         panic!("Cannot read from stdout!")
     }
 
+    // 打印到串口（输出到主机屏幕）
     fn write(&self, buf: &[u8]) -> usize {
         if let Ok(str) = core::str::from_utf8(buf) {
             print!("{}", str);

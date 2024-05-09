@@ -40,7 +40,7 @@ impl Inode {
             .modify(self.block_offset, f)
     }
 
-    // 在当前I结点的目录项中寻找给定名字的I结点，返回I结点编号
+    /// 在当前I结点的目录项中寻找给定名字的I结点，返回I结点编号
     fn find_inode_id(&self, name: &str, disk_inode: &DiskInode) -> Option<u32> {
         assert!(disk_inode.is_dir());
         let file_count = (disk_inode.size as usize) / DIRENT_SZ;

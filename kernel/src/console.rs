@@ -1,3 +1,5 @@
+//! 实现从串口接收或发送数据，实现格式化输出
+
 use crate::my_x86_64::*;
 use core::fmt::{self, Write};
 

@@ -1,9 +1,11 @@
+//! 进程抽象
 use super::*;
 use crate::{fs::*, mm::*, *};
 use alloc::{collections::BTreeMap, rc::Rc};
 
 pub type ProcPtr = &'static mut Process;
 
+/// 进程抽象
 #[derive(Default)]
 pub struct Process {
     pub pid: usize,
@@ -16,6 +18,7 @@ pub struct Process {
     pub files: Vec<Option<Rc<dyn File>>>,
 }
 
+/// 获取一个新的进程ID
 pub(crate) fn new_id() -> usize {
     static NEXT_ID: Cell<usize> = zero();
     let next = *NEXT_ID + 1;
@@ -126,6 +129,8 @@ impl Process {
     }
 
     /// 为当前进程添加一个文件
+    ///
+    /// 返回添加的文件的文件描述符
     pub fn add_file(&mut self, file: Rc<dyn File>) -> usize {
         for (i, f) in self.files.iter_mut().enumerate() {
             if f.is_none() {
