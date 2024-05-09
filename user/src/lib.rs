@@ -164,3 +164,19 @@ pub fn waittid(tid: usize) -> isize {
 pub fn gettid() -> isize {
     sys_gettid()
 }
+
+pub fn mutex_create() -> isize {
+    sys_mutex_create(false)
+}
+
+pub fn mutex_create_blocking() -> isize {
+    sys_mutex_create(true)
+}
+
+pub fn mutex_lock(mutex_id: usize) -> isize {
+    sys_mutex_lock(mutex_id)
+}
+
+pub fn mutex_unlock(mutex_id: usize) -> isize {
+    sys_mutex_unlock(mutex_id)
+}

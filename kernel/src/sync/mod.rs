@@ -2,3 +2,6 @@
 
 mod mutex;
 mod sem;
+
+pub use mutex::*;
+pub use sem::*;

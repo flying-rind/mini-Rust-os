@@ -14,6 +14,9 @@ const SYSCALL_WAITPID: usize = 260;
 const SYSCALL_THREAD_CREATE: usize = 1000;
 const SYSCALL_GETTID: usize = 1001;
 const SYSCALL_WAITTID: usize = 1002;
+const SYSCALL_MUTEX_CREATE: usize = 1010;
+const SYSCALL_MUTEX_LOCK: usize = 1011;
+const SYSCALL_MUTEX_UNLOCK: usize = 1012;
 
 const EFAULT: isize = -1;
 
@@ -33,11 +36,13 @@ mod macros {
 
 mod fs;
 mod proc;
+mod sync;
 mod uaccess;
 
 use crate::*;
 use fs::*;
 use proc::*;
+use sync::*;
 pub use uaccess::*;
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
@@ -57,6 +62,9 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         SYSCALL_THREAD_CREATE => sys_thread_create(args[0], args[1]),
         SYSCALL_GETTID => sys_gettid(),
         SYSCALL_WAITTID => sys_waittid(args[0]),
+        SYSCALL_MUTEX_CREATE => sys_mutex_create(args[0] == 1),
+        SYSCALL_MUTEX_LOCK => sys_mutex_lock(args[0]),
+        SYSCALL_MUTEX_UNLOCK => sys_mutex_unlock(args[0]),
         _ => {
             println!("Unsupported syscall: {}", syscall_id);
             task::current().exit(-1);

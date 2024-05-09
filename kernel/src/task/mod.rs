@@ -61,3 +61,17 @@ pub fn current() -> &'static mut Thread {
 pub fn current_yield() {
     THREAD_MANAGER.get().resched();
 }
+
+/// 将当前线程设置为阻塞状态，在将其唤醒前，确保其不参与调度
+///
+/// 然后调度下一个就绪线程
+pub fn sched_block() {
+    current().state = ThreadState::Blocking;
+    THREAD_MANAGER.get().resched();
+}
+
+/// 唤醒线程，将其加入就绪线程队列
+pub fn sched_unblock(t: &mut Thread) {
+    t.state = ThreadState::Runnable;
+    THREAD_MANAGER.get().enqueue(t);
+}

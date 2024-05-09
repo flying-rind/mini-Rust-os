@@ -19,8 +19,8 @@ extern "C" {
 pub enum ThreadState {
     /// 可运行
     Runnable,
-    /// 暂停
-    Stop,
+    /// 阻塞，等待被唤醒
+    Blocking,
     /// 异步等待
     Waiting,
     /// 已退出，但尚不能回收

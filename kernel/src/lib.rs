@@ -18,7 +18,14 @@ use core::{
 
 pub use easy_fs::BlockDevice;
 
-pub use alloc::{boxed::Box, rc::Rc, string::String, vec, vec::Vec};
+pub use alloc::{
+    boxed::Box,
+    collections::{BTreeMap, VecDeque},
+    rc::Rc,
+    string::String,
+    vec,
+    vec::Vec,
+};
 pub use mem::{size_of, size_of_val, transmute};
 
 #[macro_use]
@@ -72,7 +79,7 @@ pub const fn zero<T>() -> T {
     unsafe { mem::MaybeUninit::zeroed().assume_init() }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 #[repr(transparent)]
 pub struct Cell<T>(UnsafeCell<T>);
 

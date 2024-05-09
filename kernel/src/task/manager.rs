@@ -1,7 +1,10 @@
+//! 线程管理器
+
 use super::*;
 use crate::*;
 use alloc::collections::VecDeque;
 
+/// 线程管理器
 #[derive(Default)]
 pub struct ThreadManager {
     runnable: VecDeque<ThreadPtr>,
