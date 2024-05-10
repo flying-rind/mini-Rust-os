@@ -1,10 +1,13 @@
+//! 任务管理模块
+
 mod manager;
 mod process;
+mod sleep;
 mod thread;
 
+pub use self::{manager::*, process::*, sleep::*, thread::*};
 use crate::{fs::*, *};
 
-pub use self::{manager::*, process::*, thread::*};
 // Dirty hack. rustc is unhappy about zero value in VecDeque.
 static THREAD_MANAGER: Cell<ThreadManager> =
     unsafe { transmute([1u8; size_of::<ThreadManager>()]) };

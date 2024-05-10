@@ -1,6 +1,12 @@
 //! 同步互斥相关系统调用
 use crate::{sync::*, *};
 
+/// 当前线程睡眠ms毫秒，将其阻塞
+pub fn sys_sleep(ms: usize) -> isize {
+    task::add_timer(ms);
+    0
+}
+
 /// 为当前进程创建一个互斥锁
 ///
 /// 根据blocking类型可以选择阻塞式或非阻塞式

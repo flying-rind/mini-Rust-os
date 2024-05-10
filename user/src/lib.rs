@@ -99,6 +99,11 @@ pub fn write(fd: usize, buf: &[u8]) -> isize {
 pub fn exit(exit_code: i32) -> ! {
     sys_exit(exit_code)
 }
+
+pub fn sleep(sleep_ms: usize) {
+    sys_sleep(sleep_ms);
+}
+
 pub fn sched_yeild() -> isize {
     sys_yield()
 }
