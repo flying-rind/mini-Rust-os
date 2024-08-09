@@ -1,0 +1,352 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>文件类型 - NUDT-OS-Book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../md/引言.html">引言</a></li><li class="chapter-item expanded "><a href="../md/设计原则.html"><strong aria-hidden="true">1.</strong> 设计原则</a></li><li class="chapter-item expanded "><a href="../md/内核架构.html"><strong aria-hidden="true">2.</strong> 内核架构</a></li><li class="chapter-item expanded "><a href="../md/内存管理.html"><strong aria-hidden="true">3.</strong> 内存管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内存分配器.html"><strong aria-hidden="true">3.1.</strong> 内存分配器</a></li><li class="chapter-item expanded "><a href="../md/页表.html"><strong aria-hidden="true">3.2.</strong> 页表</a></li><li class="chapter-item expanded "><a href="../md/地址空间.html"><strong aria-hidden="true">3.3.</strong> 地址空间</a></li></ol></li><li class="chapter-item expanded "><a href="../md/任务管理.html"><strong aria-hidden="true">4.</strong> 任务管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/进程管理.html"><strong aria-hidden="true">4.1.</strong> 进程管理</a></li><li class="chapter-item expanded "><a href="../md/用户线程管理.html"><strong aria-hidden="true">4.2.</strong> 用户线程管理</a></li><li class="chapter-item expanded "><a href="../md/内核线程管理.html"><strong aria-hidden="true">4.3.</strong> 内核线程管理</a></li><li class="chapter-item expanded "><a href="../md/任务调度.html"><strong aria-hidden="true">4.4.</strong> 任务调度</a></li></ol></li><li class="chapter-item expanded "><a href="../md/异步管理.html"><strong aria-hidden="true">5.</strong> 异步管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/异步协程.html"><strong aria-hidden="true">5.1.</strong> 异步协程</a></li><li class="chapter-item expanded "><a href="../md/协程执行器.html"><strong aria-hidden="true">5.2.</strong> 协程执行器</a></li><li class="chapter-item expanded "><a href="../md/异步系统调用.html"><strong aria-hidden="true">5.3.</strong> 异步系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/内核线程服务模型.html"><strong aria-hidden="true">6.</strong> 内核线程服务模型</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/自定义请求类型.html"><strong aria-hidden="true">6.1.</strong> 自定义请求类型</a></li><li class="chapter-item expanded "><a href="../md/请求处理器.html"><strong aria-hidden="true">6.2.</strong> 请求处理器</a></li><li class="chapter-item expanded "><a href="../md/文件系统服务线程.html"><strong aria-hidden="true">6.3.</strong> 文件系统服务线程</a></li></ol></li><li class="chapter-item expanded "><a href="../md/文件系统.html"><strong aria-hidden="true">7.</strong> 文件系统</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内核fs.html"><strong aria-hidden="true">7.1.</strong> 内核使用easy-fs</a></li><li class="chapter-item expanded "><a href="../md/文件类型.html" class="active"><strong aria-hidden="true">7.2.</strong> 文件类型</a></li></ol></li><li class="chapter-item expanded "><a href="../md/中断处理和系统调用.html"><strong aria-hidden="true">8.</strong> 中断处理和系统调用</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/中断处理.html"><strong aria-hidden="true">8.1.</strong> 中断处理</a></li><li class="chapter-item expanded "><a href="../md/系统调用.html"><strong aria-hidden="true">8.2.</strong> 系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/总结与计划.html"><strong aria-hidden="true">9.</strong> 总结与计划</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">NUDT-OS-Book</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="文件类型"><a class="header" href="#文件类型">文件类型</a></h1>
+<p>在UNIX系统中，一个重要的设计哲学是一切皆文件，通过将硬件设备、普通文件、管道等多种对象都抽象为文件，OS只将他们作为字节流处理，从而大大简化了OS的设计逻辑。在Rust中，通过泛型编程模型可以方便地实现文件读写接口：</p>
+<pre><code class="language-Rust">/// OS看到的文件抽象，只关心字节流的读写
+pub trait File {
+    fn readable(&amp;self) -&gt; bool;
+    fn writable(&amp;self) -&gt; bool;
+    fn read(&amp;self, buf: &amp;mut [u8]) -&gt; usize;
+    fn write(&amp;self, buf: &amp;[u8]) -&gt; usize;
+}
+</code></pre>
+<p>为多种对象分别实现<code>File</code> trait，在内核中便可以以统一的方式操作文件。本节简要说明已经实现的文件类型。</p>
+<h2 id="标准输入输出"><a class="header" href="#标准输入输出">标准输入输出</a></h2>
+<pre><code class="language-Rust">/// 标准输入
+pub struct Stdin;
+/// 标准输出
+pub struct Stdout;
+
+impl File for Stdin {
+    /// 从串口读取一个字符到buf中
+    fn read(&amp;self, buf: &amp;mut [u8]) -&gt; usize {
+        assert_eq!(buf.len(), 1);
+        loop {
+            if let Some(c) = console::receive() {
+                buf[0] = c as _;
+                return 1;
+            } else {
+                // 当前不能立即读取，则当前线程主动放弃CPU
+                task::current_yield();
+            }
+        }
+    }
+}
+
+impl File for Stdout {
+    // 打印到串口（输出到主机屏幕）
+    fn write(&amp;self, buf: &amp;[u8]) -&gt; usize {
+        if let Ok(str) = core::str::from_utf8(buf) {
+            print!("{}", str);
+            buf.len()
+        } else {
+            0
+        }
+    }
+}
+</code></pre>
+<p>标准输入输出结构体没有实体，他们的<code>read</code>和<code>write</code>接口都是从串口输入输出。在qemu环境下，串口就是我们宿主机上的终端。另外值得注意的是从串口读取时若不能立刻读取，则需要主动调度放弃CPU。</p>
+<h2 id="普通文件"><a class="header" href="#普通文件">普通文件</a></h2>
+<pre><code class="language-Rust">impl File for OSInode {
+    fn read(&amp;self, buf: &amp;mut [u8]) -&gt; usize {
+        let (offset, inode) = (self.offset.get(), self.inode.get());
+        let n = inode.read_at(*offset, buf);
+        *offset += n;
+        n
+    }
+
+    fn write(&amp;self, buf: &amp;[u8]) -&gt; usize {
+        let (offset, inode) = (self.offset.get(), self.inode.get());
+        let n = inode.write_at(*offset, buf);
+        *offset += n;
+        n
+    }
+}
+</code></pre>
+<p>对于普通文件，使用<code>easy-fs</code>提供的读写块缓存接口来实现。</p>
+<h2 id="管道"><a class="header" href="#管道">管道</a></h2>
+<pre><code class="language-Rust">/// 管道的一端
+pub struct Pipe {
+    /// 是否是写端
+    writable: bool,
+    /// 缓冲区
+    buf: Rc&lt;Cell&lt;PipeBuffer&gt;&gt;,
+}
+
+/// 管道缓冲区
+pub struct PipeBuffer {
+    /// 缓冲区
+    buf: VecDeque&lt;u8&gt;,
+    /// 写端的一个弱引用
+    write_end: Weak&lt;Pipe&gt;,
+}
+</code></pre>
+<p>管道其实就是一个缓冲区的封装，用于进程间通信。一个进程的输出可以通过管道重定向到另一个进程的输入。具体来说，每个进程创建时都默认打开了三个文件：</p>
+<ul>
+<li>标准输入</li>
+<li>标准输出</li>
+<li>标准错误</li>
+</ul>
+<p>重定向时，将需要输出的进程的标准输出文件替换为一个管道文件的写端，输出写入到管道的缓冲器中；将需要输入进程的标准输入文件替换为管道文件的读端即可，从管道缓冲区读出字节。（这个过程实现在user_shell中）</p>
+<pre><code class="language-Rust">impl File for Pipe {
+    /// 从管道的缓冲区读取到buf中
+    fn read(&amp;self, buf: &amp;mut [u8]) -&gt; usize {
+        assert!(self.readable());
+        let mut buf = buf.into_iter();
+        let mut n = 0;
+        let pipe_buf = self.buf.get();
+        loop {
+            if pipe_buf.buf.is_empty() {
+                // 管道对应的所有写端都已关闭
+                if pipe_buf.write_end.upgrade().is_none() {
+                    return n;
+                }
+                // 尚不能读取，当前线程主动放弃CPU
+                task::current_yield();
+            }
+            // 将管道中的字节读出写入buf中
+            while let Some(&amp;x) = pipe_buf.buf.front() {
+                if let Some(b) = buf.next() {
+                    *b = x;
+                    pipe_buf.buf.pop_front();
+                    n += 1;
+                } else {
+                    return n;
+                }
+            }
+        }
+    }
+
+    /// 拓展管道的缓冲区
+    fn write(&amp;self, buf: &amp;[u8]) -&gt; usize {
+        assert!(self.writable());
+        self.buf.get().buf.extend(buf.iter().copied());
+        buf.len()
+    }
+}
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../md/内核fs.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../md/中断处理和系统调用.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../md/内核fs.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../md/中断处理和系统调用.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

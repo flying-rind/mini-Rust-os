@@ -1,0 +1,359 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>地址空间 - NUDT-OS-Book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../md/引言.html">引言</a></li><li class="chapter-item expanded "><a href="../md/设计原则.html"><strong aria-hidden="true">1.</strong> 设计原则</a></li><li class="chapter-item expanded "><a href="../md/内核架构.html"><strong aria-hidden="true">2.</strong> 内核架构</a></li><li class="chapter-item expanded "><a href="../md/内存管理.html"><strong aria-hidden="true">3.</strong> 内存管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内存分配器.html"><strong aria-hidden="true">3.1.</strong> 内存分配器</a></li><li class="chapter-item expanded "><a href="../md/页表.html"><strong aria-hidden="true">3.2.</strong> 页表</a></li><li class="chapter-item expanded "><a href="../md/地址空间.html" class="active"><strong aria-hidden="true">3.3.</strong> 地址空间</a></li></ol></li><li class="chapter-item expanded "><a href="../md/任务管理.html"><strong aria-hidden="true">4.</strong> 任务管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/进程管理.html"><strong aria-hidden="true">4.1.</strong> 进程管理</a></li><li class="chapter-item expanded "><a href="../md/用户线程管理.html"><strong aria-hidden="true">4.2.</strong> 用户线程管理</a></li><li class="chapter-item expanded "><a href="../md/内核线程管理.html"><strong aria-hidden="true">4.3.</strong> 内核线程管理</a></li><li class="chapter-item expanded "><a href="../md/任务调度.html"><strong aria-hidden="true">4.4.</strong> 任务调度</a></li></ol></li><li class="chapter-item expanded "><a href="../md/异步管理.html"><strong aria-hidden="true">5.</strong> 异步管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/异步协程.html"><strong aria-hidden="true">5.1.</strong> 异步协程</a></li><li class="chapter-item expanded "><a href="../md/协程执行器.html"><strong aria-hidden="true">5.2.</strong> 协程执行器</a></li><li class="chapter-item expanded "><a href="../md/异步系统调用.html"><strong aria-hidden="true">5.3.</strong> 异步系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/内核线程服务模型.html"><strong aria-hidden="true">6.</strong> 内核线程服务模型</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/自定义请求类型.html"><strong aria-hidden="true">6.1.</strong> 自定义请求类型</a></li><li class="chapter-item expanded "><a href="../md/请求处理器.html"><strong aria-hidden="true">6.2.</strong> 请求处理器</a></li><li class="chapter-item expanded "><a href="../md/文件系统服务线程.html"><strong aria-hidden="true">6.3.</strong> 文件系统服务线程</a></li></ol></li><li class="chapter-item expanded "><a href="../md/文件系统.html"><strong aria-hidden="true">7.</strong> 文件系统</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内核fs.html"><strong aria-hidden="true">7.1.</strong> 内核使用easy-fs</a></li><li class="chapter-item expanded "><a href="../md/文件类型.html"><strong aria-hidden="true">7.2.</strong> 文件类型</a></li></ol></li><li class="chapter-item expanded "><a href="../md/中断处理和系统调用.html"><strong aria-hidden="true">8.</strong> 中断处理和系统调用</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/中断处理.html"><strong aria-hidden="true">8.1.</strong> 中断处理</a></li><li class="chapter-item expanded "><a href="../md/系统调用.html"><strong aria-hidden="true">8.2.</strong> 系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/总结与计划.html"><strong aria-hidden="true">9.</strong> 总结与计划</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">NUDT-OS-Book</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="地址空间"><a class="header" href="#地址空间">地址空间</a></h1>
+<p>本节介绍虚拟地址空间和虚拟内存区域，虚拟地址空间由一张页表和若干虚拟内存区域组成。虚拟内存区域指的是在虚拟地址上连续的一段区域。</p>
+<h2 id="虚拟内存区域"><a class="header" href="#虚拟内存区域">虚拟内存区域</a></h2>
+<pre><code class="language-Rust">/// 虚存区域
+pub struct MemoryArea {
+    /// 起始虚地址
+    start_vaddr: usize,
+    /// 虚拟内存区域长度
+    size: usize,
+    /// 映射标识
+    flags: PageTableFlags,
+    /// 映射关系
+    mapper: Cell&lt;HashMap&lt;usize, PhysFrame&gt;&gt;,
+}
+
+</code></pre>
+<p><code>MemoryArea</code>指的是一段连续的虚拟内存区域（比如一个栈空间），而物理内存并不一定连续，共用同一组映射标记。<code>mapper</code>存放了这段区域中所有虚拟页面到物理页帧的映射关系。</p>
+<pre><code class="language-Rust">impl MapArea {
+    /// 获取一个虚地址映射的物理页帧，若没有则分配一个页帧
+    pub fn map(&amp;self, vaddr: usize) -&gt; usize {
+        assert!(is_aligned(vaddr));
+        match self.mapper.get_mut().entry(vaddr) {
+            Entry::Occupied(e) =&gt; e.get().0,
+            Entry::Vacant(e) =&gt; e.insert(PhysFrame::alloc_zero().unwrap()).start_paddr(),
+        }
+    }
+
+    /// 取消映射一个虚地址
+    pub fn unmap(&amp;self, vaddr: usize) {
+        self.mapper.get_mut().remove(&amp;vaddr);
+    }
+}
+
+impl Clone for MemoryArea {
+    /// 克隆一块虚存区域，重新分配所有页帧
+    fn clone(&amp;self) -&gt; Self {
+        let mut mapper = Cell::new(HashMap::new());
+        for (&amp;vaddr, frame) in self.mapper.get() {
+            let new_frame = PhysFrame::alloc().unwrap();
+            new_frame.as_slice().copy_from_slice(frame.as_slice());
+            mapper.insert(vaddr, new_frame);
+        }
+        Self {
+            start_vaddr: self.start_vaddr,
+            size: self.size,
+            flags: self.flags,
+            mapper,
+        }
+    }
+}
+</code></pre>
+<p>映射虚拟内存时，可能会分配物理页帧。取消映射时，编译器会自动帮我们调用物理页帧的<code>drop</code>方法，释放之前分配的位。</p>
+<p>在使用<code>fork</code>时，子进程复制父进程地址空间，这会复制地址空间中的所有内存区域，<code>clone</code>方法简单的复制所有已经映射的虚拟地址，但是为他们分配新的物理页帧，并且将原物理页帧中的数据复制到新的物理页帧中去。</p>
+<pre><code class="language-Rust">/// 映射一段虚拟内存区域，映射关系写入页表
+impl PageTable{
+    pub fn map_area(&amp;mut self, area: &amp;mut MapArea) {
+        assert!(area.start.0 + area.size &lt; PHYS_OFFSET);
+        let mut va = area.start.0;
+        let end = va + area.size;
+        while va &lt; end {
+            let pa = area.map(VirtAddr(va));
+            self.map(VirtAddr(va), pa, area.flags);
+            va += PAGE_SIZE;
+        }
+    }
+}
+</code></pre>
+<p>当使用页表的<code>map_area</code>方法时，将映射关系写入页表。</p>
+<h2 id="虚拟地址空间"><a class="header" href="#虚拟地址空间">虚拟地址空间</a></h2>
+<pre><code class="language-Rust">/// 进程地址空间
+#[derive(Default)]
+pub struct MemorySet {
+    /// 地址空间包含的虚存区域
+    areas: Cell&lt;Vec&lt;Arc&lt;MemoryArea&gt;&gt;&gt;,
+    /// 页表
+    page_table: Arc&lt;Cell&lt;PageTable&gt;&gt;,
+}
+</code></pre>
+<p>地址空间包含一张页表和若干内存区域。</p>
+<pre><code class="language-Rust">impl MemorySet {
+    /// 地址空间中插入一段内存区域
+    pub fn insert(&amp;mut self, area: MapArea) {
+        if area.size &gt; 0 {
+            if let Entry::Vacant(e) = self.areas.entry(area.start) {
+                // 映射关系写入页表
+                self.pt.map_area(e.insert(area));
+            } else {
+                panic!(
+                    "MemorySet::insert: MapArea starts from {:#x?} is existed!",
+                    area.start
+                );
+            }
+        }
+    }
+
+    /// 从页表中清除地址空间中所有内存区域的映射关系
+    pub fn clear(&amp;mut self) {
+        for area in self.areas.values_mut() {
+            self.pt.unmap_area(area);
+        }
+        self.areas.clear();
+    }
+
+    /// 将自己的页表首地址写入cr3寄存器
+    pub fn activate(&amp;self) {
+        my_x86_64::set_cr3(self.pt.root_pa.0);
+    }
+}
+</code></pre>
+<p>向内存区域插入<code>insert</code>一个内存区域时，将映射关系写入这个地址空间对应的页表。<code>clear</code>方法清除地址空间中所有内存区域的映射关系，并清除页表中所有对应的页表项。‘</p>
+<p><code>activate</code>方法将自己的四级页表起始物理地址写入Cr3寄存器，这就完成了地址空间的切换，在切换到一个新进程时，首先需要切换其地址空间。</p>
+<pre><code class="language-Rust">impl Drop for MemorySet {
+    /// 释放时清除所有内存区域
+    ///
+    /// 从页表中清除映射关系
+    fn drop(&amp;mut self) {
+        self.clear();
+    }
+}
+
+impl Clone for MemorySet {
+    /// 克隆地址空间，即克隆其包含的所有连续内存区域
+    fn clone(&amp;self) -&gt; Self {
+        let mut ms = Self::new();
+        for area in self.areas.values() {
+            ms.insert(area.clone());
+        }
+        ms
+    }
+}
+</code></pre>
+<p><code>MemorySet</code>释放时，不仅要回收其内存，还需要调用<code>clear</code>方法清除页表项，释放分配的物理页帧对应的位。克隆地址空间时，首先克隆原地址空间的所有内存区域，再插入到新的地址空间中。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../md/页表.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../md/任务管理.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../md/页表.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../md/任务管理.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            // "preLaunchTask": "gdb",
+            "name": "Attach to gdbserver",
+            "program": "/home/mangp/nudt-os-dev-process/easy-fs-fuse/target/release/easy-fs-fuse",
+            "miDebuggerServerAddress": "localhost:1234",
+            "miDebuggerPath": "gdb",
+            "cwd": "/home/mangp/nudt-os-dev-process/easy-fs-fuse",
+            "setupCommands": [
+                {
+                    "description": "enable pretty print for gdb",
+                    "text": "-enable=pretty-printing",
+                    "ignoreFailures": true,
+                },
+            ]
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "editor.formatOnSave": true,
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    },
+    "rust-analyzer.cargo.features": "all",
+    "rust-analyzer.linkedProjects": [
+        "kernel/Cargo.toml",
+        "boot/Cargo.toml",
+        "user/Cargo.toml",
+        "./kernel/Cargo.toml",
+        "./kernel/Cargo.toml"
+    ],
+    "rust-analyzer.check.allTargets": false,
+    "notebook.outline.showCodeCells": false
+}

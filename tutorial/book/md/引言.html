@@ -1,0 +1,292 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>引言 - NUDT-OS-Book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../md/引言.html" class="active">引言</a></li><li class="chapter-item expanded "><a href="../md/设计原则.html"><strong aria-hidden="true">1.</strong> 设计原则</a></li><li class="chapter-item expanded "><a href="../md/内核架构.html"><strong aria-hidden="true">2.</strong> 内核架构</a></li><li class="chapter-item expanded "><a href="../md/内存管理.html"><strong aria-hidden="true">3.</strong> 内存管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内存分配器.html"><strong aria-hidden="true">3.1.</strong> 内存分配器</a></li><li class="chapter-item expanded "><a href="../md/页表.html"><strong aria-hidden="true">3.2.</strong> 页表</a></li><li class="chapter-item expanded "><a href="../md/地址空间.html"><strong aria-hidden="true">3.3.</strong> 地址空间</a></li></ol></li><li class="chapter-item expanded "><a href="../md/任务管理.html"><strong aria-hidden="true">4.</strong> 任务管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/进程管理.html"><strong aria-hidden="true">4.1.</strong> 进程管理</a></li><li class="chapter-item expanded "><a href="../md/用户线程管理.html"><strong aria-hidden="true">4.2.</strong> 用户线程管理</a></li><li class="chapter-item expanded "><a href="../md/内核线程管理.html"><strong aria-hidden="true">4.3.</strong> 内核线程管理</a></li><li class="chapter-item expanded "><a href="../md/任务调度.html"><strong aria-hidden="true">4.4.</strong> 任务调度</a></li></ol></li><li class="chapter-item expanded "><a href="../md/异步管理.html"><strong aria-hidden="true">5.</strong> 异步管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/异步协程.html"><strong aria-hidden="true">5.1.</strong> 异步协程</a></li><li class="chapter-item expanded "><a href="../md/协程执行器.html"><strong aria-hidden="true">5.2.</strong> 协程执行器</a></li><li class="chapter-item expanded "><a href="../md/异步系统调用.html"><strong aria-hidden="true">5.3.</strong> 异步系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/内核线程服务模型.html"><strong aria-hidden="true">6.</strong> 内核线程服务模型</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/自定义请求类型.html"><strong aria-hidden="true">6.1.</strong> 自定义请求类型</a></li><li class="chapter-item expanded "><a href="../md/请求处理器.html"><strong aria-hidden="true">6.2.</strong> 请求处理器</a></li><li class="chapter-item expanded "><a href="../md/文件系统服务线程.html"><strong aria-hidden="true">6.3.</strong> 文件系统服务线程</a></li></ol></li><li class="chapter-item expanded "><a href="../md/文件系统.html"><strong aria-hidden="true">7.</strong> 文件系统</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内核fs.html"><strong aria-hidden="true">7.1.</strong> 内核使用easy-fs</a></li><li class="chapter-item expanded "><a href="../md/文件类型.html"><strong aria-hidden="true">7.2.</strong> 文件类型</a></li></ol></li><li class="chapter-item expanded "><a href="../md/中断处理和系统调用.html"><strong aria-hidden="true">8.</strong> 中断处理和系统调用</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/中断处理.html"><strong aria-hidden="true">8.1.</strong> 中断处理</a></li><li class="chapter-item expanded "><a href="../md/系统调用.html"><strong aria-hidden="true">8.2.</strong> 系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/总结与计划.html"><strong aria-hidden="true">9.</strong> 总结与计划</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">NUDT-OS-Book</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="引言"><a class="header" href="#引言">引言</a></h1>
+<h2 id="设计目标"><a class="header" href="#设计目标">设计目标</a></h2>
+<p>NUDT-OS的设计目标是探索不同的内核架构对于内核性能与安全可靠性的影响，并尝试设计一种架构来平衡二者。</p>
+<p>一般来说，将所有内核功能都集成在内核态的宏内核具有很好的性能，但是安全性和稳定性较差，内核中任何一个模块出现故障（一般为低质量的驱动代码）都会导致内核崩溃。微内核为了解决这个问题，将非核心的内核服务移动到用户态以独立的用户进程提供，但这也带来了频繁的进程间通信开销导致的性能问题。关于宏内核与微内核的更具体的讨论，可以参考<a href="./%E5%86%85%E6%A0%B8%E6%9E%B6%E6%9E%84.html">内核架构</a>一节。</p>
+<p>NUDT-OS为了综合宏内核和微内核的优点，权衡内核性能与可靠性，做了一些初步的尝试，具体来说：</p>
+<ul>
+<li>
+<p>NUDT-OS采用了一种融合宏内核与微内核特点和优点的融合内核架构。（在 <a href="./%E5%86%85%E6%A0%B8%E6%9E%B6%E6%9E%84.html">内核架构</a>中详细说明）</p>
+</li>
+<li>
+<p>所有的内核服务都运行在内核态，但借鉴了微内核思想，将一些非核心的内核服务（如文件系统、部分设备驱动）运行于内核服务线程，各个内核服务线程保持相对独立，单个内核服务线程崩溃时，系统整体不会崩溃。（在<a href="./%E7%BB%84%E4%BB%B6%E6%9C%BA%E5%88%B6.html">组件机制</a>中详细介绍）</p>
+</li>
+<li>
+<p>借助Rust的无栈异步协程，实现多对多线程模型，一个协程执行器内核线程服务多个用户线程（执行调度）。而其他多个内核线程完成具体的服务。（具体参见<a href="./%E5%BC%82%E6%AD%A5%E7%AE%A1%E7%90%86.html">异步管理</a>）</p>
+</li>
+</ul>
+<h2 id="完成情况"><a class="header" href="#完成情况">完成情况</a></h2>
+<p>在内核中，具有任务管理、内存管理、文件系统、异步管理等模块。支持管道、命令行参数、重定向；支持信号量、互斥锁、条件变量等。下面的表格简要概述了各个模块的功能和特点。</p>
+<div class="table-wrapper"><table><thead><tr><th>模块</th><th>功能和特点</th></tr></thead><tbody>
+<tr><td>任务管理</td><td>具有进程、内核线程、用户线程三种对象<br>内核统一调度内核线程和用户线程<br>采用<code>多对多线程模型</code>,一个协程执行器内核线程服务多个用户线程<br>支持互斥锁、信号量、管道等进程间通信</td></tr>
+<tr><td>内存管理</td><td>每个进程有独立的地址空间<br>切换进程时切换地址空间<br>所有<code>用户线程共享内核栈</code></td></tr>
+<tr><td>文件系统</td><td>一个简易的文件系统<br>一切皆文件,将多种对象都抽象为文件<br>实现管道,命令行参数,重定向</td></tr>
+<tr><td>异步管理</td><td>利用协程实现多个异步系统调用<br>利用协程实现多对多线程模型</td></tr>
+<tr><td>内核服务线程</td><td>每个内核服务线程执行一种特定服务<br>用户通过系统调用向内核服务线程发送请求并获得服务 <br> 内核服务线程崩溃时系统保持稳定，并可以<code>重启恢复内核线程</code></td></tr>
+</tbody></table>
+</div>
+<p>目前内核提供了一组基础的系统调用，我们仍在继续添加更多的驱动程序支持与系统调用：</p>
+<ul>
+<li>任务管理类：
+<ul>
+<li>fork：复制当前进程</li>
+<li>exec：当前进程加载可执行文件</li>
+<li>waitpid：等待子进程结束并回收子进程资源</li>
+<li>getpid：获取进程号</li>
+<li>gettid：获取线程号</li>
+<li>thread_join：等待线程结束</li>
+<li>thread_create：创建用户线程</li>
+<li>kthread_req：向内核线程发送请求</li>
+<li>thread_exit：线程退出</li>
+<li>proc_eixt：进程退出</li>
+<li>sleep：线程睡眠</li>
+<li>yield：线程放弃CPU，主动调度</li>
+<li>get_time：获取系统时钟数</li>
+</ul>
+</li>
+<li>文件类：
+<ul>
+<li>dup：复制文件描述符</li>
+<li>open：打开文件</li>
+<li>close：关闭文件</li>
+<li>pipe：创建管道</li>
+<li>read：从文件读取</li>
+<li>write：向文件写入</li>
+</ul>
+</li>
+<li>同步互斥：
+<ul>
+<li>mutex_create：创建互斥锁</li>
+<li>mutex_lock：互斥锁上锁</li>
+<li>mutex_unlock：互斥锁解锁</li>
+<li>semaphore_create：创建信号量</li>
+<li>semaphore_up：增加信号量资源</li>
+<li>semaphore_down：减少信号量资源</li>
+<li>condvar_create：创建条件变量</li>
+<li>condvar_wait： 当前线程阻塞条件变量</li>
+<li>condvar_signal： 唤醒条件变量阻塞的线程</li>
+</ul>
+</li>
+</ul>
+<h2 id="文档的说明"><a class="header" href="#文档的说明">文档的说明</a></h2>
+<p>在这个文档中，我们主要说明内核设计中的主要思想和设计原则，以逐步揭示内核的整个架构和运行过程，必要时我们会讨论内核数据结构的设计，但不会对所有代码进行详细说明。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next prefetch" href="../md/设计原则.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next prefetch" href="../md/设计原则.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

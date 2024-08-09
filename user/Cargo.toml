@@ -1,0 +1,10 @@
+[package]
+name = "user_lib"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bitflags = "1"
+buddy_system_allocator = "*"
+log = "0.4"
+user-syscall = { path = "../user-components/user-syscall" }

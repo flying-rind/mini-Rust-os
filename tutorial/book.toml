@@ -1,0 +1,6 @@
+[book]
+authors = ["flying-rind"]
+language = "en"
+multilingual = false
+src = "src"
+title = "NUDT-OS-Book"

@@ -1,0 +1,13 @@
+[package]
+name = "user-syscall"
+description = "封装给用户程序使用的系统调用"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+num-derive = { version = "0.4", default-features = false }
+num-traits = { version = "0.2", default-features = false }
+spin = "0.9"
+bitflags = "*"

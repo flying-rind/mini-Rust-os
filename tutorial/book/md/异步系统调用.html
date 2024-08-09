@@ -1,0 +1,343 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>异步系统调用 - NUDT-OS-Book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../md/引言.html">引言</a></li><li class="chapter-item expanded "><a href="../md/设计原则.html"><strong aria-hidden="true">1.</strong> 设计原则</a></li><li class="chapter-item expanded "><a href="../md/内核架构.html"><strong aria-hidden="true">2.</strong> 内核架构</a></li><li class="chapter-item expanded "><a href="../md/内存管理.html"><strong aria-hidden="true">3.</strong> 内存管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内存分配器.html"><strong aria-hidden="true">3.1.</strong> 内存分配器</a></li><li class="chapter-item expanded "><a href="../md/页表.html"><strong aria-hidden="true">3.2.</strong> 页表</a></li><li class="chapter-item expanded "><a href="../md/地址空间.html"><strong aria-hidden="true">3.3.</strong> 地址空间</a></li></ol></li><li class="chapter-item expanded "><a href="../md/任务管理.html"><strong aria-hidden="true">4.</strong> 任务管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/进程管理.html"><strong aria-hidden="true">4.1.</strong> 进程管理</a></li><li class="chapter-item expanded "><a href="../md/用户线程管理.html"><strong aria-hidden="true">4.2.</strong> 用户线程管理</a></li><li class="chapter-item expanded "><a href="../md/内核线程管理.html"><strong aria-hidden="true">4.3.</strong> 内核线程管理</a></li><li class="chapter-item expanded "><a href="../md/任务调度.html"><strong aria-hidden="true">4.4.</strong> 任务调度</a></li></ol></li><li class="chapter-item expanded "><a href="../md/异步管理.html"><strong aria-hidden="true">5.</strong> 异步管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/异步协程.html"><strong aria-hidden="true">5.1.</strong> 异步协程</a></li><li class="chapter-item expanded "><a href="../md/协程执行器.html"><strong aria-hidden="true">5.2.</strong> 协程执行器</a></li><li class="chapter-item expanded "><a href="../md/异步系统调用.html" class="active"><strong aria-hidden="true">5.3.</strong> 异步系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/内核线程服务模型.html"><strong aria-hidden="true">6.</strong> 内核线程服务模型</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/自定义请求类型.html"><strong aria-hidden="true">6.1.</strong> 自定义请求类型</a></li><li class="chapter-item expanded "><a href="../md/请求处理器.html"><strong aria-hidden="true">6.2.</strong> 请求处理器</a></li><li class="chapter-item expanded "><a href="../md/文件系统服务线程.html"><strong aria-hidden="true">6.3.</strong> 文件系统服务线程</a></li></ol></li><li class="chapter-item expanded "><a href="../md/文件系统.html"><strong aria-hidden="true">7.</strong> 文件系统</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内核fs.html"><strong aria-hidden="true">7.1.</strong> 内核使用easy-fs</a></li><li class="chapter-item expanded "><a href="../md/文件类型.html"><strong aria-hidden="true">7.2.</strong> 文件类型</a></li></ol></li><li class="chapter-item expanded "><a href="../md/中断处理和系统调用.html"><strong aria-hidden="true">8.</strong> 中断处理和系统调用</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/中断处理.html"><strong aria-hidden="true">8.1.</strong> 中断处理</a></li><li class="chapter-item expanded "><a href="../md/系统调用.html"><strong aria-hidden="true">8.2.</strong> 系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/总结与计划.html"><strong aria-hidden="true">9.</strong> 总结与计划</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">NUDT-OS-Book</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="异步系统调用"><a class="header" href="#异步系统调用">异步系统调用</a></h1>
+<p>前面已经梳理了<code>WaitForThread</code>协程的执行方式和<code>thread_join</code>系统调用，这一节介绍另外一些系统调用和他们对应的异步协程。</p>
+<h2 id="sys_proc_wait"><a class="header" href="#sys_proc_wait"><code>sys_proc_wait()</code></a></h2>
+<pre><code class="language-Rust">/// 当前线程等待一个进程结束
+///
+/// 若等待的进程不存在则返回255
+pub fn sys_proc_wait(pid: usize) -&gt; (usize, usize) {
+    // 获取当前线程
+    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+
+    let waited_process = match PROCESS_MAP.get().get(&amp;pid) {
+        Some(process) =&gt; process.clone(),
+        None =&gt; {
+            println!("[Kernel] waited proc does not existed");
+            return (255, 0);
+        }
+    };
+    current_thread.set_state(ThreadState::Waiting);
+    executor::spawn(WaitForProc::new(current_thread, waited_process));
+    (0, 0)
+}
+</code></pre>
+<p><code>sys_proc_wait</code>函数非阻塞式地等待一个进程结束，若现在等待的进程还未结束，则当前线程进入异步等待(<code>Waiting</code>)状态。</p>
+<p>然后创建一个<code>WaitForProc</code>异步协程，将其添加到内核协程执行线程的任务队列中去，等待执行。</p>
+<p>当系统调用结束时返回内核主线程的主循环<code>main_loop</code>中下一次循环时，<code>Waiting</code>的线程便不会被调度执行，而是调度其他线程。</p>
+<pre><code class="language-Rust">/// 当前线程等待一个进程结束的协程任务
+/// 进程等待一个用户线程结束
+pub struct ProcWaitFuture {
+    /// 正在等待的线程
+    #[allow(unused)]
+    thread: Arc&lt;Thread&gt;,
+    /// 被等待的进程
+    waited_process: Arc&lt;Process&gt;,
+}
+
+</code></pre>
+<p>协程任务内部创建一个<code>ProcWaitFuture</code>结构，并等待。当<code>ProcWaitFuture</code>就绪后（此时等待的进程已经结束），将用户线程状态置为就绪（可调度）。</p>
+<pre><code class="language-Rust">impl Future for ProcWaitFuture {
+    type Output = ();
+    fn poll(self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;'_&gt;) -&gt; Poll&lt;Self::Output&gt; {
+        // 等待其根线程结束
+        let waited_root_thread = self.waited_process.root_thread();
+        let state_lock = waited_root_thread.state();
+        let state = wait_lock_or_yield(&amp;state_lock);
+        if *state == ThreadState::Exited {
+            // 已经退出
+            Poll::Ready(())
+        } else {
+            // 向被等待线程添加一个唤醒器，其状态改变时再唤醒这个协程
+            waited_root_thread.add_state_waker(cx.waker().clone(), ThreadState::Exited);
+            Poll::Pending
+        }
+    }
+}
+</code></pre>
+<p>协程执行线程轮讯<code>ProcWaitFuture</code>时：</p>
+<p>若等待的进程未退出，则向被等待的线程中添加一个唤醒器，且等待的状态为<code>Exited</code>，然后返回<code>Pending</code>，若已退出则返回<code>Ready</code>。</p>
+<p>当被等待的线程状态改变为<code>Exited</code>时，线程持有的唤醒器就唤醒<code>ProcWaitFuture</code>协程，这时再次轮讯就会返回<code>Ready</code>。然后在<code>async_proc_wait</code>中将等待状态的线程设置为就绪。</p>
+<p>至此，完成了整个系统调用流程。</p>
+<h2 id="sys_mutex_lock"><a class="header" href="#sys_mutex_lock">sys_mutex_lock()</a></h2>
+<pre><code class="language-Rust">/// 为指定编号的互斥锁加锁
+///
+/// 成功返回0，失败返回usize::MAX
+pub fn sys_mutex_lock(mutex_id: usize) -&gt; (usize, usize) {
+    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+    let current_proc = current_thread.proc().unwrap();
+    if let Some(mutex) = current_proc.mutexes().get_mut(mutex_id) {
+        mutex.lock(mutex.clone(), current_thread);
+    } else {
+        return (usize::MAX, 0);
+    }
+    (0, 0)
+}
+
+/// 指定线程获得锁
+pub fn lock(&amp;self, arc_self: Arc&lt;MutexBlocking&gt;, thread: Arc&lt;Thread&gt;) {
+    if *self.locked {
+        // 当前线程加入等待队列，并进入等待状态
+        thread.set_state(ThreadState::Waiting);
+        executor::spawn(WaitForMutex::new(thread, arc_self));
+    } else {
+        *self.locked.get_mut() = true;
+        // println!("Thread {} get mutex now!", current_thread.tid());
+    }
+}
+</code></pre>
+<p>这个系统调用使当前用户线程获得锁，其对应一个<code>WaitForMutex</code>协程。</p>
+<pre><code class="language-Rust">/// 线程等待一个锁
+pub struct WaitForMutex {
+    /// 正在等待的线程
+    thread: Arc&lt;Thread&gt;,
+    /// 被等待的锁
+    mutex: Arc&lt;MutexBlocking&gt;,
+}
+</code></pre>
+<p>就绪时令线程获得锁，并恢复就绪态；否则将唤醒器注册到锁里面去</p>
+<pre><code class="language-Rust">impl Future for WaitForMutex {
+    type Output = ();
+    fn poll(self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;'_&gt;) -&gt; Poll&lt;Self::Output&gt; {
+        if !self.mutex.is_locked() {
+            // 锁已经释放，线程获得锁且恢复为就绪态
+            self.thread.set_state(ThreadState::Runnable);
+            self.mutex.set_locked();
+            // [Debug]
+            // println!("thread: {:x} get mutex now!", self.thread.tid());
+            Poll::Ready(())
+        } else {
+            // 锁被占用了，将线程和唤醒器注册到锁里面去
+            self.mutex
+                .add_thread((self.thread.clone(), cx.waker().clone()));
+            Poll::Pending
+        }
+    }
+}
+</code></pre>
+<p>这里只列举了两个典型的系统调用，内核中还有很多其他的协程类型，但是原理都是相同的，轮讯时若完成则恢复之前等待的事件，若未完成，则将协程的唤醒器注册到等待的事件中去。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../md/协程执行器.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../md/内核线程服务模型.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../md/协程执行器.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../md/内核线程服务模型.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

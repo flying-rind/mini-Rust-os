@@ -1,0 +1,368 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>进程管理 - NUDT-OS-Book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../md/引言.html">引言</a></li><li class="chapter-item expanded "><a href="../md/设计原则.html"><strong aria-hidden="true">1.</strong> 设计原则</a></li><li class="chapter-item expanded "><a href="../md/内核架构.html"><strong aria-hidden="true">2.</strong> 内核架构</a></li><li class="chapter-item expanded "><a href="../md/内存管理.html"><strong aria-hidden="true">3.</strong> 内存管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内存分配器.html"><strong aria-hidden="true">3.1.</strong> 内存分配器</a></li><li class="chapter-item expanded "><a href="../md/页表.html"><strong aria-hidden="true">3.2.</strong> 页表</a></li><li class="chapter-item expanded "><a href="../md/地址空间.html"><strong aria-hidden="true">3.3.</strong> 地址空间</a></li></ol></li><li class="chapter-item expanded "><a href="../md/任务管理.html"><strong aria-hidden="true">4.</strong> 任务管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/进程管理.html" class="active"><strong aria-hidden="true">4.1.</strong> 进程管理</a></li><li class="chapter-item expanded "><a href="../md/用户线程管理.html"><strong aria-hidden="true">4.2.</strong> 用户线程管理</a></li><li class="chapter-item expanded "><a href="../md/内核线程管理.html"><strong aria-hidden="true">4.3.</strong> 内核线程管理</a></li><li class="chapter-item expanded "><a href="../md/任务调度.html"><strong aria-hidden="true">4.4.</strong> 任务调度</a></li></ol></li><li class="chapter-item expanded "><a href="../md/异步管理.html"><strong aria-hidden="true">5.</strong> 异步管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/异步协程.html"><strong aria-hidden="true">5.1.</strong> 异步协程</a></li><li class="chapter-item expanded "><a href="../md/协程执行器.html"><strong aria-hidden="true">5.2.</strong> 协程执行器</a></li><li class="chapter-item expanded "><a href="../md/异步系统调用.html"><strong aria-hidden="true">5.3.</strong> 异步系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/内核线程服务模型.html"><strong aria-hidden="true">6.</strong> 内核线程服务模型</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/自定义请求类型.html"><strong aria-hidden="true">6.1.</strong> 自定义请求类型</a></li><li class="chapter-item expanded "><a href="../md/请求处理器.html"><strong aria-hidden="true">6.2.</strong> 请求处理器</a></li><li class="chapter-item expanded "><a href="../md/文件系统服务线程.html"><strong aria-hidden="true">6.3.</strong> 文件系统服务线程</a></li></ol></li><li class="chapter-item expanded "><a href="../md/文件系统.html"><strong aria-hidden="true">7.</strong> 文件系统</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内核fs.html"><strong aria-hidden="true">7.1.</strong> 内核使用easy-fs</a></li><li class="chapter-item expanded "><a href="../md/文件类型.html"><strong aria-hidden="true">7.2.</strong> 文件类型</a></li></ol></li><li class="chapter-item expanded "><a href="../md/中断处理和系统调用.html"><strong aria-hidden="true">8.</strong> 中断处理和系统调用</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/中断处理.html"><strong aria-hidden="true">8.1.</strong> 中断处理</a></li><li class="chapter-item expanded "><a href="../md/系统调用.html"><strong aria-hidden="true">8.2.</strong> 系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/总结与计划.html"><strong aria-hidden="true">9.</strong> 总结与计划</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">NUDT-OS-Book</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="进程管理"><a class="header" href="#进程管理">进程管理</a></h1>
+<p>进程是OS资源分配的最小单位，NUDT-OS中使用Process结构体表示进程。</p>
+<p>在设计进程时，我们基本上采用和宏内核相同的设计，每个用户进程有独立的地址空间，并维护独立的内核资源，进程中包含的多个用户线程共享进程的所有资源。</p>
+<h2 id="数据结构"><a class="header" href="#数据结构">数据结构</a></h2>
+<pre><code class="language-Rust">// kernel/src/task/process.rs
+/// 进程抽象
+#[derive(Default)]
+pub struct Process {
+    /// 进程id
+    pid: usize,
+    /// 进程名称，可重复
+    name: String,
+    /// 进程地址空间
+    memory_set: Arc&lt;MemorySet&gt;,
+    /// 父进程
+    parent: RwLock&lt;Weak&lt;Process&gt;&gt;,
+    /// 子进程队列
+    children: Cell&lt;Vec&lt;Arc&lt;Process&gt;&gt;&gt;,
+    /// 进程包含的线程集合，TID到线程对象的映射
+    threads: Cell&lt;HashMap&lt;usize, Arc&lt;Thread&gt;&gt;&gt;,
+    /// 线程ID，创建新线程时分配
+    thread_id: AtomicUsize,
+    /// 文件表
+    file_table: Cell&lt;Vec&lt;Option&lt;Arc&lt;dyn File&gt;&gt;&gt;&gt;,
+    /// 互斥锁
+    mutexes: Cell&lt;Vec&lt;Arc&lt;MutexBlocking&gt;&gt;&gt;,
+    /// 信号量
+    sems: Cell&lt;Vec&lt;Arc&lt;Sem&gt;&gt;&gt;,
+    /// 条件变量
+    condvars: Cell&lt;Vec&lt;Arc&lt;Condvar&gt;&gt;&gt;,
+}
+</code></pre>
+<p>每个进程持有一个虚拟地址空间的指针<code>Arc&lt;MemorySet</code>，这是进程间地址隔离的关键。每个虚拟地址空间都采用独立的一张页表，所以多个进程中的数据可能有同样的虚拟地址但是映射到不同的物理地址。</p>
+<h2 id="创建和使用进程"><a class="header" href="#创建和使用进程">创建和使用进程</a></h2>
+<p>Unix的简单设计哲学将创建一个进程分成两个简单的步骤：即<code>fork</code>、<code>exec</code>两个经典的方法。<code>fork()</code>复制当前进程的地址空间和所有资源，而<code>exec()</code>为新进程加载一个用户程序执行。</p>
+<p>我们遵循了Unix的使用方式，<code>fork()</code>和<code>exec()</code>结合使用来实现进程的创建和使用</p>
+<h3 id="fork"><a class="header" href="#fork">fork()</a></h3>
+<p><code>fork()</code>复制当前进程并创建一个新线程，若当前进程有多个线程，只复制当前线程。</p>
+<pre><code class="language-Rust">
+/// 复制当前进程
+///
+/// 若当前进程有多个线程，只复制当前线程
+///
+/// 返回（子进程指针， 子进程id）
+pub fn fork(&amp;mut self) -&gt; (Arc&lt;Self&gt;, usize) {
+    let current_thread = CURRENT_THREAD.lock();
+    // 复制当前进程的地址空间(栈空间没复制)
+    let child_memory_set = self.vms().self_clone();
+
+    // 复制栈空间
+    ...
+
+    // 创建子进程
+    ...
+
+    // 创建子进程的根线程
+    ...
+    // 复制当前线程的UserContext
+    let root_thread_user_context = &amp;mut root_thread.user_context();
+    *root_thread_user_context = current_ctx;
+    // 子线程的返回值为0
+    root_thread.user_context().general.rax = 0;
+
+    child_proc.insert_thread(root_thread);
+    self.add_child(child_proc.clone());
+
+    (child_proc, child_pid)
+}
+</code></pre>
+<ul>
+<li>复制当前进程的所有资源包括地址空间、文件表、互斥锁等。</li>
+<li>子进程创建自己的主线程</li>
+<li>子进程主线程将会复制当前线程的<code>UserContext</code>，这里的<code>UserContext</code>中存放的是线程在用户态中的上下文，子进程在进入用户态之前会从其中恢复用户态现场，在<a href="./%E7%94%A8%E6%88%B7%E7%BA%BF%E7%A8%8B%E7%AE%A1%E7%90%86.html">用户线程</a>中有更详细的说明</li>
+</ul>
+<p>这样当子进程的主线程被调度执行时将会从当前线程进行系统调用前的上下文开始执行，下面给出了一个用户程序使用<code>fork()</code>的简单示例</p>
+<pre><code class="language-Rust">// An example in user program
+let pid = fork();
+// 子进程的根线程进入用户态后从这里开始运行
+if pid == 0 {
+    // 子进程
+    println!("I am child {}", i);
+    exit(0);
+} else {
+    // 父进程
+    println!("I am parent, forked child pid = {}", pid);
+}
+</code></pre>
+<h3 id="exec"><a class="header" href="#exec">exec()</a></h3>
+<p><code>exec()</code>从文件系统中加载一个elf文件，将其装载到进程的地址空间中。</p>
+<pre><code class="language-Rust">/// 使用新的elf替换当前进程的elf
+pub fn exec(&amp;self, new_name: String, elf_data: &amp;[u8], args: Option&lt;Vec&lt;String&gt;&gt;) -&gt; usize {
+    trace!("[Kernel] start exec {}", new_name);
+
+    // 清理运行exec之外的其他所有子线程
+    ...
+
+    // 清理原ELF类型的虚存块
+    ...
+
+    // 载入elf到虚存空间
+    let elf = ElfFile::new(elf_data).unwrap();
+    parse_elf(Arc::downgrade(&amp;self.vms), &amp;elf);
+    let entry = elf.header.pt2.entry_point() as usize;
+
+    // 准备根线程的栈虚存块
+    ...
+
+    // 参数压到用户栈
+    let sp_offset = push_to_stack(thread_stack_pfg, args);
+    let root_sp = sp_offset + USER_STACK_BASE;
+    let root_ip = entry;
+    // 设置线程的用户态上下文
+    current_thread.test_set_ip(root_ip);
+    current_thread.test_set_sp(root_sp);
+
+    threads_lock.insert(current_thread.tid(), current_thread);
+
+    root_sp
+}
+</code></pre>
+<ul>
+<li>读取elf文件，创建虚拟地址空间，将elf文件中的各个section加载到内存空间中</li>
+<li>命令行参数处理，将其放在用户栈上</li>
+<li>初始化进程的<code>UserContext</code>结构，将程序入口点，栈顶，参数等写入其用户态上下文中，进程进入用户态之前就会取出这些上下文恢复寄存器</li>
+</ul>
+<p>结合使用fork和exec就可以实现用户态的shell程序，下面是一个简易的结构示意：</p>
+<pre><code class="language-Rust">// An example of shell
+let pid = fork();
+// 子进程
+if pid == 0 {
+    // 执行应用程序
+    if exec(args_copy[0].as_str(), args_addr.as_slice()) == -1 {
+        println!("Error when executing!");
+        return -4;
+    }
+    unreachable!();
+// 父进程
+} else {
+    children.push(pid);
+}
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../md/任务管理.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../md/用户线程管理.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../md/任务管理.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../md/用户线程管理.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>用户线程管理 - NUDT-OS-Book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../md/引言.html">引言</a></li><li class="chapter-item expanded "><a href="../md/设计原则.html"><strong aria-hidden="true">1.</strong> 设计原则</a></li><li class="chapter-item expanded "><a href="../md/内核架构.html"><strong aria-hidden="true">2.</strong> 内核架构</a></li><li class="chapter-item expanded "><a href="../md/内存管理.html"><strong aria-hidden="true">3.</strong> 内存管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内存分配器.html"><strong aria-hidden="true">3.1.</strong> 内存分配器</a></li><li class="chapter-item expanded "><a href="../md/页表.html"><strong aria-hidden="true">3.2.</strong> 页表</a></li><li class="chapter-item expanded "><a href="../md/地址空间.html"><strong aria-hidden="true">3.3.</strong> 地址空间</a></li></ol></li><li class="chapter-item expanded "><a href="../md/任务管理.html"><strong aria-hidden="true">4.</strong> 任务管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/进程管理.html"><strong aria-hidden="true">4.1.</strong> 进程管理</a></li><li class="chapter-item expanded "><a href="../md/用户线程管理.html" class="active"><strong aria-hidden="true">4.2.</strong> 用户线程管理</a></li><li class="chapter-item expanded "><a href="../md/内核线程管理.html"><strong aria-hidden="true">4.3.</strong> 内核线程管理</a></li><li class="chapter-item expanded "><a href="../md/任务调度.html"><strong aria-hidden="true">4.4.</strong> 任务调度</a></li></ol></li><li class="chapter-item expanded "><a href="../md/异步管理.html"><strong aria-hidden="true">5.</strong> 异步管理</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/异步协程.html"><strong aria-hidden="true">5.1.</strong> 异步协程</a></li><li class="chapter-item expanded "><a href="../md/协程执行器.html"><strong aria-hidden="true">5.2.</strong> 协程执行器</a></li><li class="chapter-item expanded "><a href="../md/异步系统调用.html"><strong aria-hidden="true">5.3.</strong> 异步系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/内核线程服务模型.html"><strong aria-hidden="true">6.</strong> 内核线程服务模型</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/自定义请求类型.html"><strong aria-hidden="true">6.1.</strong> 自定义请求类型</a></li><li class="chapter-item expanded "><a href="../md/请求处理器.html"><strong aria-hidden="true">6.2.</strong> 请求处理器</a></li><li class="chapter-item expanded "><a href="../md/文件系统服务线程.html"><strong aria-hidden="true">6.3.</strong> 文件系统服务线程</a></li></ol></li><li class="chapter-item expanded "><a href="../md/文件系统.html"><strong aria-hidden="true">7.</strong> 文件系统</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/内核fs.html"><strong aria-hidden="true">7.1.</strong> 内核使用easy-fs</a></li><li class="chapter-item expanded "><a href="../md/文件类型.html"><strong aria-hidden="true">7.2.</strong> 文件类型</a></li></ol></li><li class="chapter-item expanded "><a href="../md/中断处理和系统调用.html"><strong aria-hidden="true">8.</strong> 中断处理和系统调用</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../md/中断处理.html"><strong aria-hidden="true">8.1.</strong> 中断处理</a></li><li class="chapter-item expanded "><a href="../md/系统调用.html"><strong aria-hidden="true">8.2.</strong> 系统调用</a></li></ol></li><li class="chapter-item expanded "><a href="../md/总结与计划.html"><strong aria-hidden="true">9.</strong> 总结与计划</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">NUDT-OS-Book</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="用户线程管理"><a class="header" href="#用户线程管理">用户线程管理</a></h1>
+<p>线程是OS进行调度的最小单位，每个线程都有自己的指令执行流。</p>
+<p>NUDT-OS使用<code>Thread</code>结构体表示用户线程。在前面我们提到Rust异步协程机制可以实现用户线程无独立的内核栈。</p>
+<h2 id="数据结构"><a class="header" href="#数据结构">数据结构</a></h2>
+<pre><code class="language-Rust">// kernel/src/task/thread.rs
+pub enum ThreadState {
+    /// 可运行
+    Runnable,
+    /// 异步等待
+    Waiting,
+    /// 被调度
+    Suspended,
+    /// 已退出, 可以被回收
+    Exited,
+}
+</code></pre>
+<p>线程具有四种状态，状态转移图如下所示：</p>
+<p><img src="../pic/%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81.jpg" alt="线程状态" /></p>
+<p><code>Waiting</code>状态表示线程正在等待某个事件，一般发生在异步系统调用（即线程需要等待某个事件发生才能继续执行）时，内核主线程将会创建一个协程将其添加到协程执行线程中，用户线程转为异步等待状态，当线程等待的事情发生时，唤醒用户线程，则再次转为可运行态。我们在后面的章节中会逐渐看到这整个过程。</p>
+<p><code>Suspended</code>状态表示线程的时间片用尽了，暂时被剥夺CPU，发生在时钟中断时。</p>
+<pre><code class="language-Rust">// 时钟中断，轮转用户线程或内核线程
+        TIMER =&gt; {
+            pic::ack();
+            *pic::TICKS.get_mut() += 1;
+            // 用户时钟
+            if let Some(thread) = thread {
+                // 时间片轮转
+                thread.set_state(ThreadState::Suspended);
+            // 内核时钟
+            } else if let Some(_tf) = tf {
+                // 当前内核线程主动调度
+                Scheduler::yield_current_kthread();
+            } else {
+                panic!("Should never happen!");
+            }
+        }
+</code></pre>
+<pre><code class="language-Rust">/// 用户线程
+///
+/// 用户线程共享内核线程栈
+pub struct Thread {
+    /// 线程id
+    tid: usize,
+    /// 线程所属进程
+    proc: Weak&lt;Process&gt;,
+    /// 线程状态
+    state: Cell&lt;ThreadState&gt;,
+    /// 线程执行的用户态上下文
+    user_context: Cell&lt;Box&lt;UserContext&gt;&gt;,
+    /// 栈内存区域
+    #[allow(unused)]
+    stack_area: Arc&lt;MemoryArea&gt;,
+    /// 状态改变时的唤醒器
+    state_wakers: Cell&lt;Vec&lt;(Waker, ThreadState)&gt;&gt;,
+}
+</code></pre>
+<ul>
+<li>
+<p><code>user_context</code>成员代表了用户线程的用户态上下文，线程进入用户态时将会从其中弹出上下文（通用寄存器，包括rip和rsp），而用户线程系统调用陷入内核时将用户态上下文保存在<code>user_context</code>上</p>
+</li>
+<li>
+<p><code>state_wakers</code>成员包含了一个由线程状态和唤醒器构成的队列。当线程状态发生改变时，有可能唤醒某个正在等待这个状态的协程。比如说一个进程的主线程正在等待这个进程中的其他几个线程结束以回收（主线程为Waiting状态），这时子线程转为<code>Exit</code>状态时就可能会唤醒主线程（这个具体的过程在<a href="../%E5%BC%82%E6%AD%A5%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8.html">异步系统调用</a>中）</p>
+</li>
+<li>
+<p>可以看到，每个用户线程都有自己的用户栈<code>stack_area</code>，而没有独立的内核栈</p>
+</li>
+</ul>
+<p><code>UserContext</code>结构表示用户态上下文，其来自rcore社区提供的<code>TrapFrame</code>库，这个库实现了线程由内核态以指定的上下文进入用户态和用户态发生系统调用时陷入内核这两个过程的汇编代码。</p>
+<p>具体的过程比较复杂，这里不作展开，我们只需要知道用户线程在从内核态进入内核时，从UserContext结构中恢复用户态现场，在陷入内核时，将用户态现场保存在其中即可。</p>
+<pre><code class="language-Rust">/// In TrapFrame
+pub struct UserContext {
+    pub general: GeneralRegs,
+    pub trap_num: usize,
+    pub error_code: usize,
+}
+
+/// 所有通用寄存器
+pub struct GeneralRegs {
+    pub rax: usize,
+    pub rbx: usize,
+    pub rcx: usize,
+    pub rdx: usize,
+   ...
+}
+</code></pre>
+<h2 id="创建和使用线程"><a class="header" href="#创建和使用线程">创建和使用线程</a></h2>
+<h3 id="创建用户线程-new"><a class="header" href="#创建用户线程-new">创建用户线程: new()</a></h3>
+<pre><code class="language-Rust">kernel/src/task/thread.rs
+/// 创建线程，返回tid
+pub fn sys_thread_create(entry: usize, arg1: usize, arg2: usize) -&gt; (usize, usize) {
+    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+    let current_proc = current_thread.proc().unwrap();
+    let tid = current_proc.alloc_tid();
+    // 每两个用户栈之间隔一段空间
+    let sp_base = USER_STACK_BASE + tid * 2 * USER_STACK_SIZE;
+    let flags =
+        PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
+    // 分配用户栈
+    let stack_area = MemoryArea::new(sp_base, USER_STACK_SIZE, flags);
+    // 插入到当前进程所在的地址空间中
+    let current_memoryset = current_proc.memory_set();
+    current_memoryset.insert_area(stack_area.clone());
+    let new_thread = Thread::new(
+        Arc::downgrade(&amp;current_proc),
+        tid,
+        entry,
+        sp_base + USER_STACK_SIZE,
+        arg1,
+        arg2,
+        stack_area,
+    );
+    new_thread.set_state(ThreadState::Runnable);
+    current_proc.add_thread(new_thread);
+    (tid, 0)
+}
+
+</code></pre>
+<ul>
+<li>
+<p>创建线程时提供其进入用户态的上下文，将其写入<code>user_context</code>结构中去</p>
+</li>
+<li>
+<p>创建线程前还要先为其创建一个独立的用户栈虚拟内存区域</p>
+</li>
+</ul>
+<h3 id="运行用户线程run_until_trap"><a class="header" href="#运行用户线程run_until_trap">运行用户线程：run_until_trap()</a></h3>
+<p><code>run_until_trap()</code>方法切换到当前线程所在进程的地址空间，再使用自己的用户态上下文运行，直到发生系统调用或者中断时控制流才返回Rust。</p>
+<pre><code class="language-Rust">/// 运行当前线程，当用户态发生中断或系统调用时控制流返回Rust
+pub fn run_until_trap(&amp;self) {
+    // 切换当前线程所属进程的地址空间
+    if let Some(proc) = self.proc.upgrade() {
+        proc.memory_set().activate();
+        // 刷新TLB
+        tlb::flush_all();
+    } else {
+        panic!("[Kernel] Process already dropped");
+    }
+    self.user_context.get_mut().run()
+}
+
+
+/// In TrapFrame
+/// impl UserContext
+pub fn run(&amp;mut self) {
+    unsafe {
+        syscall_return(self);
+    }
+}
+</code></pre>
+<p>利用rcore社区的<code>TrapFrame</code>库提供的<code>UserContext</code>的<code>run()</code>方法，使用当前的用户态现场进入用户态运行，直到遇到系统调用或者中断时返回内核。</p>
+<p>与通常的做法不同，在用户态遇到中断和系统调用陷入内核时，控制流不是直接跳转到中断/系统调用处理函数，而是返回<code>run()</code>之后，所以我们需要手动进行系统调用或中断处理。</p>
+<h3 id="系统调用分发do_syscall"><a class="header" href="#系统调用分发do_syscall">系统调用分发：do_syscall()</a></h3>
+<p><code>do_syscall</code>方法从用户态上下文获取系统调用号和参数，并调用内核系统调用分发函数<code>syscall()</code>。</p>
+<pre><code class="language-Rust">/// 线程执行系统调用
+pub fn do_syscall(&amp;self) {
+    let syscall_num = self.user_context.get_syscall_num();
+    let args = self.user_context.get_syscall_args();
+
+    // 执行系统调用
+    let (ret0, ret1) = syscall(syscall_num, args);
+    self.user_context.get_mut().set_syscall_ret(ret0, ret1);
+}
+</code></pre>
+<p>这里的<code>syscall</code>是内核中的系统调用分发函数，根据系统调用号来分发到具体的处理过程</p>
+<pre><code class="language-Rust">/// 系统调用总控函数
+pub fn syscall(syscall_id: usize, args: [usize; 6]) -&gt; (usize, usize) {
+    let syscall_id = num::FromPrimitive::from_usize(syscall_id).unwrap();
+    let ret = match syscall_id {
+        // 调试用
+        DebugWrite =&gt; sys_debug_write(args[0]),
+        DebugDataTransport =&gt; sys_debug_data_transport(args[0], args[1]),
+        DebugOpen =&gt; sys_debug_open(args[0]),
+        SerialRead =&gt; sys_serial_read(args[0]),
+        GetTime =&gt; (*pic::TICKS as _, 0),
+
+        // 任务相关
+        ProcExit =&gt; sys_proc_exit(args[0]),
+        ...
+    };
+    ret
+}
+</code></pre>
+<h2 id="内核运行用户线程"><a class="header" href="#内核运行用户线程">内核运行用户线程</a></h2>
+<pre><code class="language-Rust">/// 调度用户线程和内核线程
+pub fn main_loop() {
+    println!("[Kernel] Starting main loop...");
+    loop {
+        // 优先运行内核线程
+        ...
+        let uthread = Scheduler::get_first_uthread();
+        // 运行用户线程
+        if uthread.is_some() {
+            let uthread = uthread.unwrap();
+            // 修改当前线程
+            *CURRENT_THREAD.get_mut() = Some(uthread.clone());
+            // 持续运行用户线程直到其被挂起
+            while uthread.state() == ThreadState::Runnable {
+                uthread.run_until_trap();
+                handle_user_trap(uthread.clone(), &amp;uthread.user_context());
+            }
+            // 此时线程已被挂起
+            clear_current_thread();
+        }
+}
+</code></pre>
+<p>内核维护了一个用户线程列表，并不断选出就绪的内核线程运行，并处理用户线程的系统调用请求和中断。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../md/进程管理.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../md/内核线程管理.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../md/进程管理.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../md/内核线程管理.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
