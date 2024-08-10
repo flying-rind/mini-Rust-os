@@ -19,7 +19,10 @@ pub fn processor_entry() {
     loop {
         // 获取请求
         let (req, req_id) = match kthread.get_first_request() {
-            Some((req, req_id)) => (req, req_id),
+            Some((req, req_id)) => {
+                kthread.set_current_request_id(req_id);
+                (req, req_id)
+            }
             None => {
                 // 请求队列为空，则设置自己为Idle，放弃CPU直到请求入队时改变状态为NeedRun
                 kthread.set_state(KthreadState::Idle);

@@ -2,6 +2,7 @@
 use super::*;
 use crate::alloc::string::ToString;
 use crate::future::*;
+use crate::kthread::processor_entry;
 use crate::mm::*;
 use crate::requests::*;
 use alloc::{collections::VecDeque, string::String, sync::Arc};
@@ -17,6 +18,8 @@ core::arch::global_asm!(include_str!("switch.S"));
 extern "C" {
     /// 内嵌汇编，保存当前内核线程现场，并恢复下一个内核线程现场
     pub fn context_switch(cur: &KernelContext, nxt: &KernelContext);
+    /// 内嵌汇编，直接恢复下一个内核线程现场而不保存当前现场
+    pub fn restore_next(nxt: &KernelContext);
 }
 
 /// 内核线程ID，从1开始，0为内核主线程
@@ -43,7 +46,7 @@ pub enum KthreadState {
 }
 
 /// 内核线程的服务类型
-#[derive(Default, PartialEq, Eq, Hash)]
+#[derive(Default, PartialEq, Eq, Hash, Clone)]
 pub enum KthreadType {
     /// 文件系统服务
     FS,
@@ -78,7 +81,7 @@ pub struct Kthread {
     /// 内核线程名称
     name: String,
     /// 内核线程的内核态上下文
-    context: Box<KernelContext>,
+    context: Cell<Box<KernelContext>>,
     /// 运行状态
     state: Cell<KthreadState>,
     /// 服务类型
@@ -94,6 +97,8 @@ pub struct Kthread {
     request_id: Cell<usize>,
     /// 已经响应的请求ID
     response_id: Cell<usize>,
+    /// 当前正在处理的请求的ID
+    current_request_id: Cell<usize>,
 }
 
 impl Kthread {
@@ -119,7 +124,7 @@ impl Kthread {
         let kthread = Arc::new(Kthread {
             ktid,
             name,
-            context: Box::new(context),
+            context: Cell::new(Box::new(context)),
             processor,
             ktype,
             ..Kthread::default()
@@ -133,8 +138,41 @@ impl Kthread {
     /// 切换到下一个内核线程
     pub fn switch_to(&self, next: Arc<Kthread>) {
         unsafe {
-            context_switch(&self.context, &next.context);
+            context_switch(&(*(self.context.get())), &(*(next.context.get())));
         }
+    }
+
+    /// 切换下一个内核线程且不保存当前现场
+    pub fn switch_to_without_saving_context(&self, next: Arc<Kthread>) {
+        unsafe {
+            restore_next(&(*(next.context.get())));
+        }
+    }
+
+    /// 重启内核线程，当内核线程内发生严重错误panic时在panic handler中使用（测试）
+    ///
+    /// 首先唤醒出现错误的请求，重启后不再处理
+    ///
+    /// 重置当前内核线程的rip和rsp，并不保存上下文切换到其他内核线程执行
+    pub fn reboot(&self, current_kthread: Arc<Kthread>) {
+        // 重置上下文
+        let current_req_id = self.current_request_id.get().clone();
+        let context = self.context.get_mut();
+        context.rip = processor_entry as usize;
+        context.regs.rsp =
+            KERNEL_STACK_BASE + self.ktid * KERNEL_STACK_SIZE * 2 + KERNEL_STACK_SIZE;
+        // 唤醒出错的请求
+        self.wake_request(current_req_id);
+        let kthread = Scheduler::get_first_kthread().unwrap();
+        KTHREAD_DEQUE.get_mut().push_back(current_kthread.clone());
+        // 修改全局变量，且不保存寄存器
+        *CURRENT_KTHREAD.get_mut() = Some(kthread.clone());
+        current_kthread.switch_to_without_saving_context(kthread);
+    }
+
+    /// 获取自己的类型
+    pub fn ktype(&self) -> &KthreadType {
+        &self.ktype
     }
 
     /// 添加一个请求
@@ -161,7 +199,7 @@ impl Kthread {
         self.request_wakers.get_mut().push((waker, requset_id));
     }
 
-    /// 完成一个请求后，使用其唤醒器唤醒协程
+    /// 完成一个请求后，尝试使用其唤醒器唤醒协程
     pub fn wake_request(&self, request_id: usize) {
         // 更新自己的已响应ID
         *(self.response_id.get_mut()) = request_id;
@@ -207,6 +245,16 @@ impl Kthread {
     /// 设置内核线程状态
     pub fn set_state(&self, state: KthreadState) {
         *self.state.get_mut() = state
+    }
+
+    /// 设置当前正在处理的请求ID
+    pub fn set_current_request_id(&self, request_id: usize) {
+        *self.current_request_id.get_mut() = request_id;
+    }
+
+    /// 获取当前正在处理的请求ID
+    pub fn current_request_id(&self) -> usize {
+        self.current_request_id.get().clone()
     }
 
     /// 获取内核线程状态

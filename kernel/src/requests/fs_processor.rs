@@ -1,5 +1,10 @@
 //! 文件系统内核线程的响应器
 
+use core::{
+    panic,
+    sync::atomic::{AtomicUsize, Ordering},
+};
+
 use crate::{println, task::PROCESS_MAP};
 
 use super::*;
@@ -15,6 +20,9 @@ impl FsProcessor {
         Arc::new(FsProcessor {})
     }
 }
+
+/// 测试
+pub static PROCESSED_COUNT: AtomicUsize = AtomicUsize::new(0);
 
 impl Processor for FsProcessor {
     /// 处理一个文件系统请求，并不响应请求（在内核入口函数中响应）
@@ -52,6 +60,12 @@ impl Processor for FsProcessor {
             }
             // Write请求，进程Pid将buf中的数据写入文件表中fd对应的文件
             FsReqDescription::Write(pid, fd, buf_ptr, buf_len, result_ptr) => {
+                // [模拟致命错误]
+                if PROCESSED_COUNT.load(Ordering::Relaxed) % 5 == 0 {
+                    PROCESSED_COUNT.fetch_add(1, Ordering::Relaxed);
+                    panic!("[Fs Processor] Fatal error in write request!");
+                }
+
                 // 解析buf
                 let buf_ptr = (*buf_ptr) as *const u8;
                 let buf = unsafe { core::slice::from_raw_parts(buf_ptr, *buf_len) };
@@ -131,5 +145,6 @@ impl Processor for FsProcessor {
                 }
             }
         }
+        PROCESSED_COUNT.fetch_add(1, Ordering::Relaxed);
     }
 }

@@ -28,7 +28,10 @@ pub use alloc::{
     vec::Vec,
 };
 pub use mem::{size_of, size_of_val, transmute};
+use task::{KthreadType, Scheduler, CURRENT_KTHREAD};
 pub use utils::*;
+
+use crate::task::*;
 
 // pub mod component;
 pub mod drivers;
@@ -110,6 +113,7 @@ fn rust_oom() -> ! {
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
+    // 打印错误信息
     if let Some(l) = info.location() {
         println!(
             "[kernel] Panicked at {}:{} {}",
@@ -119,6 +123,22 @@ fn panic(info: &PanicInfo) -> ! {
         );
     } else {
         println!("[kernel] Panicked: {}", info.message().unwrap());
+    }
+    // 若是内核服务线程崩溃了，尝试恢复错误
+    let current_kthread = CURRENT_KTHREAD.get().as_ref().unwrap().clone();
+    match current_kthread.ktype() {
+        KthreadType::ROOT | KthreadType::EXECUTOR | KthreadType::UNKNOWN => {
+            println!("[Panic handler] Cannot reboot!");
+        }
+        KthreadType::BLK | KthreadType::FS => {
+            let current_req_id = current_kthread.current_request_id();
+            println!(
+                "[Panic handler] Trying to Rebooting..., the dangerous request(ID: {}) will be dropped!",
+                current_req_id
+            );
+            // 重启内核线程
+            current_kthread.reboot(current_kthread.clone());
+        }
     }
     loop {}
 }

@@ -22,3 +22,18 @@ context_switch: # (cur: &mut Context, nxt: &Context)
   mov rax, [rsi + 56] # restore return address
   mov [rsp], rax # for stack balance, must use mov instead of push
   ret
+
+# Restore next kthread without saving current's context(used when reboot kthread)
+.text
+.global
+restore_next: # (nxt: &KernelContext)
+  mov rsp, [rdi + 0]
+  mov rbx, [rdi + 8]
+  mov rbp, [rdi + 16]
+  mov r12, [rdi + 24]
+  mov r13, [rdi + 32]
+  mov r14, [rdi + 40]
+  mov r15, [rdi + 48]
+  mov rax, [rdi + 56] # restore return address
+  mov [rsp], rax # for stack balance, must use mov instead of push
+  ret
