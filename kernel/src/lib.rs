@@ -28,7 +28,7 @@ pub use alloc::{
     vec::Vec,
 };
 pub use mem::{size_of, size_of_val, transmute};
-use task::{KthreadType, Scheduler, CURRENT_KTHREAD};
+use task::{KthreadType, CURRENT_KTHREAD};
 pub use utils::*;
 
 use crate::task::*;

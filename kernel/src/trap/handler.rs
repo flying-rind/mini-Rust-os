@@ -1,6 +1,5 @@
 //! 中断和用户态系统调用的处理入口
 
-use super::*;
 use crate::*;
 
 use alloc::sync::Arc;

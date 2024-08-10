@@ -1,5 +1,5 @@
 //! 实现互斥锁
-use crate::{task::*, *};
+use crate::*;
 use alloc::sync::Arc;
 use core::task::Waker;
 use future::{executor, futures::sync::WaitForMutex};

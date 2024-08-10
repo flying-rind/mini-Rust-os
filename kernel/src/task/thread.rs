@@ -2,7 +2,6 @@
 
 use core::task::Waker;
 
-use super::*;
 use crate::syscall::syscall;
 use crate::*;
 use alloc::sync::{Arc, Weak};

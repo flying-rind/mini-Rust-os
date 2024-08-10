@@ -1,6 +1,5 @@
 //! 任务管理相关的系统调用
 use super::*;
-use crate::task::*;
 use future::executor;
 use future::futures::{ThreadYield, WaitForProc, WaitForThread};
 use mm::{MemoryArea, USER_STACK_BASE, USER_STACK_SIZE};

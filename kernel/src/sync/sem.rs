@@ -1,5 +1,5 @@
 //! 信号量
-use crate::{task::*, *};
+use crate::*;
 
 use alloc::sync::Arc;
 use core::task::Waker;
