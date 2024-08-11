@@ -53,7 +53,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         "testarg2".to_string(),
         "testarg3".to_string(),
     ];
-    let shell_str = "proccreatetest";
+    let shell_str = "exectest";
     let shell_process = Process::new(String::from(shell_str), &shell_str, Some(test_args)).unwrap();
     shell_process.root_thread().resume();
 

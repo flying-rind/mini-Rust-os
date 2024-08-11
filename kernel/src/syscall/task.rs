@@ -33,6 +33,11 @@ pub fn sys_proc_create(name_ptr: usize, path_ptr: usize, args_ptr: usize) -> (us
     // 获取命令行参数从用户堆拷贝到内核堆
     let args: Option<Vec<String>> = if args_ptr != 0 {
         let args_ref: &Vec<String> = unsafe { &(*(args_ptr as *const Vec<String>)) };
+        // [Debug]
+        println!(
+            "path_ptr = {:x}, args_ptr = {:x}, args[0] = {}",
+            path_ptr, args_ptr, args_ref[0]
+        );
         Some(args_ref.clone())
     } else {
         None

@@ -16,8 +16,8 @@ pub fn proc_create(name: &str, path: &str, args: Option<Vec<String>>) -> (usize,
     let name_ptr: usize = &name as *const &str as usize;
     let path_ptr = &path as *const &str as usize;
     let mut args_ptr = 0;
-    if let Some(args) = args {
-        args_ptr = &args as *const Vec<String> as usize;
+    if let Some(args) = &args {
+        args_ptr = args as *const Vec<String> as usize;
     }
     sys_proc_create(name_ptr, path_ptr, args_ptr)
 }
@@ -28,8 +28,8 @@ pub fn proc_create(name: &str, path: &str, args: Option<Vec<String>>) -> (usize,
 pub fn exec(path: &str, args: Option<Vec<String>>) -> (usize, usize) {
     let path_ptr = &path as *const &str as usize;
     let mut args_ptr = 0;
-    if let Some(args) = args {
-        args_ptr = &args as *const Vec<String> as usize;
+    if let Some(args) = &args {
+        args_ptr = args as *const Vec<String> as usize;
     }
     sys_exec(path_ptr, args_ptr)
 }

@@ -42,7 +42,7 @@ pub const KERNEL_STACK_BASE: usize = 0xFFFF_FF10_0000_0000;
 pub const KERNEL_STACK_SIZE: usize = 0x80_0000;
 
 /// 用户线程栈大小(4M)
-pub const USER_STACK_SIZE: usize = 0x4_0000;
+pub const USER_STACK_SIZE: usize = 0x40_0000;
 
 /// 用户栈（最低地址处）
 pub const USER_STACK_BASE: usize = 0x0000_7E80_0000_0000;
