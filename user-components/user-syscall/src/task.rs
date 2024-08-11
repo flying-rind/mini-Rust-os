@@ -22,11 +22,23 @@ pub fn proc_create(name: &str, path: &str, args: Option<Vec<String>>) -> (usize,
     sys_proc_create(name_ptr, path_ptr, args_ptr)
 }
 
+/// 替换当前进程的elf
+///
+/// 若创建失败，则第一个返回值为usize::MAX
+pub fn exec(path: &str, args: Option<Vec<String>>) -> (usize, usize) {
+    let path_ptr = &path as *const &str as usize;
+    let mut args_ptr = 0;
+    if let Some(args) = args {
+        args_ptr = &args as *const Vec<String> as usize;
+    }
+    sys_exec(path_ptr, args_ptr)
+}
+
 /// 当前线程等待一个进程结束
 pub fn proc_wait(pid: usize) {
     let (ret0, _ret1) = sys_proc_wait(pid);
     if ret0 == 255 {
-        debug_write("SyscallError: waited process does not exist");
+        // debug_write("SyscallError: waited process does not exist");
     }
 }
 
@@ -71,4 +83,10 @@ pub fn get_pid() -> usize {
 pub fn get_tid() -> usize {
     let (tid, _) = sys_get_tid();
     tid
+}
+
+/// 复制当前进程
+pub fn fork() -> usize {
+    let (pid, _) = sys_fork();
+    pid
 }

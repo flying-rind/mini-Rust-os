@@ -5,6 +5,7 @@ use crate::fs::File;
 use alloc::sync::Arc;
 use alloc::sync::Weak;
 use core::sync::atomic::{AtomicUsize, Ordering};
+use core::usize;
 use fs::open_file;
 use fs::OpenFlags;
 use hashbrown::HashMap;
@@ -73,6 +74,7 @@ impl Process {
             USER_STACK_BASE,
             USER_STACK_SIZE,
             PageTableFlags::USER_ACCESSIBLE | PageTableFlags::WRITABLE | PageTableFlags::PRESENT,
+            MemAreaType::USERSTACK,
         );
         memory_set.insert_area(stack_area.clone());
         // 切换到新进程地址空间以访问其用户栈
@@ -108,6 +110,86 @@ impl Process {
         );
         new_proc.add_thread(root_thread);
         Some(new_proc)
+    }
+
+    /// 复制当前进程
+    ///
+    /// 若但前进程有多个线程则只复制当前线程
+    pub fn fork(&self) -> Arc<Process> {
+        assert_eq!(self.threads.len(), 1);
+        let pid = PROCESS_ID.fetch_add(1, Ordering::Relaxed);
+        // 创建子进程复制父进程的文件表和地址空间（不包括用户栈）
+        let memory_set = self.memory_set.clone_myself();
+        let child_proc = Arc::new(Process {
+            pid,
+            name: self.name.clone(),
+            memory_set: memory_set.clone(),
+            file_table: Cell::new(self.file_table.clone()),
+            ..Process::default()
+        });
+        // 加入全局进程映射表
+        PROCESS_MAP.get_mut().insert(pid, child_proc.clone());
+        // 复制用户栈和上下文
+        let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+        let current_proc = current_thread.proc().unwrap();
+        let new_stack_area = current_thread.stack_area().clone_myself();
+        memory_set.insert_area(new_stack_area.clone());
+        let current_ctx = current_thread.user_context();
+        // 创建根线程
+        let tid = child_proc.alloc_tid();
+        let root_thread = Thread::new(
+            Arc::downgrade(&child_proc.clone()),
+            tid,
+            current_ctx.general.rip,
+            current_ctx.general.rsp,
+            0,
+            0,
+            new_stack_area,
+        );
+        // 子线程返回值为0
+        root_thread.user_context().general.rax = 0;
+        root_thread.set_state(ThreadState::Runnable);
+        child_proc.add_thread(root_thread);
+        child_proc.set_parent(Arc::downgrade(&current_proc));
+        self.add_child(child_proc.clone());
+        child_proc
+    }
+
+    /// 替换当前进程的elf文件
+    pub fn exec(&self, path: &str, args: Option<Vec<String>>) -> usize {
+        if let Some(file) = open_file(path, OpenFlags::RDONLY) {
+            let elf_data = file.read_all();
+            let elf = ElfFile::new(&elf_data).unwrap();
+            // 清理除了exec之外的所有子线程
+            let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+            for (_, thread) in self.threads.get() {
+                if current_thread.tid() != thread.tid() {
+                    thread.set_state(ThreadState::Exited);
+                }
+            }
+            let threads = self.threads.get_mut();
+            threads.clear();
+            threads.insert(current_thread.tid(), current_thread.clone());
+            // 清理地址空间之前的elf虚存区域
+            self.memory_set.clear_elf();
+            // 重新加载elf
+            load_app(self.memory_set.clone(), &elf);
+            let entry = elf.header.pt2.entry_point() as usize;
+            // 参数压栈
+            self.memory_set.activate();
+            let (stack_top, argc, argv) = if args.is_none() {
+                (USER_STACK_BASE + USER_STACK_SIZE, 0, 0)
+            } else {
+                push_to_stack(current_thread.stack_area(), args)
+            };
+            // 准备根线程现场
+            // println!("entry: {:x}", entry);
+            current_thread.set_ip(entry);
+            current_thread.set_sp(stack_top);
+            current_thread.set_args(argc, argv);
+            return 1;
+        }
+        usize::MAX
     }
 
     /// 退出进程

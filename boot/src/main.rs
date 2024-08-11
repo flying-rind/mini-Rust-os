@@ -82,7 +82,7 @@ fn main() {
         .arg("ide-hd,drive=fsimg,bus=ahci0.0");
 
     //  添加virtio-gpu设备
-    // qemu_cmd.arg("-device").arg("virtio-gpu-device");
+    // qemu_cmd.arg("-device").arg("virtio-net-pci");
 
     // 设置内存大小
     qemu_cmd.arg("-m").arg("8G");

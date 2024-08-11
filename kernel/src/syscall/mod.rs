@@ -32,6 +32,8 @@ pub fn syscall(syscall_id: usize, args: [usize; 6]) -> (usize, usize) {
         ThreadJoin => sys_thread_join(args[0]),
         GetPid => sys_get_pid(),
         GetTid => sys_get_tid(),
+        Fork => sys_fork(),
+        Exec => sys_exec(args[0], args[1]),
 
         // 文件相关
         Open => sys_open(args[0], args[1], args[2]),

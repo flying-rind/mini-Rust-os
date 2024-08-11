@@ -45,6 +45,7 @@ pub unsafe fn init() {
 
 /// User space context
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq)]
+// #[derive(Debug, Default, Eq, PartialEq)]
 #[repr(C)]
 pub struct UserContext {
     pub general: GeneralRegs,

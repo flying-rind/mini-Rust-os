@@ -53,6 +53,23 @@ pub fn sys_proc_create(name_ptr: usize, path_ptr: usize, args_ptr: usize) -> (us
     (new_process_id, 0)
 }
 
+/// 替换当前进程elf
+///
+/// 若失败返回usize::MAX
+pub fn sys_exec(path_ptr: usize, args_ptr: usize) -> (usize, usize) {
+    let path = unsafe { (*(path_ptr as *const &str)).to_string() };
+    // 获取命令行参数从用户堆拷贝到内核堆
+    let args: Option<Vec<String>> = if args_ptr != 0 {
+        let args_ref: &Vec<String> = unsafe { &(*(args_ptr as *const Vec<String>)) };
+        Some(args_ref.clone())
+    } else {
+        None
+    };
+    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+    let current_proc = current_thread.proc().unwrap();
+    (current_proc.exec(&path, args), 0)
+}
+
 /// 当前线程等待一个进程结束
 ///
 /// 若等待的进程不存在则返回255
@@ -63,7 +80,7 @@ pub fn sys_proc_wait(pid: usize) -> (usize, usize) {
     let waited_process = match PROCESS_MAP.get().get(&pid) {
         Some(process) => process.clone(),
         None => {
-            println!("[Kernel] waited proc does not existed");
+            println!("[Kernel] waited proc does not existed or already dropped");
             return (255, 0);
         }
     };
@@ -89,7 +106,7 @@ pub fn sys_thread_create(entry: usize, arg1: usize, arg2: usize) -> (usize, usiz
     let flags =
         PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
     // 分配用户栈
-    let stack_area = MemoryArea::new(sp_base, USER_STACK_SIZE, flags);
+    let stack_area = MemoryArea::new(sp_base, USER_STACK_SIZE, flags, mm::MemAreaType::USERSTACK);
     // 插入到当前进程所在的地址空间中
     let current_memoryset = current_proc.memory_set();
     current_memoryset.insert_area(stack_area.clone());
@@ -158,4 +175,12 @@ pub fn sys_get_pid() -> (usize, usize) {
 pub fn sys_get_tid() -> (usize, usize) {
     let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
     (current_thread.tid(), 0)
+}
+
+/// 复制当前进程
+pub fn sys_fork() -> (usize, usize) {
+    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+    let current_proc = current_thread.proc().unwrap();
+    let child_proc = current_proc.fork();
+    (child_proc.pid(), 0)
 }

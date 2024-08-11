@@ -48,6 +48,10 @@ pub enum SyscallNum {
     GetPid,
     /// 获取线程id
     GetTid,
+    /// 复制当前进程
+    Fork,
+    /// 替换当前进程elf
+    Exec,
 
     /// 当前进程打开文件
     Open,
@@ -219,6 +223,14 @@ fn sys_get_pid() -> (usize, usize) {
 
 fn sys_get_tid() -> (usize, usize) {
     syscall(SyscallNum::GetTid, [0, 0, 0, 0, 0, 0])
+}
+
+fn sys_fork() -> (usize, usize) {
+    syscall(SyscallNum::Fork, [0, 0, 0, 0, 0, 0])
+}
+
+fn sys_exec(path_ptr: usize, args_ptr: usize) -> (usize, usize) {
+    syscall(SyscallNum::Exec, [path_ptr, args_ptr, 0, 0, 0, 0])
 }
 
 fn sys_sem_create(n: usize) -> (usize, usize) {

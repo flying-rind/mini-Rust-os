@@ -12,6 +12,15 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::mem::size_of;
 
+/// 虚存区域的类型
+#[derive(PartialEq, Eq, Clone)]
+pub enum MemAreaType {
+    /// ELF
+    ELF,
+    /// 用户栈
+    USERSTACK,
+}
+
 /// 虚存区域
 pub struct MemoryArea {
     /// 起始虚地址
@@ -22,17 +31,25 @@ pub struct MemoryArea {
     flags: PageTableFlags,
     /// 映射关系
     mapper: Cell<HashMap<usize, PhysFrame>>,
+    /// 类型
+    mtype: MemAreaType,
 }
 
 impl MemoryArea {
     /// 新建一块虚存区域
-    pub fn new(start_vaddr: usize, size: usize, flags: PageTableFlags) -> Arc<Self> {
+    pub fn new(
+        start_vaddr: usize,
+        size: usize,
+        flags: PageTableFlags,
+        mtype: MemAreaType,
+    ) -> Arc<Self> {
         assert!(is_aligned(start_vaddr) && is_aligned(size));
         Arc::new(MemoryArea {
             start_vaddr,
             size,
             flags,
             mapper: Cell::new(HashMap::new()),
+            mtype,
         })
     }
 
@@ -53,6 +70,11 @@ impl MemoryArea {
     /// 获取起始虚地址
     pub fn start_vaddr(&self) -> usize {
         self.start_vaddr
+    }
+
+    /// 获得区域类型
+    pub fn mtype(&self) -> MemAreaType {
+        self.mtype.clone()
     }
 
     /// 获取虚存区域长度
@@ -91,23 +113,22 @@ impl MemoryArea {
             processed += n;
         }
     }
-}
 
-impl Clone for MemoryArea {
-    /// 克隆一块虚存区域，重新分配所有页帧
-    fn clone(&self) -> Self {
+    /// 克隆这个虚存区域
+    pub fn clone_myself(&self) -> Arc<MemoryArea> {
         let mut mapper = Cell::new(HashMap::new());
         for (&vaddr, frame) in self.mapper.get() {
             let new_frame = PhysFrame::alloc().unwrap();
             new_frame.as_slice().copy_from_slice(frame.as_slice());
             mapper.insert(vaddr, new_frame);
         }
-        Self {
+        Arc::new(Self {
             start_vaddr: self.start_vaddr,
             size: self.size,
             flags: self.flags,
             mapper,
-        }
+            mtype: self.mtype.clone(),
+        })
     }
 }
 

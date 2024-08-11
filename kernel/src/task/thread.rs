@@ -134,7 +134,28 @@ impl Thread {
 
     /// 获取用户态上下文
     pub fn user_context(&self) -> UserContext {
-        **self.user_context.get_mut()
+        **(self.user_context.get_mut())
+    }
+
+    /// 设置ip
+    pub fn set_ip(&self, ip: usize) {
+        self.user_context.get_mut().general.rip = ip;
+    }
+
+    /// 设置sp
+    pub fn set_sp(&self, sp: usize) {
+        self.user_context.get_mut().general.rsp = sp;
+    }
+
+    /// 设置rdi，rsi
+    pub fn set_args(&self, rdi: usize, rsi: usize) {
+        self.user_context.get_mut().general.rdi = rdi;
+        self.user_context.get_mut().general.rsi = rsi;
+    }
+
+    /// 获取用户栈
+    pub fn stack_area(&self) -> Arc<MemoryArea> {
+        self.stack_area.clone()
     }
 
     /// 添加一个状态唤醒器
