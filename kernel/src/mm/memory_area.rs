@@ -117,6 +117,7 @@ impl MemoryArea {
     /// 克隆这个虚存区域
     pub fn clone_myself(&self) -> Arc<MemoryArea> {
         let mut mapper = Cell::new(HashMap::new());
+        // 为每个虚地址分配新的物理地址，且复制原数据
         for (&vaddr, frame) in self.mapper.get() {
             let new_frame = PhysFrame::alloc().unwrap();
             new_frame.as_slice().copy_from_slice(frame.as_slice());

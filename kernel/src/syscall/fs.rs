@@ -50,11 +50,15 @@ pub fn sys_open(path_ptr: usize, flags: usize, fd_ptr: usize) -> (usize, usize) 
 /// (0, 0)表示异步，返回值还未写入;
 /// (read_size, 0)表示同步，可以直接使用返回值
 pub fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) -> (usize, usize) {
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-    let current_proc = current_thread.proc().unwrap();
+    let current_proc = current_proc();
     let file_table = current_proc.file_table();
-    let file = if let Some(Some(file)) = file_table.get(fd) {
-        file.clone()
+    // [Debug]
+    // println!("{}", file_table.len());
+    let f1 = &file_table[0];
+    let f1 = f1.as_ref().unwrap();
+    let file_wrapper = file_table.get(fd);
+    let file = if let Some(Some(f)) = file_wrapper {
+        f.clone()
     // 不存在这个文件，直接返回不进行任何处理
     } else {
         return (usize::MAX, 0);
@@ -85,6 +89,10 @@ pub fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) ->
                 return (usize::MAX, 0);
             }
         }
+    // 管道，需要异步读取
+    } else if let Ok(pipe) = file.clone().downcast_arc::<Pipe>() {
+        pipe.async_read(pipe.clone(), buf_ptr, buf_len, result_ptr);
+        return (0, 0);
     // 若是标准输入输出则直接读取不发送请求
     } else {
         let buf_ptr = buf_ptr as *mut u8;
@@ -151,8 +159,7 @@ pub fn sys_write(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) -
 ///
 /// 成功返回0，否则返回usize::MAX
 pub fn sys_close(fd: usize) -> (usize, usize) {
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-    let current_proc = current_thread.proc().unwrap().clone();
+    let current_proc = current_proc();
     let file_table = current_proc.file_table();
     if let Some(file) = file_table.get_mut(fd) {
         if core::mem::replace(file, None).is_some() {
@@ -160,4 +167,15 @@ pub fn sys_close(fd: usize) -> (usize, usize) {
         }
     }
     (usize::MAX, 0)
+}
+
+/// 创建管道，返回读端和写端的fd
+pub fn sys_pipe() -> (usize, usize) {
+    let current_proc = current_proc();
+    let (read_end, write_end) = make_pipe();
+    let (read_fd, write_fd) = (
+        current_proc.add_file(read_end),
+        current_proc.add_file(write_end),
+    );
+    (read_fd, write_fd)
 }

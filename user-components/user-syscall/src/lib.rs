@@ -2,6 +2,7 @@
 #![no_std]
 mod debug;
 mod fs;
+pub mod print;
 mod sync;
 mod task;
 
@@ -61,6 +62,8 @@ pub enum SyscallNum {
     Read,
     /// 写文件
     Write,
+    /// 创建管道
+    Pipe,
 
     /// 创建互斥锁
     MutexCreate,
@@ -157,7 +160,7 @@ fn sys_open(path_ptr: usize, flags: usize) -> (usize, usize) {
 }
 
 fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize) -> (usize, usize) {
-    let mut read_size: usize = 0;
+    let mut read_size: usize = 1;
     let result_ptr = &mut read_size as *mut usize as usize;
     let (ret1, _) = syscall(SyscallNum::Read, [fd, buf_ptr, buf_len, result_ptr, 0, 0]);
     if ret1 == usize::MAX {
@@ -167,6 +170,11 @@ fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize) -> (usize, usize) {
         // 是标准输入输出，同步返回了
         read_size = ret1;
     }
+    // [Debug]
+    // println!(
+    //     "ret1 = {}, result_ptr: {:x}, read size: {}",
+    //     ret1, result_ptr, read_size
+    // );
     (read_size, 0)
 }
 
@@ -187,6 +195,10 @@ fn sys_write(fd: usize, buf_ptr: usize, buf_len: usize) -> (usize, usize) {
 fn sys_close(fd: usize) -> (usize, usize) {
     let (ret1, _) = syscall(SyscallNum::Close, [fd, 0, 0, 0, 0, 0]);
     (ret1, 0)
+}
+
+fn sys_pipe() -> (usize, usize) {
+    syscall(SyscallNum::Pipe, [0, 0, 0, 0, 0, 0])
 }
 
 fn sys_mutex_create() -> (usize, usize) {

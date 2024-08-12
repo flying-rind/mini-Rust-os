@@ -1,6 +1,6 @@
+use super::debug_write;
+use super::serial_read;
 use core::fmt::{self, Write};
-use user_syscall::debug_write;
-use user_syscall::serial_read;
 struct Stdout;
 
 impl Write for Stdout {

@@ -10,9 +10,9 @@ use user_lib::proc_wait;
 fn main() -> usize {
     let pid = fork();
     if pid == 0 {
-        println!("I am child process");
+        println!("I am child process, pid: {}", pid);
     } else {
-        println!("I am parent process");
+        println!("I am parent process, child pid: {}", pid);
         proc_wait(pid);
     }
     println!("Fork test passed!");

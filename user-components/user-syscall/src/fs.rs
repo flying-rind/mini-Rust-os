@@ -29,6 +29,7 @@ pub fn open(path: &str, flags: OpenFlags) -> Option<usize> {
 pub fn read(fd: usize, buf: &mut [u8]) -> Option<usize> {
     let buf_ptr = buf.as_mut_ptr() as usize;
     let (read_bytes, _) = sys_read(fd, buf_ptr, buf.len());
+    println!("read_bytes: {:x}", read_bytes);
     if read_bytes == usize::MAX {
         return None;
     }
@@ -56,4 +57,9 @@ pub fn close(fd: usize) -> Option<usize> {
         return None;
     }
     Some(ret1)
+}
+
+/// 创建管道，返回读端和写端的fd
+pub fn make_pipe() -> (usize, usize) {
+    sys_pipe()
 }

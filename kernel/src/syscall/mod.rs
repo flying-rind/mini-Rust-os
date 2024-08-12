@@ -40,6 +40,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 6]) -> (usize, usize) {
         Close => sys_close(args[0]),
         Read => sys_read(args[0], args[1], args[2], args[3]),
         Write => sys_write(args[0], args[1], args[2], args[3]),
+        Pipe => sys_pipe(),
 
         // 同步互斥
         MutexCreate => sys_mutex_create(),

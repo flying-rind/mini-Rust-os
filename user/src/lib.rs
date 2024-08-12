@@ -7,7 +7,6 @@
 
 #[macro_use]
 mod lang_items;
-pub mod print;
 
 extern crate alloc;
 extern crate bitflags;

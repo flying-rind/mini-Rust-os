@@ -47,7 +47,10 @@ pub fn handle_trap(
     match trap_num {
         // 页错误，目前直接panic
         PAGE_FAULT => {
-            println!("[Trap Handler]: PAGEFAULT");
+            println!(
+                "[Trap Handler]: PAGEFAULT, memory_set root_pa: {:x}",
+                current_proc().memory_set().page_table().get().paddr()
+            );
             panic!("page fault");
         }
         // 时钟中断，轮转用户线程或内核线程

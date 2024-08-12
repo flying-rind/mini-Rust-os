@@ -46,21 +46,6 @@ pub mod task;
 pub mod trap;
 pub mod utils;
 
-/// 内核初始化
-pub fn init(boot_info: &'static mut bootloader_api::BootInfo) {
-    // 初始化串口
-    serial::init(0x3f8);
-    // 初始化中断和陷入
-    trap::init();
-    pic::init();
-    // 初始化内存管理
-    mm::init(&mut boot_info.memory_regions);
-    // 初始化驱动
-    drivers::init();
-    // 初始化文件系统
-    fs::init();
-}
-
 #[inline(always)]
 pub const fn zero<T>() -> T {
     unsafe { mem::MaybeUninit::zeroed().assume_init() }

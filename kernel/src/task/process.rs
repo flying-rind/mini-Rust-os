@@ -124,7 +124,7 @@ impl Process {
             pid,
             name: self.name.clone(),
             memory_set: memory_set.clone(),
-            file_table: Cell::new(self.file_table.clone()),
+            file_table: Cell::new(self.file_table.get().clone()),
             ..Process::default()
         });
         // 加入全局进程映射表

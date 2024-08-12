@@ -4,7 +4,7 @@ use downcast_rs::impl_downcast;
 use downcast_rs::DowncastSync;
 
 pub use inode::{init, open_file, OSInode, OpenFlags, ROOT_INODE};
-// pub use pipe::make_pipe;
+pub use pipe::*;
 pub use stdio::*;
 
 /// OS看到的文件抽象，只关心字节流的读写
@@ -23,6 +23,6 @@ impl_downcast!(sync File);
 /// 内核使用的Inode类型
 mod inode;
 // / 管道抽象
-// mod pipe;
+mod pipe;
 // /// 标准输入输出抽象
 mod stdio;
