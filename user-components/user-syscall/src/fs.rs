@@ -63,3 +63,14 @@ pub fn close(fd: usize) -> Option<usize> {
 pub fn make_pipe() -> (usize, usize) {
     sys_pipe()
 }
+
+/// 复制当前进程的一个文件
+///
+/// 若成功返回复制后的fd，否则返回None
+pub fn dup(fd: usize) -> Option<usize> {
+    let (ret1, _) = sys_dup(fd);
+    if ret1 == usize::MAX {
+        return None;
+    }
+    Some(ret1)
+}

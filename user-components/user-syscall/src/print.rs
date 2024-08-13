@@ -1,11 +1,16 @@
-use super::debug_write;
-use super::serial_read;
+use crate::read;
+use crate::write;
+
 use core::fmt::{self, Write};
+
+const STDIN: usize = 0;
+const STDOUT: usize = 1;
+
 struct Stdout;
 
 impl Write for Stdout {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        debug_write(s);
+        write(STDOUT, s.as_bytes());
         Ok(())
     }
 }
@@ -30,6 +35,6 @@ macro_rules! println {
 
 pub fn getchar() -> u8 {
     let mut c = [0u8; 1];
-    serial_read(&mut c);
+    read(STDIN, &mut c);
     c[0]
 }

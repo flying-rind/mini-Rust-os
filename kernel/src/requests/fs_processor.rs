@@ -5,7 +5,7 @@ use core::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-use crate::{println, task::PROCESS_MAP};
+use crate::{activate_proc_ms, println, task::PROCESS_MAP};
 
 use super::*;
 use crate::fs::*;
@@ -31,6 +31,8 @@ impl Processor for FsProcessor {
         match fs_req {
             // Read请求，进程Pid读文件表中fd对应的文件到buf中
             FsReqDescription::Read(pid, fd, buf_ptr, buf_len, result_ptr) => {
+                // 切换到进程所在地址空间
+                activate_proc_ms(pid.clone());
                 // 解析buf
                 let buf_ptr = (*buf_ptr) as *mut u8;
                 let buf = unsafe { core::slice::from_raw_parts_mut(buf_ptr, *buf_len) };
@@ -60,6 +62,8 @@ impl Processor for FsProcessor {
             }
             // Write请求，进程Pid将buf中的数据写入文件表中fd对应的文件
             FsReqDescription::Write(pid, fd, buf_ptr, buf_len, result_ptr) => {
+                // 切换到进程所在地址空间
+                activate_proc_ms(pid.clone());
                 // [模拟致命错误]
                 if PROCESSED_COUNT.load(Ordering::Relaxed) % 5 == 0 {
                     PROCESSED_COUNT.fetch_add(1, Ordering::Relaxed);
@@ -95,6 +99,8 @@ impl Processor for FsProcessor {
             }
             // 处理Open请求，打开一个磁盘文件并加入pid进程的文件表中
             FsReqDescription::Open(pid, path_ptr, flags, fd_ptr) => {
+                // 切换到进程所在地址空间
+                activate_proc_ms(pid.clone());
                 // 解析路径
                 let flags = OpenFlags::from_bits(*flags).unwrap();
                 let path_ptr = (*path_ptr) as *const &str;

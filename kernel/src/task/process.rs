@@ -1,13 +1,12 @@
 //! 进程抽象
 use crate::{mm::*, *};
 
-use crate::fs::File;
 use alloc::sync::Arc;
 use alloc::sync::Weak;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::usize;
-use fs::open_file;
 use fs::OpenFlags;
+use fs::{open_file, File, Stdin, Stdout};
 use hashbrown::HashMap;
 use spin::Lazy;
 use spin::RwLock;
@@ -85,12 +84,17 @@ impl Process {
         } else {
             push_to_stack(stack_area.clone(), args)
         };
-        // 构造新进程
+        // 构造新进程，默认打开标准输入输出
         let pid = PROCESS_ID.fetch_add(1, Ordering::Relaxed);
         let new_proc = Arc::new(Process {
             pid,
             name,
             memory_set,
+            file_table: Cell::new(vec![
+                Some(Arc::new(Stdin)),
+                Some(Arc::new(Stdout)),
+                Some(Arc::new(Stdout)),
+            ]),
             ..Process::default()
         });
 
@@ -129,7 +133,7 @@ impl Process {
         });
         // 加入全局进程映射表
         PROCESS_MAP.get_mut().insert(pid, child_proc.clone());
-        // 复制用户栈和上下文
+        // 复制用户栈
         let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
         let current_proc = current_thread.proc().unwrap();
         let new_stack_area = current_thread.stack_area().clone_myself();
@@ -146,8 +150,9 @@ impl Process {
             0,
             new_stack_area,
         );
-        // 子线程返回值为0
+        // 复制上下文
         root_thread.set_user_context(current_ctx);
+        // 子线程返回值为0
         root_thread.set_rax(0);
         root_thread.set_state(ThreadState::Runnable);
         child_proc.add_thread(root_thread);

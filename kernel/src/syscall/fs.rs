@@ -144,7 +144,7 @@ pub fn sys_write(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) -
                 return (usize::MAX, 0);
             }
         }
-    // 若是标准输入输出则直接写入不发送请求
+    // 若是标准输入输出或管道则直接写入（同步）不发送请求
     } else {
         let buf_ptr = buf_ptr as *const u8;
         let buf = unsafe { core::slice::from_raw_parts(buf_ptr, buf_len) };
@@ -176,4 +176,18 @@ pub fn sys_pipe() -> (usize, usize) {
         current_proc.add_file(write_end),
     );
     (read_fd, write_fd)
+}
+
+/// 复制一份文件，一般与close一起使用
+///
+/// 若文件不存在则返回usize::MAX
+pub fn sys_dup(fd: usize) -> (usize, usize) {
+    let current_proc = current_proc();
+    let file_table = current_proc.file_table();
+    let file = if let Some(Some(f)) = file_table.get(fd) {
+        f.clone()
+    } else {
+        return (usize::MAX, 0);
+    };
+    (current_proc.add_file(file), 0)
 }
