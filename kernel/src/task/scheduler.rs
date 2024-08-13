@@ -85,6 +85,8 @@ pub fn main_loop() {
                 // 修改当前线程
                 *CURRENT_THREAD.get_mut() = Some(uthread.clone());
                 // 持续运行用户线程直到其被挂起
+                // [Debug]
+                // println!("uthread running, pid {}", uthread.proc().unwrap().pid());
                 while uthread.state() == ThreadState::Runnable {
                     uthread.run_until_trap();
                     handle_user_trap(uthread.clone(), &uthread.user_context());

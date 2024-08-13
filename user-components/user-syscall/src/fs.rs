@@ -29,7 +29,7 @@ pub fn open(path: &str, flags: OpenFlags) -> Option<usize> {
 pub fn read(fd: usize, buf: &mut [u8]) -> Option<usize> {
     let buf_ptr = buf.as_mut_ptr() as usize;
     let (read_bytes, _) = sys_read(fd, buf_ptr, buf.len());
-    println!("read_bytes: {:x}", read_bytes);
+    // println!("read_bytes: {:x}", read_bytes);
     if read_bytes == usize::MAX {
         return None;
     }

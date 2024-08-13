@@ -140,14 +140,15 @@ impl Process {
         let root_thread = Thread::new(
             Arc::downgrade(&child_proc.clone()),
             tid,
-            current_ctx.general.rip,
-            current_ctx.general.rsp,
+            0,
+            0,
             0,
             0,
             new_stack_area,
         );
         // 子线程返回值为0
-        root_thread.user_context().general.rax = 0;
+        root_thread.set_user_context(current_ctx);
+        root_thread.set_rax(0);
         root_thread.set_state(ThreadState::Runnable);
         child_proc.add_thread(root_thread);
         child_proc.set_parent(Arc::downgrade(&current_proc));

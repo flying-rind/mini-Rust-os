@@ -54,8 +54,6 @@ pub fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) ->
     let file_table = current_proc.file_table();
     // [Debug]
     // println!("{}", file_table.len());
-    let f1 = &file_table[0];
-    let f1 = f1.as_ref().unwrap();
     let file_wrapper = file_table.get(fd);
     let file = if let Some(Some(f)) = file_wrapper {
         f.clone()

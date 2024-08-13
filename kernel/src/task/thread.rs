@@ -133,8 +133,13 @@ impl Thread {
     }
 
     /// 获取用户态上下文
-    pub fn user_context(&self) -> UserContext {
-        **(self.user_context.get_mut())
+    pub fn user_context(&self) -> &mut UserContext {
+        &mut *(self.user_context.get_mut())
+    }
+
+    /// 设置用户态上下文
+    pub fn set_user_context(&self, user_context: &mut UserContext) {
+        **self.user_context.get_mut() = user_context.clone();
     }
 
     /// 设置ip
@@ -151,6 +156,11 @@ impl Thread {
     pub fn set_args(&self, rdi: usize, rsi: usize) {
         self.user_context.get_mut().general.rdi = rdi;
         self.user_context.get_mut().general.rsi = rsi;
+    }
+
+    /// 设置rax
+    pub fn set_rax(&self, rax: usize) {
+        self.user_context.get_mut().general.rax = rax;
     }
 
     /// 获取用户栈

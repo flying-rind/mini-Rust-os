@@ -4,5 +4,6 @@ b kernel_main
 c
 b kernel::syscall::fs::sys_read
 b kernel::syscall::fs::sys_pipe
+b kernel::syscall::fs::sys_close
 layout src
 

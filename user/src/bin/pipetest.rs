@@ -19,7 +19,7 @@ fn main(_argc: usize, _argv: &[&str]) -> usize {
     // println!("read_fd: {}, write_fd:{}", read_fd, write_fd);
     let pid = fork();
     if pid == 0 {
-        // println!("pid: {}", pid);
+        println!("pid: {}", pid);
         // 子进程，关闭写端，再读读端
         close(write_fd);
         let mut buffer = [0u8; 32];
