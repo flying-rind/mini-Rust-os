@@ -15,7 +15,7 @@ fn main() -> usize {
     let pid = fork();
     if pid == 0 {
         let args = vec!["arg1".to_string(), "arg2".to_string()];
-        exec("printargs", Some(args));
+        exec("printargs", Some(&args));
     } else {
         println!("I am parent process");
         proc_wait(pid);

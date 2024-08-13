@@ -62,7 +62,13 @@ pub fn sys_proc_create(name_ptr: usize, path_ptr: usize, args_ptr: usize) -> (us
 ///
 /// 若失败返回usize::MAX
 pub fn sys_exec(path_ptr: usize, args_ptr: usize) -> (usize, usize) {
-    let path = unsafe { (*(path_ptr as *const &str)).to_string() };
+    let path = unsafe { *(path_ptr as *const &str) };
+    let path = path.to_string();
+    println!(
+        "in kernel sys_exec, path: {}, path_len:{}",
+        path,
+        path.len()
+    );
     // 获取命令行参数从用户堆拷贝到内核堆
     let args: Option<Vec<String>> = if args_ptr != 0 {
         let args_ref: &Vec<String> = unsafe { &(*(args_ptr as *const Vec<String>)) };

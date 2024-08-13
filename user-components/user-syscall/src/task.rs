@@ -25,10 +25,11 @@ pub fn proc_create(name: &str, path: &str, args: Option<Vec<String>>) -> (usize,
 /// 替换当前进程的elf
 ///
 /// 若创建失败，则第一个返回值为usize::MAX
-pub fn exec(path: &str, args: Option<Vec<String>>) -> (usize, usize) {
+pub fn exec(path: &str, args: Option<&Vec<String>>) -> (usize, usize) {
+    // println!("In user exec path: {}", path);
     let path_ptr = &path as *const &str as usize;
     let mut args_ptr = 0;
-    if let Some(args) = &args {
+    if let Some(args) = args {
         args_ptr = args as *const Vec<String> as usize;
     }
     sys_exec(path_ptr, args_ptr)

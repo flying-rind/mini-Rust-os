@@ -38,10 +38,10 @@ impl PageTable {
         let root_frame = PhysFrame::alloc_zero().unwrap();
 
         // [Debug]
-        println!(
-            "[Debugger] Created new page table, root_pa: 0x{:x}",
-            root_frame.0
-        );
+        // println!(
+        //     "[Debugger] Created new page table, root_pa: 0x{:x}",
+        //     root_frame.0
+        // );
 
         // 设置共享地址空间
         let p4 = as_table(root_frame.0);
