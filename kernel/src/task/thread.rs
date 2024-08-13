@@ -217,8 +217,8 @@ impl Thread {
     }
 }
 
-impl Drop for Thread {
-    fn drop(&mut self) {
-        println!("[Rust] Thread dropped now: tid: {}", self.tid);
-    }
-}
+// impl Drop for Thread {
+//     fn drop(&mut self) {
+//         println!("[Rust] Thread dropped now: tid: {}", self.tid);
+//     }
+// }
