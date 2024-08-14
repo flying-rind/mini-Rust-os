@@ -34,6 +34,10 @@ pub fn processor_entry() {
         processor.process_request(req);
         // 响应请求，唤醒等待协程
         kthread.wake_request(req_id);
-        println!("[{}] Request {} processed over!", kthread.name(), req_id,);
+        println!(
+            "\x1b[34m[{}] Request {} processed over!\x1b[0m",
+            kthread.name(),
+            req_id,
+        );
     }
 }

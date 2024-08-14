@@ -167,6 +167,10 @@ impl Kthread {
         KTHREAD_DEQUE.get_mut().push_back(current_kthread.clone());
         // 修改全局变量，且不保存寄存器
         *CURRENT_KTHREAD.get_mut() = Some(kthread.clone());
+        println!(
+            "\x1b[32mKthread: {} reboot success\x1b[0m",
+            current_kthread.name()
+        );
         current_kthread.switch_to_without_saving_context(kthread);
     }
 

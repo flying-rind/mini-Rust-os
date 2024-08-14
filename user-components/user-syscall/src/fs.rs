@@ -74,3 +74,8 @@ pub fn dup(fd: usize) -> Option<usize> {
     }
     Some(ret1)
 }
+
+/// 列出可用用户app
+pub fn ls() -> (usize, usize) {
+    sys_ls()
+}

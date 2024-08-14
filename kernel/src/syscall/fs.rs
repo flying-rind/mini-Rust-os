@@ -191,3 +191,20 @@ pub fn sys_dup(fd: usize) -> (usize, usize) {
     };
     (current_proc.add_file(file), 0)
 }
+
+/// 列出可用用户app
+pub fn sys_ls() -> (usize, usize) {
+    let step = 7;
+    let apps = ROOT_INODE.ls();
+    for i in (0..apps.len()).step_by(step) {
+        for j in i..i + step {
+            if j < apps.len() {
+                print!("{:<20}", apps[j]);
+            } else {
+                break;
+            }
+        }
+        println!("");
+    }
+    (0, 0)
+}

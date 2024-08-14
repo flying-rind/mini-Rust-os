@@ -91,7 +91,7 @@ pub fn sys_proc_wait(pid: usize) -> (usize, usize) {
     let waited_process = match PROCESS_MAP.get().get(&pid) {
         Some(process) => process.clone(),
         None => {
-            println!("[Kernel] waited proc does not existed or already dropped");
+            // println!("[Kernel] waited proc does not existed or already dropped");
             return (255, 0);
         }
     };
@@ -163,10 +163,10 @@ pub fn sys_thread_join(tid: usize) -> (usize, usize) {
     let waited_thread = match waited_thread {
         Some(waited_thread) => waited_thread,
         None => {
-            println!(
-                "[Kernel] Thread join info: waited thread already exited!, tid: {}",
-                tid
-            );
+            // println!(
+            //     "[Kernel] Thread join info: waited thread already exited!, tid: {}",
+            //     tid
+            // );
             return (usize::MAX, 0);
         }
     };

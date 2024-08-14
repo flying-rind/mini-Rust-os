@@ -50,22 +50,14 @@ impl ProcArguments {
             .collect();
         // 重定向输入
         let mut input = String::new();
-        if let Some((idx, _)) = args
-            .iter()
-            .enumerate()
-            .find(|(_, arg)| arg.as_str() == "<\0")
-        {
+        if let Some((idx, _)) = args.iter().enumerate().find(|(_, arg)| arg.as_str() == "<") {
             input = args[idx + 1].clone();
             // 去掉< 和 输入文件
             args.drain(idx..=idx + 1);
         }
         // 重定向输出
         let mut output = String::new();
-        if let Some((idx, _)) = args
-            .iter()
-            .enumerate()
-            .find(|(_, arg)| arg.as_str() == ">0")
-        {
+        if let Some((idx, _)) = args.iter().enumerate().find(|(_, arg)| arg.as_str() == ">") {
             output = args[idx + 1].clone();
             args.drain(idx..=idx + 1);
         }
@@ -151,16 +143,16 @@ pub fn main() -> i32 {
                             // 标准输入改为input_fd
                             close(input_fd.unwrap());
                         }
-                        // 重定向输入
+                        // 重定向输出
                         if !output.is_empty() {
-                            let output_fd = open(output, OpenFlags::RDONLY);
+                            let output_fd = open(output, OpenFlags::WRONLY | OpenFlags::CREATE);
                             if output_fd == None {
                                 println!("Error when opening file {}", output);
                                 return -4;
                             }
-                            // 关闭标准输入
+                            // 关闭标准输出
                             close(1);
-                            assert_eq!(dup(output_fd.unwrap()), Some(0));
+                            assert_eq!(dup(output_fd.unwrap()), Some(1));
                             // 标准输入改为input_fd
                             close(output_fd.unwrap());
                         }

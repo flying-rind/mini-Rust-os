@@ -15,7 +15,7 @@ struct Argument {
 }
 
 fn thread_print(arg: *const Argument) -> () {
-    println!("Thread created");
+    // println!("Thread created");
     let arg = unsafe { &*arg };
     for _ in 0..1000 {
         print!("{}", arg.ch);

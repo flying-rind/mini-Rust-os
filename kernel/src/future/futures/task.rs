@@ -80,7 +80,7 @@ impl Future for WaitForKthread {
             return Poll::Ready(());
         } else {
             println!(
-                "[Executor] WaitForKthread poll pending, response_id: {}, req_id: {}",
+                "\x1b[33m[Executor] WaitForKthread poll pending, response_id: {}, req_id: {}\x1b[0m",
                 self.kthread.response_id(),
                 self.req_id
             );

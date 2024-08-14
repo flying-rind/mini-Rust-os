@@ -101,13 +101,13 @@ fn panic(info: &PanicInfo) -> ! {
     // 打印错误信息
     if let Some(l) = info.location() {
         println!(
-            "[kernel] Panicked at {}:{} {}",
+            "\x1b[31m[kernel] Panicked at {}:{} {}\x1b[0m",
             l.file(),
             l.line(),
             info.message().unwrap()
         );
     } else {
-        println!("[kernel] Panicked: {}", info.message().unwrap());
+        println!("[Kernel] Panicked: {}", info.message().unwrap());
     }
     // 若是内核服务线程崩溃了，尝试恢复错误
     let current_kthread = CURRENT_KTHREAD.get().as_ref().unwrap().clone();
@@ -118,7 +118,7 @@ fn panic(info: &PanicInfo) -> ! {
         KthreadType::BLK | KthreadType::FS => {
             let current_req_id = current_kthread.current_request_id();
             println!(
-                "[Panic handler] Trying to Rebooting..., the dangerous request(ID: {}) will be dropped!",
+                "\x1b[31m[Panic handler] Trying to Reboot..., the dangerous request(ID: {}) will be dropped!\x1b[0m",
                 current_req_id
             );
             // 重启内核线程

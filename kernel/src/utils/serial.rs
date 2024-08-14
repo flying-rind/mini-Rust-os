@@ -194,3 +194,11 @@ macro_rules! println {
     ($fmt:expr, $($arg:tt)*) => ($crate::print!(
         concat!($fmt, "\n"), $($arg)*));
 }
+
+/// 颜色字符串
+#[macro_export]
+macro_rules! color_text {
+    ($text:expr, $color:expr) => {{
+        format_args!("\x1b[{}m{}\x1b[0m", $color, $text)
+    }};
+}

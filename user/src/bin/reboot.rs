@@ -27,8 +27,13 @@ fn main() -> i32 {
     let fd = fd.unwrap();
     let mut buffer = [0u8; 100];
     let read_len = read(fd, &mut buffer).unwrap();
-    println!("read_len: {}", read_len);
     close(fd);
-    println!("reboot passed!");
+    println!(
+        "Write {} bytes, read {} bytes, {} requestes dropped totally",
+        WRITE_TIMES,
+        read_len,
+        WRITE_TIMES - read_len
+    );
+    println!("reboot test passed!");
     0
 }

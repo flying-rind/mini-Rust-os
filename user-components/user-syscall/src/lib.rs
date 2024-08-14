@@ -66,6 +66,8 @@ pub enum SyscallNum {
     Pipe,
     /// 复制文件
     Dup,
+    /// 列出可用的用户程序
+    Ls,
 
     /// 创建互斥锁
     MutexCreate,
@@ -205,6 +207,10 @@ fn sys_pipe() -> (usize, usize) {
 
 fn sys_dup(fd: usize) -> (usize, usize) {
     syscall(SyscallNum::Dup, [fd, 0, 0, 0, 0, 0])
+}
+
+fn sys_ls() -> (usize, usize) {
+    syscall(SyscallNum::Ls, [0, 0, 0, 0, 0, 0])
 }
 
 fn sys_mutex_create() -> (usize, usize) {
