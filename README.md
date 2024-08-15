@@ -103,10 +103,15 @@ kernel/src
 │   ├── fs_processor.rs         // 文件系统内核线程的处理器
 │   ├── mod.rs
 │   └── processor.rs            // 处理器接口
+├── sync
+│   ├── condvar.rs              // 条件变量
+│   ├── mod.rs    
+│   ├── mutex.rs                // 互斥锁
+│   └── sem.rs                  // 信号量
 ├── syscall                     // 系统调用
 │   ├── fs.rs                   // 文件系统相关系统调用
 │   ├── mod.rs                 
-|   ├── debug.rs               // 调试用系统调用
+|   ├── debug.rs                // 调试用系统调用
 │   ├── sync.rs                 // 同步互斥相关系统调用
 │   └── task.rs                 // 任务管理相关系统调用
 ├── task                        // 任务管理模块
