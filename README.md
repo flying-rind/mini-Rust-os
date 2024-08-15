@@ -30,6 +30,9 @@
   ## 在线文档
     我们在[NUDT-OS-BOOK](https://flying-rind.github.io/mini-Rust-os/)中更加详细地介绍了内核的设计原则和一些特点
 
+  ## 效果演示
+    在[效果演示](https://flying-rind.github.io/mini-Rust-os/md/%E6%95%88%E6%9E%9C%E6%BC%94%E7%A4%BA.html)中有几个具体的例子演示
+
 
 ## 内核架构
 NUDT-OS旨在从类UNIX宏内核出发，吸收学习微内核设计思想，以尝试权衡系统性能与可靠性。
@@ -82,7 +85,7 @@ kernel/src
 ├── kthread                     // 内核线程的入口函数
 │   ├── executor.rs             // 协程执行线程的入口
 │   ├── for_test.rs
-|    ├── processor.rs           // 内核服务线程入口 
+|   ├── processor.rs           // 内核服务线程入口 
 │   └── mod.rs
 ├── lib.rs
 ├── linker.ld                   // 链接脚本
@@ -103,7 +106,7 @@ kernel/src
 ├── syscall                     // 系统调用
 │   ├── fs.rs                   // 文件系统相关系统调用
 │   ├── mod.rs                 
-|    ├── debug.rs               // 调试用系统调用
+|   ├── debug.rs               // 调试用系统调用
 │   ├── sync.rs                 // 同步互斥相关系统调用
 │   └── task.rs                 // 任务管理相关系统调用
 ├── task                        // 任务管理模块
@@ -161,7 +164,9 @@ Rust user sehll
 
 完整运行效果如下：(Ubuntu qemu平台)
 
-![display](tutorial/src/pic/display.gif)
+![display](tutorial/src/pic/reboot.gif)
+
+上面展示了文件系统内核线程出现致命异常（手动模拟的），内核重启内核线程。
 
 ### 调试（两个终端分别执行）
 
