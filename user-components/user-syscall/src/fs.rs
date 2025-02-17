@@ -16,7 +16,7 @@ bitflags::bitflags! {
 /// 成功返回fd，否则返回None
 pub fn open(path: &str, flags: OpenFlags) -> Option<usize> {
     let path_ptr = &path as *const &str as usize;
-    let (fd, _) = sys_open(path_ptr, flags.bits as _);
+    let (fd, _) = sys_open(path_ptr, flags.bits() as _);
     if fd == usize::MAX {
         return None;
     }
