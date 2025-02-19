@@ -1,2 +1,2 @@
 [workspace]
-members = ["kernel", "micro-object", "user"]
+members = ["hal", "kernel", "micro-object", "user"]

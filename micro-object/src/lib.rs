@@ -5,4 +5,6 @@
 
 extern crate alloc;
 
+pub mod error;
+pub mod mem;
 pub mod object;

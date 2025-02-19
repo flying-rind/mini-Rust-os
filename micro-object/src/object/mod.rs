@@ -7,7 +7,11 @@ use core::sync::atomic::AtomicU64;
 use core::sync::atomic::Ordering;
 use downcast_rs::impl_downcast;
 use downcast_rs::DowncastSync;
+use rights::*;
 use spin::Mutex;
+
+mod handle;
+mod rights;
 
 /// 内核对象ID类型
 pub type KoID = u64;
