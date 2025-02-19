@@ -22,7 +22,7 @@ pub trait KernelObject: DowncastSync + Debug {
     /// 获取内核对象类型名称
     fn type_name(&self) -> &str;
     /// 获取内核对象的名称
-    fn name(&self) -> &str;
+    fn name(&self) -> String;
     /// 设置内核对象名称
     fn set_name(&self, name: &str);
     // 信号相关.....
@@ -89,7 +89,7 @@ macro_rules! impl_kobject {
                 stringify!($class)
             }
             // 获取内核对象的名称
-            fn name(&self) -> &str {
+            fn name(&self) -> alloc::string::String {
                 self.base.name()
             }
             // 设置内核对象名称
@@ -97,6 +97,20 @@ macro_rules! impl_kobject {
                 self.base.set_name(name)
             }
             // 信号相关.....
+            $( $fn )*
+        }
+
+        impl core::fmt::Debug for $class {
+            fn fmt(
+                &self,
+                f: &mut core::fmt::Formatter<'_>,
+            ) -> core::result::Result<(), core::fmt::Error> {
+                use $crate::object::KernelObject;
+                f.debug_tuple(stringify!($class))
+                    .field(&self.id())
+                    .field(&self.name())
+                    .finish()
+            }
         }
     };
 }

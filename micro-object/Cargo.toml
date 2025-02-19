@@ -9,3 +9,4 @@ edition = "2021"
 downcast-rs = { version = "1.2.0", default-features = false }
 spin = "0.9"
 bitflags = "*"
+hal = { path = "../hal" }
