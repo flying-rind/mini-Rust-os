@@ -10,6 +10,7 @@ use alloc::{
 use spin::Mutex;
 
 use crate::mem::vmar::VmMapping;
+use hal::PhysFrame;
 
 /// `VMObjectPaged`的弱引用类型
 type WeakRef = Weak<VMObjectPaged>;
@@ -73,4 +74,23 @@ struct VMObjectPagedInner {
     self_ref: WeakRef,
     /// Sum of pin_count
     pin_count: usize,
+}
+
+/// Page state in VMO.
+struct PageState {
+    frame: PhysFrame,
+    tag: PageStateTag,
+    pin_count: u8,
+}
+
+/// The owner tag of pages in the node.
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+enum PageStateTag {
+    /// If the node is hidden, the page is shared by its 2 children.
+    /// Otherwise, the page is owned by the node.
+    Owned,
+    /// The page is split to the left child and now owned by the right child.
+    LeftSplit,
+    /// The page is split to the right child and now owned by the left child.
+    RightSplit,
 }

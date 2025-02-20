@@ -12,6 +12,7 @@ use spin::Mutex;
 use spin::MutexGuard;
 
 mod paged;
+mod physical;
 
 /// Virtual Memory Object Trait
 pub trait VMObjectTrait: Sync + Send {

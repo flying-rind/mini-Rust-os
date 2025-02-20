@@ -1,5 +1,6 @@
 //! 常用定义
 use bitflags::bitflags;
+use numeric_enum_macro::numeric_enum;
 
 bitflags! {
     /// Generic memory flags.
@@ -14,5 +15,17 @@ bitflags! {
         const HUGE_PAGE = 1 << 6;
         const DEVICE    = 1 << 7;
         const RXW = Self::READ.bits | Self::WRITE.bits | Self::EXECUTE.bits;
+    }
+}
+
+numeric_enum! {
+    #[repr(u32)]
+    #[derive(Debug, PartialEq, Eq, Clone, Copy)]
+    /// Generic cache policy.
+    pub enum CachePolicy {
+        Cached = 0,
+        Uncached = 1,
+        UncachedDevice = 2,
+        WriteCombining = 3,
     }
 }

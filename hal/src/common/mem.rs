@@ -2,8 +2,16 @@
 
 use super::MMUFlags;
 
+/// 物理地址
 pub type PhysAddr = usize;
+/// 虚拟地址
 pub type VirtAddr = usize;
+
+/// 4K物理页帧
+pub struct PhysFrame {
+    paddr: PhysAddr,
+    allocated: bool,
+}
 
 /// Errors may occur during address translation.
 #[derive(Debug)]
