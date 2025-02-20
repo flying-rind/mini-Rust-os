@@ -7,7 +7,7 @@ use core::sync::atomic::AtomicU64;
 use core::sync::atomic::Ordering;
 use downcast_rs::impl_downcast;
 use downcast_rs::DowncastSync;
-use rights::*;
+pub use rights::*;
 use spin::Mutex;
 
 mod handle;
