@@ -29,3 +29,6 @@ numeric_enum! {
         WriteCombining = 3,
     }
 }
+
+/// The smallest size of a page (4K).
+pub const PAGE_SIZE: usize = super::mem::PageSize::Size4K as usize;

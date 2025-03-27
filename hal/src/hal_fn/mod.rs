@@ -4,5 +4,7 @@
 use crate::{PhysAddr, VirtAddr};
 use core::ops::Range;
 
+/// Bootstrap and initialization
+pub mod boot;
 /// Physical memory operations.
 pub mod mem;
