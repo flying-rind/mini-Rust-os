@@ -2,6 +2,14 @@
 use bitflags::bitflags;
 use numeric_enum_macro::numeric_enum;
 
+/// The error type which is returned from HAL functions.
+pub enum HalError {
+    Common,
+    // TODO: More
+}
+/// The result type returned by HAL functions.
+pub type HalResult<T = ()> = core::result::Result<T, HalError>;
+
 bitflags! {
     /// Generic memory flags.
     pub struct MMUFlags: usize {

@@ -60,7 +60,7 @@ fn free_pmem_regions() -> Vec<Range<PhysAddr>> {
     __HalImpl::free_pmem_regions()
 }
 
-fn pmem_read(paddr: PhysAddr, buf: &mut [u8]) {
+pub fn pmem_read(paddr: PhysAddr, buf: &mut [u8]) {
     __HalImpl::pmem_read(paddr, buf)
 }
 

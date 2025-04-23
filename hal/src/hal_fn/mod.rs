@@ -6,5 +6,11 @@ use core::ops::Range;
 
 /// Bootstrap and initialization
 pub mod boot;
+/// CPU information
+pub mod cpu;
+/// Interrupt management.
+pub mod interrupt;
 /// Physical memory operations.
 pub mod mem;
+/// Virtual memory operations.
+pub mod vm;

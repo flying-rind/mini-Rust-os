@@ -10,5 +10,6 @@ pub fn free_pmem_regions() -> Vec<Range<PhysAddr>> {
 
 /// Flush the physical memory
 pub fn frame_flush(target: PhysAddr) {
-    unsafe { for paddr in (target..target + PAGE_SIZE).step_by(cacheline_size()) {} }
+    unimplemented!()
+    // unsafe { for paddr in (target..target + PAGE_SIZE).step_by(cacheline_size()) {} }
 }

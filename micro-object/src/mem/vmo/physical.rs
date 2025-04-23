@@ -46,6 +46,6 @@ impl VMObjectTrait for VMObjectPhysical {
     fn read(&self, offset: usize, buf: &mut [u8]) -> ZxResult {
         let _ = self.data_lock.lock();
         assert!(offset + buf.len() <= self.len());
-        hal::mem::pmem_read()
+        hal::hal_fn::mem::pmem_read()
     }
 }

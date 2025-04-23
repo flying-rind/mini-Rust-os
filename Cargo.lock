@@ -125,6 +125,7 @@ dependencies = [
  "cfg-if",
  "log",
  "numeric-enum-macro",
+ "raw-cpuid 11.5.0",
  "spin",
 ]
 
@@ -345,6 +346,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "raw-cpuid"
+version = "11.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6df7ab838ed27997ba19a4664507e6f82b41fe6e20be42929332156e5e85146"
+dependencies = [
+ "bitflags 2.8.0",
+]
+
+[[package]]
 name = "requests-info"
 version = "0.1.0"
 dependencies = [
@@ -388,7 +398,7 @@ dependencies = [
 name = "trapframe"
 version = "0.9.0"
 dependencies = [
- "raw-cpuid",
+ "raw-cpuid 10.7.0",
  "x86_64 0.14.13",
 ]
 

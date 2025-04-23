@@ -5,7 +5,7 @@ pub use common::*;
 // 通用模块
 mod common;
 // 硬件抽象层提供给上层的接口定义
-mod hal_fn;
+pub mod hal_fn;
 // 硬件接口的具体实现
 #[path = "bare/mod.rs"]
 mod imp;
