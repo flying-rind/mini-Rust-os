@@ -1,12 +1,7 @@
 [build]
 target = "x86_64-unknown-none"
 
-rustflags = [
-    "-Clink-arg=-Tsrc/linker.ld",
-    # "-Crelocation-model=dynamic-no-pic",
-    # "-Ccode-model=medium",
-
-]
+rustflags = ["-C", "link-arg=-Tlinker.lds"]
 
 [unstable]
 build-std = ["core", "compiler_builtins", "alloc"]

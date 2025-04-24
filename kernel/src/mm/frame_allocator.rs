@@ -39,19 +39,19 @@ pub fn allocate_frame() -> Option<usize> {
     }
 }
 
-/// 申请一组连续的页帧，返回第一个页帧的首地址
-pub fn allocate_frame_contiguous(size: usize, align_log2: usize) -> Option<usize> {
-    let mut ba = BIT_ALLOCATOR.lock();
-    let paddr = ba
-        .alloc_contiguous(size, align_log2)
-        .map(|id| id * PAGE_SIZE);
-    Some(paddr.unwrap())
-}
+// /// 申请一组连续的页帧，返回第一个页帧的首地址
+// pub fn allocate_frame_contiguous(size: usize, align_log2: usize) -> Option<usize> {
+//     let mut ba = BIT_ALLOCATOR.lock();
+//     let paddr = ba
+//         .alloc_contiguous(size, align_log2)
+//         .map(|id| id * PAGE_SIZE);
+//     Some(paddr.unwrap())
+// }
 
 /// 释放给定地址的物理页帧
 pub fn deallocate_frame(frame: usize) {
     let mut ba = BIT_ALLOCATOR.lock();
-    ba.dealloc(frame / PAGE_SIZE)
+    ba.dealloc(frame / PAGE_SIZE);
 }
 
 /// 清零页帧

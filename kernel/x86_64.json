@@ -12,10 +12,9 @@
   "linker": "rust-lld",
   "pre-link-args": {
     "ld.lld": [
-      "-Tsrc/linker.ld"
+      "-Tlinker.lds"
     ]
   },
   "disable-redzone": true,
-  "features": "-mmx,-sse,+soft-float",
   "panic-strategy": "abort"
 }
