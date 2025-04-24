@@ -132,21 +132,21 @@ pub fn load_tss(sel: u16) {
     }
 }
 
-#[inline(always)]
-pub fn set_cs(sel: u16) {
-    unsafe {
-        asm!(
-          "push {sel}",
-          "lea {tmp}, [1f + rip]",
-          "push {tmp}",
-          "retfq",
-          "1:",
-          sel = in(reg) sel as usize,
-          tmp = lateout(reg) _,
-          options(preserves_flags),
-        );
-    }
-}
+// #[inline(always)]
+// pub fn set_cs(sel: u16) {
+//     unsafe {
+//         asm!(
+//           "push {sel}",
+//           "lea {tmp}, [1f + rip]",
+//           "push {tmp}",
+//           "retfq",
+//           "1:",
+//           sel = in(reg) sel as usize,
+//           tmp = lateout(reg) _,
+//           options(preserves_flags),
+//         );
+//     }
+// }
 
 #[inline(always)]
 pub fn set_ss(sel: u16) {

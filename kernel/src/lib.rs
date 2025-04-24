@@ -3,8 +3,6 @@
 #![feature(custom_test_frameworks)]
 #![feature(alloc_error_handler)]
 #![feature(abi_x86_interrupt)]
-#![feature(new_uninit)]
-#![feature(panic_info_message)]
 //! 包括内核主要模块和初始化部分，使集成测试程序和主程序可以复用大部分代码
 
 #[macro_use]
@@ -104,10 +102,10 @@ fn panic(info: &PanicInfo) -> ! {
             "\x1b[31m[kernel] Panicked at {}:{} {}\x1b[0m",
             l.file(),
             l.line(),
-            info.message().unwrap()
+            info.message()
         );
     } else {
-        println!("[Kernel] Panicked: {}", info.message().unwrap());
+        println!("[Kernel] Panicked: {}", info.message());
     }
     // 若是内核服务线程崩溃了，尝试恢复错误
     let current_kthread = CURRENT_KTHREAD.get().as_ref().unwrap().clone();
