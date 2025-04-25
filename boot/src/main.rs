@@ -71,7 +71,7 @@ fn main() {
     // 从文件fs.img启动
     qemu_cmd
         .arg("-drive")
-        .arg("file=../user/target/x86_64/release/fs.img,if=none,id=fsimg");
+        .arg("file=../user-rs/target/x86_64/release/fs.img,if=none,id=fsimg");
 
     // 添加ahci设备
     qemu_cmd.arg("-device").arg("ahci,id=ahci0");

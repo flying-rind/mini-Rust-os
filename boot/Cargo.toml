@@ -3,6 +3,6 @@ name = "boot"
 version = "0.1.0"
 
 [dependencies]
-bootloader = "0.11"
+bootloader = "0.11.10"
 ovmf-prebuilt = "0.1.0-alpha.1"
 getopts = "0.2"

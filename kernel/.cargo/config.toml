@@ -1,7 +1,7 @@
 [build]
 target = "x86_64-unknown-none"
 
-rustflags = ["-C", "link-arg=-Tlinker.lds"]
+rustflags = ["-C", "link-arg=-Tkernel/linker.lds"]
 
 [unstable]
 build-std = ["core", "compiler_builtins", "alloc"]

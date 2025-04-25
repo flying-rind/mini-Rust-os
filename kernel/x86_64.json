@@ -12,9 +12,11 @@
   "linker": "rust-lld",
   "pre-link-args": {
     "ld.lld": [
-      "-Tlinker.lds"
+      "-Tkernel/linker.lds"
     ]
   },
   "disable-redzone": true,
-  "panic-strategy": "abort"
+  "panic-strategy": "abort",
+  "features": "-mmx,-sse,+soft-float",
+  "rustc-abi": "x86-softfloat"
 }
