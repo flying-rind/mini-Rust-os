@@ -7,7 +7,6 @@
     "rust-analyzer.linkedProjects": [
         "kernel/Cargo.toml",
         "boot/Cargo.toml",
-        "user/Cargo.toml",
         "./kernel/Cargo.toml",
         "./kernel/Cargo.toml"
     ],

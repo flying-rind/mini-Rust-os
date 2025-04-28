@@ -1,8 +1,7 @@
 //! PCI总线驱动程序
 
-/// 基于rcore社区的pci库
-use super::ahci::AHCIDriver;
-use crate::*;
+use super::block::ahci;
+use crate::{mm::phys_to_virt, *};
 use pci::*;
 
 const PCI_COMMAND: u16 = 0x04;
@@ -89,7 +88,8 @@ unsafe fn enable(loc: Location) {
     }
 }
 
-pub fn init() -> Option<AHCIDriver> {
+/// PCI总线初始化
+pub fn init() -> bool {
     for dev in unsafe { scan_bus(&PortOpsImpl, CSpaceAccessMethod::IO) } {
         println!(
             "pci: {:02x}:{:02x}.{} {:#x} {:#x} ({} {}) irq: {}:{:?}",
@@ -110,11 +110,13 @@ pub fn init() -> Option<AHCIDriver> {
                 println!("pa: {:#x?}, len: {:#x?}", pa, len);
                 unsafe { enable(dev.loc) };
                 assert!(len as usize <= mm::PAGE_SIZE);
-                if let Some(x) = AHCIDriver::new(mm::phys_to_virt(pa as _), len as _) {
-                    return Some(x);
+                if let Some(_driver) = ahci::init(phys_to_virt(pa as _), len as _) {
+                    return true;
+                } else {
+                    return false;
                 }
             }
         }
     }
-    None
+    false
 }

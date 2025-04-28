@@ -25,6 +25,8 @@ num-derive = { version = "0.4", default-features = false }
 num-traits = { version = "0.2", default-features = false }
 downcast-rs = { version = "1.2.0", default-features = false }
 rcore-fs = { git = "https://github.com/rcore-os/rcore-fs" }
+rcore-fs-sfs = { git = "https://github.com/rcore-os/rcore-fs" }
+lazy_static = { version = "1.5.0", features = ["spin_no_std"] }
 
 user-syscall = { path = "../user-components/user-syscall" }
 requests-info = { path = "../user-components/requests-info" }

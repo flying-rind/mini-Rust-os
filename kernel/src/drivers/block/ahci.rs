@@ -1,29 +1,51 @@
 //! AHCI设备驱动程序
 
+use super::BlockDriver;
 /// 基于rcore社区的isomorphic_driver第三方库
-use crate::*;
+use crate::{drivers::BLK_DRIVERS, *};
+use alloc::sync::Arc;
 use isomorphic_drivers::{
     block::ahci::{AHCI, BLOCK_SIZE},
     provider,
 };
 use mm::{allocate_frame, deallocate_frame};
+use spin::Mutex;
 
-pub struct AHCIDriver(Cell<AHCI<Provider>>);
+/// AHCI设备驱动程序
+pub struct AHCIDriver(Mutex<AHCI<Provider>>);
 
 impl AHCIDriver {
     pub fn new(header: usize, size: usize) -> Option<Self> {
-        AHCI::new(header, size).map(|x| Self(Cell::new(x)))
+        AHCI::new(header, size).map(|x| Self(Mutex::new(x)))
     }
 }
 
-impl BlockDevice for AHCIDriver {
-    fn read_block(&self, block_id: usize, buf: &mut [u8]) {
-        self.0.get_mut().read_block(block_id, buf);
+impl BlockDriver for AHCIDriver {
+    fn read_block(&self, block_id: usize, buf: &mut [u8]) -> bool {
+        let mut driver = self.0.lock();
+        driver.read_block(block_id, buf);
+        true
     }
 
-    fn write_block(&self, block_id: usize, buf: &[u8]) {
-        assert!(buf.len() >= BLOCK_SIZE);
-        self.0.get_mut().write_block(block_id, buf);
+    fn write_block(&self, block_id: usize, buf: &[u8]) -> bool {
+        if buf.len() < BLOCK_SIZE {
+            return false;
+        }
+        let mut driver = self.0.lock();
+        driver.write_block(block_id, buf);
+        true
+    }
+}
+
+/// 初始化AHCI设备驱动
+pub fn init(header: usize, size: usize) -> Option<Arc<AHCIDriver>> {
+    if let Some(ahcidriver) = AHCIDriver::new(header, size) {
+        let driver = Arc::new(ahcidriver);
+        // 写入全局变量
+        BLK_DRIVERS.write().push(driver.clone());
+        Some(driver)
+    } else {
+        None
     }
 }
 
