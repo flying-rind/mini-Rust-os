@@ -10,6 +10,7 @@ use bootloader_api::{config::Mapping, BootInfo, BootloaderConfig};
 use kernel::{
     kthread,
     mm::{KERNEL_STACK_BASE, PHYS_OFFSET},
+    println,
     task::Kthread,
     trap::{main_loop, Process},
 };
@@ -41,6 +42,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     kernel::pic::init();
     // 初始化驱动
     kernel::drivers::init();
+    // DEBUG
+    println!("Can print now");
     // 初始化文件系统
     kernel::fs::init();
     // 创建根内核线程
