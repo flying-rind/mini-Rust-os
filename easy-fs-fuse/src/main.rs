@@ -1,39 +1,41 @@
 use clap::{App, Arg};
-use easy_fs::{BlockDevice, EasyFileSystem};
+use rcore_fs::dev::{DevError, Device};
+use rcore_fs::vfs::FileSystem;
+use rcore_fs_sfs::SimpleFileSystem;
 use std::fs::{read_dir, File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::sync::Arc;
 use std::sync::Mutex;
 
-const BLOCK_SIZE: usize = 512;
-
 struct BlockFile(Mutex<File>);
 
-impl BlockDevice for BlockFile {
-    fn read_block(&self, block_id: usize, buf: &mut [u8]) {
+impl Device for BlockFile {
+    fn read_at(&self, offset: usize, buf: &mut [u8]) -> rcore_fs::dev::Result<usize> {
         let mut file = self.0.lock().unwrap();
-        file.seek(SeekFrom::Start((block_id * BLOCK_SIZE) as u64))
-            .expect("Error when seeking!");
-        assert_eq!(file.read(buf).unwrap(), BLOCK_SIZE, "Not a complete block!");
+        file.seek(SeekFrom::Start(offset as _)).unwrap();
+        file.read(buf).unwrap();
+        Ok(buf.len())
     }
 
-    fn write_block(&self, block_id: usize, buf: &[u8]) {
+    fn write_at(&self, offset: usize, buf: &[u8]) -> rcore_fs::dev::Result<usize> {
         let mut file = self.0.lock().unwrap();
-        file.seek(SeekFrom::Start((block_id * BLOCK_SIZE) as u64))
-            .expect("Error when seeking!");
-        assert_eq!(
-            file.write(buf).unwrap(),
-            BLOCK_SIZE,
-            "Not a complete block!"
-        );
+        file.seek(SeekFrom::Start(offset as _)).unwrap();
+        file.write(buf).unwrap();
+        Ok(buf.len())
+    }
+
+    fn sync(&self) -> Result<(), DevError> {
+        let file = self.0.lock().unwrap();
+        file.sync_all().unwrap();
+        Ok(())
     }
 }
 
 fn main() {
-    easy_fs_pack().expect("Error when packing easy-fs!");
+    rcore_fs_pack().expect("Error when packing easy-fs!");
 }
 
-fn easy_fs_pack() -> std::io::Result<()> {
+fn rcore_fs_pack() -> std::io::Result<()> {
     let matches = App::new("EasyFileSystem packer")
         .arg(
             Arg::with_name("source")
@@ -53,18 +55,19 @@ fn easy_fs_pack() -> std::io::Result<()> {
     let src_path = matches.value_of("source").unwrap();
     let target_path = matches.value_of("target").unwrap();
     println!("src_path = {}\ntarget_path = {}", src_path, target_path);
+    pub const USER_IMAGE_SIZE: usize = 0x0400_0000;
     let block_file = Arc::new(BlockFile(Mutex::new({
         let f = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
             .open(format!("{}{}", target_path, "fs.img"))?;
-        f.set_len(16 * 2048 * 512).unwrap();
+        f.set_len(USER_IMAGE_SIZE as _).unwrap();
         f
     })));
     // 16MiB, at most 4095 files
-    let efs = EasyFileSystem::create(block_file, 16 * 2048, 1);
-    let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
+    let sfs = SimpleFileSystem::create(block_file, USER_IMAGE_SIZE).expect("Failed to create sfs");
+    let root_inode = sfs.root_inode();
     let apps: Vec<_> = read_dir(src_path)
         .unwrap()
         .into_iter()
@@ -80,12 +83,14 @@ fn easy_fs_pack() -> std::io::Result<()> {
         let mut all_data: Vec<u8> = Vec::new();
         host_file.read_to_end(&mut all_data).unwrap();
         // create a file in easy-fs
-        let inode = root_inode.create(app.as_str()).unwrap();
+        let inode = root_inode
+            .create(app.as_str(), rcore_fs::vfs::FileType::File, 0o777)
+            .unwrap();
         // write data to easy-fs
-        inode.write_at(0, all_data.as_slice());
+        inode.write_at(0, all_data.as_slice()).unwrap();
     }
     // list apps
-    for app in root_inode.ls() {
+    for app in root_inode.list().unwrap() {
         println!("{}", app);
     }
     Ok(())

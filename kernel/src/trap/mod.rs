@@ -3,6 +3,7 @@ mod handler;
 
 pub use self::handler::*;
 pub use crate::task::*;
+use trapframe;
 
 #[derive(Debug, Default, Clone, Copy)]
 #[repr(C)]

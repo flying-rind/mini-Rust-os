@@ -49,6 +49,6 @@ pub fn sys_debug_open(name_ptr: usize) -> (usize, usize) {
     let name = unsafe { *name_ptr };
     println!("[In sys_debug_open] Kernel received: {}", name);
     let inode = ROOT_INODE.find(name);
-    assert!(inode.is_some());
+    assert!(inode.is_ok());
     (0, 0)
 }

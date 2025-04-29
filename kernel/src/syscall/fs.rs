@@ -1,6 +1,7 @@
 //! 文件相关系统调用
 
 use crate::*;
+use fs::OSInode;
 use fs::*;
 use future::{executor, futures::WaitForKthread};
 use requests_info::fsreqinfo::FsReqDescription;
@@ -195,7 +196,7 @@ pub fn sys_dup(fd: usize) -> (usize, usize) {
 /// 列出可用用户app
 pub fn sys_ls() -> (usize, usize) {
     let step = 7;
-    let apps = ROOT_INODE.ls();
+    let apps = ROOT_INODE.list().unwrap();
     for i in (0..apps.len()).step_by(step) {
         for j in i..i + step {
             if j < apps.len() {

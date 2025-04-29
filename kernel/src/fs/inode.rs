@@ -1,44 +1,18 @@
 //! 定义内核使用的Inode结构，为其实现文件访问接口
-use super::File;
 use crate::drivers::BlockDriverWrapper;
 use crate::println;
 use alloc::sync::Arc;
+use alloc::vec::Vec;
 use lazy_static::lazy_static;
 use rcore_fs::dev::block_cache::BlockCache;
 use rcore_fs::vfs::FileSystem;
 use rcore_fs::vfs::FileType;
 use rcore_fs::vfs::INode;
 use rcore_fs_sfs::SimpleFileSystem;
+use spin::Mutex;
+use x86_64::registers::mxcsr::read;
 
-// pub static ROOT_INODE: Cell<Arc<Inode>> = unsafe { transmute([1u8; size_of::<Arc<Inode>>()]) };
-
-// 初始化文件系统根节点
-lazy_static! {
-    pub static ref ROOT_INODE: Arc<dyn INode> = {
-        let device = {
-            let driver = BlockDriverWrapper(
-                crate::drivers::BLK_DRIVERS
-                    .read()
-                    .iter()
-                    .next()
-                    .expect("Block device not found")
-                    .clone(),
-            );
-            Arc::new(BlockCache::new(driver, 0x100))
-        };
-        let sfs = SimpleFileSystem::open(device).expect("failed to open SFS");
-        sfs.root_inode()
-    };
-}
-
-/// 文件系统初始化,打印目录
-pub fn init() {
-    println!("/****APPS****/");
-    for app in ROOT_INODE.list() {
-        println!("{:?}", app);
-    }
-    println!("**************/");
-}
+use super::File;
 
 bitflags::bitflags! {
     /// 打开文件时的读写权限
@@ -65,18 +39,117 @@ impl OpenFlags {
     }
 }
 
+/// OS里操作的索引节点类型，封装了easy-fs中的Inode
+///
+/// 内核以这个结构来操作一个磁盘文件
+pub struct OSInode {
+    /// 是否可读
+    readable: bool,
+    /// 是否可写
+    writable: bool,
+    /// 偏移
+    offset: Mutex<usize>,
+    /// 封装rcore-fs中的Inode
+    inode: Mutex<Arc<dyn INode>>,
+}
+
+impl OSInode {
+    pub fn new(readable: bool, writable: bool, inode: Arc<dyn INode>) -> Self {
+        Self {
+            readable,
+            writable,
+            offset: Mutex::new(0),
+            inode: Mutex::new(inode),
+        }
+    }
+
+    /// 读取一个I结点索引的所有数据
+    pub fn read_all(&self) -> Vec<u8> {
+        let (mut offset, inode) = (self.offset.lock(), self.inode.lock());
+        let mut buffer = [0u8; 512];
+        let mut v: Vec<u8> = Vec::new();
+        loop {
+            let len = inode.read_at(*offset, &mut buffer);
+            if len.is_err() {
+                break;
+            }
+            let len = len.unwrap();
+            *offset += len;
+            v.extend_from_slice(&buffer[..len]);
+        }
+        v
+    }
+}
+
+impl File for OSInode {
+    fn readable(&self) -> bool {
+        self.readable
+    }
+
+    fn writable(&self) -> bool {
+        self.writable
+    }
+
+    fn read(&self, buf: &mut [u8]) -> usize {
+        let (mut offset, inode) = (self.offset.lock(), self.inode.lock());
+        let n = inode.read_at(*offset, buf);
+        let n = n.unwrap();
+        *offset += n;
+        n
+    }
+
+    fn write(&self, buf: &[u8]) -> usize {
+        let (mut offset, inode) = (self.offset.lock(), self.inode.lock());
+        let n = inode.write_at(*offset, buf);
+        let n = n.unwrap();
+        *offset += n;
+        n
+    }
+}
+
+// 初始化文件系统根节点
+lazy_static! {
+    pub static ref ROOT_INODE: Arc<dyn INode> = {
+        let device = {
+            let driver = BlockDriverWrapper(
+                crate::drivers::BLK_DRIVERS
+                    .read()
+                    .iter()
+                    .next()
+                    .expect("Block device not found")
+                    .clone(),
+            );
+            Arc::new(BlockCache::new(driver, 0x100))
+        };
+        let sfs = SimpleFileSystem::open(device).expect("failed to open SFS");
+        sfs.root_inode()
+    };
+}
+
+/// 文件系统初始化,打印目录
+pub fn init() {
+    println!("/****APPS****/");
+    for app in ROOT_INODE.list().unwrap() {
+        println!("{}", app);
+    }
+    println!("**************/");
+}
+
 /// 从全局ROOT_INODE打开文件
-pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<dyn INode>> {
-    // let (readable, writable) = flags.read_write();
+pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
+    let (readable, writable) = flags.read_write();
     if flags.contains(OpenFlags::CREATE) {
         match ROOT_INODE.find(name) {
             Ok(inode) => {
                 inode.resize(0);
-                Some(inode)
+                Some(Arc::new(OSInode::new(readable, writable, inode)))
             }
             Err(_) => {
                 // TODO: MODE如何设置？
-                ROOT_INODE.create(name, FileType::File, 0o666).ok()
+                ROOT_INODE
+                    .create(name, FileType::File, 0o666)
+                    .map(|inode| Arc::new(OSInode::new(readable, writable, inode)))
+                    .ok()
             }
         }
     } else {
@@ -86,7 +159,7 @@ pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<dyn INode>> {
                 if flags.contains(OpenFlags::TRUNC) {
                     inode.resize(0);
                 }
-                inode
+                Arc::new(OSInode::new(readable, writable, inode))
             })
             .ok()
     }

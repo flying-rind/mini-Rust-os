@@ -109,24 +109,28 @@ impl Processor for FsProcessor {
                 // 可以创建文件
                 let file = if flags.contains(OpenFlags::CREATE) {
                     // 文件已存在
-                    if let Some(inode) = ROOT_INODE.find(path) {
+                    if let Ok(inode) = ROOT_INODE.find(path) {
                         // clear size
-                        inode.clear();
+                        inode.resize(0);
                         Some(Arc::new(OSInode::new(readable, writable, inode)))
                     // 不存在，需要创建
                     } else {
                         ROOT_INODE
-                            .create(path)
+                            .create(path, rcore_fs::vfs::FileType::File, 0o666)
                             .map(|inode| Arc::new(OSInode::new(readable, writable, inode)))
+                            .ok()
                     }
                 // 不能创建文件
                 } else {
-                    ROOT_INODE.find(path).map(|inode| {
-                        if flags.contains(OpenFlags::TRUNC) {
-                            inode.clear();
-                        }
-                        Arc::new(OSInode::new(readable, writable, inode))
-                    })
+                    ROOT_INODE
+                        .find(path)
+                        .map(|inode| {
+                            if flags.contains(OpenFlags::TRUNC) {
+                                inode.resize(0);
+                            }
+                            Arc::new(OSInode::new(readable, writable, inode))
+                        })
+                        .ok()
                 };
                 let fd = match file {
                     Some(file) => {

@@ -45,11 +45,6 @@ clean:
 	cd user-components && cargo clean
 	cd crates/trapframe-rs && cargo clean
 
-re:
-	cd user && make clean
-	cd kernel && cargo clean
-	make run
-
 # 编译musl
 musl: musl/build/$(arch)/$(mode)/bin/musl-gcc
 
