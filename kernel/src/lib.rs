@@ -15,8 +15,6 @@ use core::{
     panic::PanicInfo,
 };
 
-pub use easy_fs::BlockDevice;
-
 pub use alloc::{
     boxed::Box,
     collections::{BTreeMap, VecDeque},

@@ -13,7 +13,6 @@ futures-util = { version = "0.3", default-features = false }
 woke = "0.0.4"
 xmas-elf = "*"
 bitflags = "*"
-easy-fs = { path = "../easy-fs" }
 isomorphic_drivers = { git = "https://github.com/rcore-os/isomorphic_drivers" }
 pci = { git = "https://github.com/rcore-os/pci-rs" }
 spin = "0.9"

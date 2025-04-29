@@ -133,19 +133,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 
 [[package]]
-name = "easy-fs"
-version = "0.1.0"
-dependencies = [
- "lazy_static",
- "spin",
-]
-
-[[package]]
 name = "easy-fs-fuse"
 version = "0.1.0"
 dependencies = [
  "clap",
- "easy-fs",
  "rand",
  "rcore-fs",
  "rcore-fs-sfs",
@@ -256,7 +247,6 @@ dependencies = [
  "bootloader_api",
  "buddy_system_allocator",
  "downcast-rs",
- "easy-fs",
  "futures-util",
  "hashbrown",
  "isomorphic_drivers",
@@ -556,7 +546,6 @@ dependencies = [
 name = "requests-info"
 version = "0.1.0"
 dependencies = [
- "easy-fs",
  "user-syscall",
 ]
 

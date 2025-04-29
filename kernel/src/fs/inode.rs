@@ -10,7 +10,6 @@ use rcore_fs::vfs::FileType;
 use rcore_fs::vfs::INode;
 use rcore_fs_sfs::SimpleFileSystem;
 use spin::Mutex;
-use x86_64::registers::mxcsr::read;
 
 use super::File;
 
