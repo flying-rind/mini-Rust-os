@@ -55,7 +55,7 @@ fn rcore_fs_pack() -> std::io::Result<()> {
     let src_path = matches.value_of("source").unwrap();
     let target_path = matches.value_of("target").unwrap();
     println!("src_path = {}\ntarget_path = {}", src_path, target_path);
-    pub const USER_IMAGE_SIZE: usize = 0x0400_0000;
+    pub const USER_IMAGE_SIZE: usize = 16 * 1024 * 1024;
     let block_file = Arc::new(BlockFile(Mutex::new({
         let f = OpenOptions::new()
             .read(true)
@@ -65,6 +65,8 @@ fn rcore_fs_pack() -> std::io::Result<()> {
         f.set_len(USER_IMAGE_SIZE as _).unwrap();
         f
     })));
+    // Debug
+    println!("Finished creating block file");
     // 16MiB, at most 4095 files
     let sfs = SimpleFileSystem::create(block_file, USER_IMAGE_SIZE).expect("Failed to create sfs");
     let root_inode = sfs.root_inode();

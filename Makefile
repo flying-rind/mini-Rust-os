@@ -1,7 +1,7 @@
 boot ?= uefi
 BUILD_ARGS = -Z build-std=core,alloc,compiler_builtins --target x86_64.json
 arch = x86_64
-FS_IMG = ../user-rs/target/$(arch)/release/fs.img
+FS_IMG = $(CURDIR)/user-rs/target/$(arch)/release/fs.img
 mode ?= release
 MUSL_DIR = musl-1.2.5
 
@@ -24,7 +24,7 @@ bootloader:
 fs-img:
 	cd user-rs && make build
 	rm -f $(FS_IMG)
-	cd easy-fs-fuse && cargo run --release -- -s ../user-rs/src/bin -t ../user-rs/target/$(arch)/release/
+	cd easy-fs-fuse && cargo run --release -- -s $(CURDIR)/user-rs/src/bin -t $(CURDIR)/user-rs/target/$(arch)/release/
 
 test: build
 	cd kernel && cargo test -- --${boot}

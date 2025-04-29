@@ -1,5 +1,6 @@
 [build]
 target = "x86_64-unknown-none"
+target-dir = "./target"
 
 rustflags = ["-C", "link-arg=-Tkernel/linker.lds"]
 
