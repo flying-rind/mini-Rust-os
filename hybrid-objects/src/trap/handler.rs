@@ -8,7 +8,7 @@ const PAGE_FAULT: usize = 14;
 const TIMER: usize = 32;
 
 #[unsafe(no_mangle)]
-/// 中断处理入口，由汇编直接调用无需手动调用
+/// 内核态中断处理入口，由汇编直接调用无需手动调用
 pub extern "C" fn trap_handler(tf: &mut TrapFrame) {
     handle_trap(Some(tf), None, None);
 }
@@ -28,7 +28,7 @@ pub fn handle_trap(
 ) {
     // 用户态的中断或系统调用
     if let Some(context) = context {
-        // 系统调用
+        // 用户态系统调用
         if context.trap_num == 0x100 {
             let thread = thread.unwrap();
             thread.do_syscall();
@@ -70,8 +70,8 @@ pub fn handle_trap(
             }
         }
         _ => {
-            println!("[Trap Handler]: unknown trap!");
-            panic!("unknown trap!");
+            println!("[Trap Handler]: Unknown trap!");
+            panic!("Unknown trap!");
         }
     }
 }

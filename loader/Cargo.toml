@@ -1,0 +1,17 @@
+[package]
+name = "loader"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+log = "0.4.27"
+cfg-if = "1.0"
+hybrid-syscalls = { path = "../hybrid-syscalls", optional = true }
+hybrid-objects = { path = "../hybrid-objects", optional = true }
+monolithic-objects = { path = "../monolithic-objects", optional = true }
+monolithic-syscalls = { path = "../monolithic-syscalls", optional = true }
+
+[features]
+monolithic = ["monolithic-objects", "monolithic-syscalls"]
+default = ["hybrid"]
+hybrid = ["hybrid-objects", "hybrid-syscalls"]

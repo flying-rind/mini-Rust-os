@@ -8,5 +8,8 @@ members = [
     "rcore-fs-use",
     "hybrid-objects",
     "hybrid-syscalls",
+    "loader",
+    "monolithic-objects",
+    "monolithic-syscalls",
 ]
 exclude = ["boot"]

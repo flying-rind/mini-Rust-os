@@ -336,6 +336,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "loader"
+version = "0.1.0"
+dependencies = [
+ "cfg-if",
+ "hybrid-objects",
+ "hybrid-syscalls",
+ "log",
+ "monolithic-objects",
+ "monolithic-syscalls",
+]
+
+[[package]]
 name = "lock_api"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -363,6 +375,14 @@ dependencies = [
 
 [[package]]
 name = "micro-syscalls"
+version = "0.1.0"
+
+[[package]]
+name = "monolithic-objects"
+version = "0.1.0"
+
+[[package]]
+name = "monolithic-syscalls"
 version = "0.1.0"
 
 [[package]]
