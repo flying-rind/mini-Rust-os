@@ -2,6 +2,7 @@
 use crate::drivers::BlockDriverWrapper;
 use crate::println;
 use alloc::sync::Arc;
+use alloc::vec;
 use alloc::vec::Vec;
 use lazy_static::lazy_static;
 use rcore_fs::dev::block_cache::BlockCache;
@@ -64,19 +65,11 @@ impl OSInode {
 
     /// 读取一个I结点索引的所有数据
     pub fn read_all(&self) -> Vec<u8> {
-        let (mut offset, inode) = (self.offset.lock(), self.inode.lock());
-        let mut buffer = [0u8; 512];
-        let mut v: Vec<u8> = Vec::new();
-        loop {
-            let len = inode.read_at(*offset, &mut buffer);
-            if len.is_err() {
-                break;
-            }
-            let len = len.unwrap();
-            *offset += len;
-            v.extend_from_slice(&buffer[..len]);
-        }
-        v
+        let inode = self.inode.lock();
+        let size = inode.metadata().unwrap().size;
+        let mut buffer = vec![0u8; size];
+        inode.read_at(0, buffer.as_mut_slice());
+        buffer
     }
 }
 
