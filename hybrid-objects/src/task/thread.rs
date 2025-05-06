@@ -99,13 +99,18 @@ impl Thread {
         self.user_context.get_mut().run()
     }
 
-    /// 线程执行系统调用
-    pub fn do_syscall(&self) {
-        let syscall_num = self.user_context.get_syscall_num();
-        let args = self.user_context.get_syscall_args();
+    // /// 线程执行系统调用
+    // pub fn do_syscall(&self) {
+    //     let syscall_num = self.user_context.get_syscall_num();
+    //     let args = self.user_context.get_syscall_args();
 
-        // 执行系统调用
-        let (ret0, ret1) = syscall(syscall_num, args);
+    //     // 执行系统调用
+    //     let (ret0, ret1) = syscall(syscall_num, args);
+    //     self.user_context.get_mut().set_syscall_ret(ret0, ret1);
+    // }
+
+    /// 设置用户态上下文的返回值
+    pub fn set_syscall_ret(&self, ret0: usize, ret1: usize) {
         self.user_context.get_mut().set_syscall_ret(ret0, ret1);
     }
 

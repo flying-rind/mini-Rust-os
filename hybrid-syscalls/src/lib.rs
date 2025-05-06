@@ -18,12 +18,12 @@ use user_syscall::SyscallNum::*;
 /// 系统调用结构体，包含了用于执行一个系统调用的信息
 pub struct Syscall<'a> {
     /// 执行系统调用的线程
-    thread: &'a Arc<Thread>,
+    pub thread: &'a Arc<Thread>,
 }
 
-impl Syscall {
+impl Syscall<'_> {
     /// 系统调用总控函数
-    pub fn syscall(syscall_id: usize, args: [usize; 6]) -> (usize, usize) {
+    pub fn do_syscall(syscall_id: usize, args: [usize; 6]) -> (usize, usize) {
         let syscall_id = num::FromPrimitive::from_usize(syscall_id).unwrap();
         let ret = match syscall_id {
             // 调试用

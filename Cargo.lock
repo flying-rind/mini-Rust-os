@@ -345,6 +345,7 @@ dependencies = [
  "log",
  "monolithic-objects",
  "monolithic-syscalls",
+ "trapframe",
 ]
 
 [[package]]

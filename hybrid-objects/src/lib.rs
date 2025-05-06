@@ -8,6 +8,8 @@
 #[macro_use]
 extern crate log;
 extern crate alloc;
+extern crate trapframe;
+
 use core::cell::UnsafeCell;
 use core::{
     mem,
