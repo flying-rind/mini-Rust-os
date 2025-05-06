@@ -1,0 +1,12 @@
+[package]
+name = "hybrid-syscalls"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hybrid-objects = { path = "../hybrid-objects" }
+user-syscall = { path = "../user-components/user-syscall" }
+num = { version = "0.4", default-features = false }
+num-derive = { version = "0.4", default-features = false }
+num-traits = { version = "0.2", default-features = false }
+spin = "0.10"

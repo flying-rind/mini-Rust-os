@@ -142,16 +142,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 
 [[package]]
-name = "easy-fs-fuse"
-version = "0.1.0"
-dependencies = [
- "clap",
- "rand",
- "rcore-fs",
- "rcore-fs-sfs",
-]
-
-[[package]]
 name = "filetime"
 version = "0.2.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -234,6 +224,48 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "hybrid-objects"
+version = "0.1.0"
+dependencies = [
+ "bitflags 1.3.2",
+ "bitmap-allocator",
+ "bootloader_api",
+ "buddy_system_allocator 0.10.0",
+ "downcast-rs",
+ "futures-util",
+ "hashbrown",
+ "isomorphic_drivers",
+ "lazy_static",
+ "log",
+ "num",
+ "num-derive",
+ "num-traits",
+ "pci",
+ "rcore-fs",
+ "rcore-fs-sfs",
+ "requests-info",
+ "spin 0.9.8",
+ "trapframe",
+ "user-syscall",
+ "woke",
+ "x86_64",
+ "xmas-elf",
+ "zerocopy 0.7.35",
+]
+
+[[package]]
+name = "hybrid-syscalls"
+version = "0.1.0"
+dependencies = [
+ "hybrid-objects",
+ "num",
+ "num-derive",
+ "num-traits",
+ "spin 0.10.0",
+ "user-syscall",
 ]
 
 [[package]]
@@ -320,14 +352,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 
 [[package]]
-name = "micro-object"
+name = "micro-objects"
 version = "0.1.0"
 dependencies = [
- "bitflags 2.9.0",
+ "bitflags 1.3.2",
  "downcast-rs",
  "hal",
  "spin 0.9.8",
 ]
+
+[[package]]
+name = "micro-syscalls"
+version = "0.1.0"
 
 [[package]]
 name = "num"
@@ -540,6 +576,16 @@ dependencies = [
  "rcore-fs",
  "spin 0.9.8",
  "static_assertions",
+]
+
+[[package]]
+name = "rcore-fs-use"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "rand",
+ "rcore-fs",
+ "rcore-fs-sfs",
 ]
 
 [[package]]

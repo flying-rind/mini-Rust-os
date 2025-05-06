@@ -24,7 +24,7 @@ bootloader:
 fs-img:
 	cd user-rs && make build
 	rm -f $(FS_IMG)
-	cd easy-fs-fuse && cargo run --release -- -s $(CURDIR)/user-rs/src/bin -t $(CURDIR)/user-rs/target/$(arch)/release/
+	cd rcore-fs-use && cargo run --release -- -s $(CURDIR)/user-rs/src/bin -t $(CURDIR)/user-rs/target/$(arch)/release/
 
 test: build
 	cd kernel && cargo test -- --${boot}

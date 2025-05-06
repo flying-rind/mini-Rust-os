@@ -1,3 +1,12 @@
 [workspace]
-members = ["hal", "kernel", "micro-object", "user-rs", "easy-fs-fuse"]
+members = [
+    "hal",
+    "kernel",
+    "micro-objects",
+    "micro-syscalls",
+    "user-rs",
+    "rcore-fs-use",
+    "hybrid-objects",
+    "hybrid-syscalls",
+]
 exclude = ["boot"]

@@ -1,14 +1,13 @@
 //! 中断和用户态系统调用的处理入口
 
-extern crate trapframe;
-
 use crate::*;
+
 use alloc::sync::Arc;
 use trapframe::{TrapFrame, UserContext};
 const PAGE_FAULT: usize = 14;
 const TIMER: usize = 32;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// 中断处理入口，由汇编直接调用无需手动调用
 pub extern "C" fn trap_handler(tf: &mut TrapFrame) {
     handle_trap(Some(tf), None, None);
