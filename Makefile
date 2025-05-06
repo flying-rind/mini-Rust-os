@@ -46,6 +46,10 @@ clean:
 	cd user-components && cargo clean
 	cd crates/trapframe-rs && cargo clean
 
+count:
+	# cloc . --exclude-dir=target,book,build,crates,musl,source
+	cloc . --exclude-dir=crates,target
+
 # 编译musl
 musl: musl/build/$(arch)/$(mode)/bin/musl-gcc
 

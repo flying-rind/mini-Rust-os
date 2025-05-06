@@ -1,15 +1,18 @@
 //! 文件相关系统调用
 
-use crate::*;
 use hybrid_objects::fs;
 use fs::OSInode;
 use fs::*;
-use future::{executor, futures::WaitForKthread};
+use crate::future::{executor, futures::WaitForKthread};
 use requests_info::fsreqinfo::FsReqDescription;
 use requests_info::CastBytes;
 use hybrid_objects::task;
 use task::CURRENT_THREAD;
-use trap::{KthreadType, KTHREAD_MAP};
+use crate::trap::{KthreadType, KTHREAD_MAP};
+use crate::trap;
+use crate::println;
+use crate::current_proc;
+use crate::print;
 
 /// 当前进程打开文件
 ///
