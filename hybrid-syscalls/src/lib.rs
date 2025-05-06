@@ -1,4 +1,5 @@
 //! 系统调用模块
+#![no_std]
 mod debug;
 mod fs;
 mod sync;
@@ -6,7 +7,7 @@ mod task;
 
 extern crate alloc;
 
-use crate::*;
+use hybrid_objects::*;
 use alloc::sync::Arc;
 use debug::*;
 use fs::*;

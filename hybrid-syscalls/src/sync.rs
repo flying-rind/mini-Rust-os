@@ -1,7 +1,7 @@
 //! 同步互斥相关系统调用
 use trap::CURRENT_THREAD;
 
-use crate::{sync::*, *};
+use hybrid_objects::{sync::*, *};
 use alloc::sync::Arc;
 
 /// 为当前进程创建一个互斥锁，返回互斥锁的编号

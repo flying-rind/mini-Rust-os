@@ -14,7 +14,6 @@ use core::cell::UnsafeCell;
 use core::{
     mem,
     ops::{Deref, DerefMut},
-    panic::PanicInfo,
 };
 
 pub use alloc::{

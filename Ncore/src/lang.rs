@@ -1,3 +1,7 @@
+pub use hybrid_objects::task::*;
+use core::panic::PanicInfo;
+use hybrid_objects::println;
+
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // 打印错误信息

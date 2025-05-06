@@ -3,13 +3,14 @@
 
 //! 内核主函数
 extern crate alloc;
-use crate::alloc::string::ToString;
-use alloc::string::String;
-use alloc::vec;
-use bootloader_api::{BootInfo, BootloaderConfig, config::Mapping};
+use bootloader_api::{BootloaderConfig, config::Mapping};
 use loader::hybrid::kernel_main;
+use hybrid_objects::mm::PHYS_OFFSET;
+use hybrid_objects::mm::KERNEL_STACK_BASE;
+
 
 mod lang;
+mod logging;
 
 /// bootloader config
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {

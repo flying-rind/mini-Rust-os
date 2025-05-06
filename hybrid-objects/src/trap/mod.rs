@@ -1,7 +1,5 @@
 //! 中断处理函数和相关数据结构
-mod handler;
 
-pub use self::handler::*;
 pub use crate::task::*;
 
 extern crate trapframe;

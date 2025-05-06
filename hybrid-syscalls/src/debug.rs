@@ -1,8 +1,8 @@
 //! 一些调试用的系统调用
-use crate::fs::ROOT_INODE;
-use crate::print;
-use crate::println;
-use crate::serial::serial_receive;
+use hybrid_objects::fs::ROOT_INODE;
+use hybrid_objects::print;
+use hybrid_objects::println;
+use hybrid_objects::serial::serial_receive;
 use alloc::string::String;
 
 /// 输出用户态内容

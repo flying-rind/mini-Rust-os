@@ -12,9 +12,11 @@ pub fn handle_alloc_error(layout: core::alloc::Layout) -> ! {
 static mut HEAP_SPACE: [u8; KERNEL_HEAP_SIZE] = [0; KERNEL_HEAP_SIZE];
 
 pub fn heap_init() {
+    #[allow(static_mut_refs)]
+    let heap_start = unsafe{HEAP_SPACE.as_ptr() as usize};
     unsafe {
         HEAP_ALLOCATOR
-            .lock()
-            .init(HEAP_SPACE.as_ptr() as usize, KERNEL_HEAP_SIZE);
+        .lock()
+        .init(heap_start, KERNEL_HEAP_SIZE);
     }
 }

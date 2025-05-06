@@ -1,7 +1,5 @@
 //! 线程总调度器
 use super::*;
-use crate::println;
-use crate::trap::*;
 use alloc::sync::Arc;
 
 /// 全局线程调度器
@@ -61,60 +59,3 @@ impl Scheduler {
     }
 }
 
-/// 调度用户线程和内核线程
-pub fn main_loop() {
-    println!("[Kernel] Starting main loop...");
-    loop {
-        // 优先运行内核线程
-        let kthread = Scheduler::get_first_kthread();
-        if kthread.is_some() {
-            // [Debug]
-            // println!("`Root` switch to `{}`", kthread.as_ref().unwrap().name());
-            // 将CPU交给服务线程或执行器
-            let kthread = kthread.unwrap();
-            let current_kthread = CURRENT_KTHREAD.get().as_ref().unwrap().clone();
-            // 修改当前内核线程
-            *CURRENT_KTHREAD.get_mut() = Some(kthread.clone());
-            // 主线程入队
-            KTHREAD_DEQUE.get_mut().push_back(current_kthread.clone());
-            current_kthread.switch_to(kthread);
-        } else {
-            let uthread = Scheduler::get_first_uthread();
-            // 运行用户线程
-            if uthread.is_some() {
-                let uthread = uthread.unwrap();
-                // 修改当前线程
-                *CURRENT_THREAD.get_mut() = Some(uthread.clone());
-                // 持续运行用户线程直到其被挂起
-                // [Debug]
-                // println!("uthread running, pid {}", uthread.proc().unwrap().pid());
-                while uthread.state() == ThreadState::Runnable {
-                    uthread.run_until_trap();
-                    handle_user_trap(uthread.clone(), &uthread.user_context());
-                }
-                // 此时线程已被挂起
-                clear_current_thread();
-            }
-        }
-    }
-}
-
-/// 清理当前线程
-pub fn clear_current_thread() {
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-    // 根据线程状态进行清理
-    match current_thread.state() {
-        ThreadState::Suspended => {
-            current_thread.set_state(ThreadState::Runnable);
-            THREAD_DEQUE.get_mut().push_back(current_thread.clone());
-        }
-        ThreadState::Runnable | ThreadState::Waiting | ThreadState::Stop => {
-            THREAD_DEQUE.get_mut().push_back(current_thread.clone());
-        }
-        ThreadState::Exited => {
-            // 已退出时清理当前线程全局变量以drop线程
-            current_thread.exit();
-            *CURRENT_THREAD.get_mut() = None;
-        }
-    }
-}

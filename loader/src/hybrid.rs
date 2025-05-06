@@ -5,6 +5,8 @@ use alloc::sync::Arc;
 use hybrid_objects::task::Thread;
 use hybrid_objects::*;
 use trapframe::{TrapFrame, UserContext};
+use alloc::string::ToString;
+use bootloader_api::BootInfo;
 
 const PAGE_FAULT: usize = 14;
 const TIMER: usize = 32;
@@ -143,7 +145,7 @@ pub fn clear_current_thread() {
 /// 内核入口函数，参数为bootloader收集的硬件信息
 pub fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     // 初始化串口
-    kernel::serial::init(0x3f8);
+    hybrid_objects::utils::serial::init(0x3f8);
     // 初始化堆
     hybrid_objects::mm::heap_init();
     // 初始化中断描述符表
@@ -157,7 +159,7 @@ pub fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     // DEBUG
     println!("Can print now");
     // 初始化文件系统
-    kernel::fs::init();
+    hybrid_objects::fs::init();
     // 创建根内核线程
     Kthread::new_root();
     // 初始化内核服务线程

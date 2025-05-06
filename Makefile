@@ -12,14 +12,15 @@ else ifeq ($(arch), riscv64)
 	MUSL_TARGET := --target=riscv64-linux-gnu
 endif
 
-build: Kernel bootloader fs-img
+build: ncore bootloader fs-img
 
-Kernel:
+ncore:
 	cd user-components && cargo build
-	cd kernel && cargo build $(BUILD_ARGS)
+	# cd kernel && cargo build $(BUILD_ARGS)
+	cd Ncore && cargo build $(BUILD_ARGS)
 
 bootloader:
-	@cd boot && cargo build
+	cd boot && cargo build
 
 fs-img:
 	cd user-rs && make build
@@ -40,7 +41,7 @@ doc:
 
 clean:
 	cd user-rs && make clean
-	cd kernel && cargo clean
+	cd Ncore && cargo clean
 	cd boot && cargo clean
 	cd user-components && cargo clean
 	cd crates/trapframe-rs && cargo clean

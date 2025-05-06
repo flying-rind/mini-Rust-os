@@ -7,6 +7,7 @@ name = "Ncore"
 version = "0.1.0"
 dependencies = [
  "bootloader_api",
+ "hybrid-objects",
  "loader",
 ]
 
@@ -272,8 +273,10 @@ dependencies = [
  "num",
  "num-derive",
  "num-traits",
+ "requests-info",
  "spin 0.10.0",
  "user-syscall",
+ "x86_64",
 ]
 
 [[package]]
@@ -285,36 +288,6 @@ dependencies = [
  "bitflags 1.3.2",
  "spin 0.9.8",
  "volatile 0.3.0",
-]
-
-[[package]]
-name = "kernel"
-version = "0.1.0"
-dependencies = [
- "bitflags 2.9.0",
- "bitmap-allocator",
- "bootloader_api",
- "buddy_system_allocator 0.10.0",
- "downcast-rs",
- "futures-util",
- "hashbrown",
- "isomorphic_drivers",
- "lazy_static",
- "log",
- "num",
- "num-derive",
- "num-traits",
- "pci",
- "rcore-fs",
- "rcore-fs-sfs",
- "requests-info",
- "spin 0.9.8",
- "trapframe",
- "user-syscall",
- "woke",
- "x86_64",
- "xmas-elf",
- "zerocopy 0.7.35",
 ]
 
 [[package]]
@@ -347,6 +320,7 @@ dependencies = [
 name = "loader"
 version = "0.1.0"
 dependencies = [
+ "bootloader_api",
  "cfg-if",
  "hybrid-objects",
  "hybrid-syscalls",

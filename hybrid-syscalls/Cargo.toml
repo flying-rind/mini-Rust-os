@@ -10,3 +10,5 @@ num = { version = "0.4", default-features = false }
 num-derive = { version = "0.4", default-features = false }
 num-traits = { version = "0.2", default-features = false }
 spin = "0.10"
+requests-info = {path = "../user-components/requests-info"}
+x86_64 = "0.15.2"
