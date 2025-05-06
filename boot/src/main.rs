@@ -16,8 +16,10 @@ fn main() {
         PathBuf::from(&args[1])
     } else {
         // 否则，说明是在boot目录下执行cargo run，读取kernel ELF文件目录
-        PathBuf::from("../Ncore/target/x86_64/debug/kernel")
+        PathBuf::from("../Ncore/target/x86_64/debug/Ncore")
     };
+
+    print!("{:?}", &kernel_path);
 
     // 创建UEFI启动镜像
     let uefi_path = PathBuf::from("target/uefi.img");
