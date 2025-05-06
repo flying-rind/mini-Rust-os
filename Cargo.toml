@@ -10,6 +10,6 @@ members = [
     "hybrid-syscalls",
     "loader",
     "monolithic-objects",
-    "monolithic-syscalls",
+    "monolithic-syscalls", "Ncore",
 ]
 exclude = ["boot"]

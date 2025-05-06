@@ -23,7 +23,7 @@ pub struct Syscall<'a> {
 
 impl Syscall<'_> {
     /// 系统调用总控函数
-    pub fn do_syscall(syscall_id: usize, args: [usize; 6]) -> (usize, usize) {
+    pub fn do_syscall(&mut self, syscall_id: usize, args: [usize; 6]) -> (usize, usize) {
         let syscall_id = num::FromPrimitive::from_usize(syscall_id).unwrap();
         let ret = match syscall_id {
             // 调试用
