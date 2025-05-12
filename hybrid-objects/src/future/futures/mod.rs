@@ -24,7 +24,7 @@ pub struct Task {
     /// sleep标记的代码区域，实现该Future的开发者
     /// 必须自行决定何时使用Waker来取消sleep标记
     sleep_flag: Cell<bool>,
-    /// 执行器的若引用
+    /// 执行器的弱引用
     executor: Weak<Executor>,
 }
 

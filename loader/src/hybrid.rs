@@ -68,7 +68,7 @@ pub fn handle_trap(
             // 用户时钟
             if let Some(thread) = thread {
                 // 时间片轮转
-                thread.set_state(ThreadState::Suspended);
+                // thread.set_state(ThreadState::Suspended);
             // 内核时钟
             } else if let Some(_tf) = tf {
                 // 当前内核线程主动调度

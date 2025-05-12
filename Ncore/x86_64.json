@@ -12,7 +12,7 @@
   "linker": "rust-lld",
   "pre-link-args": {
     "ld.lld": [
-      "-Tkernel/linker.lds"
+      "-TNcore/linker.ld"
     ]
   },
   "disable-redzone": true,

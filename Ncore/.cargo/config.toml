@@ -2,7 +2,7 @@
 target = "x86_64-unknown-none"
 target-dir = "./target"
 
-rustflags = ["-C", "link-arg=-Tkernel/linker.lds"]
+rustflags = ["-C", "link-arg=-TNcore/linker.ld"]
 
 [unstable]
 build-std = ["core", "compiler_builtins", "alloc"]
