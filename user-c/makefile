@@ -1,6 +1,7 @@
 MUSL_DIR = ../musl-1.2.5
 arch = x86_64
 mode ?= release
+CFLAGS=-I. -Wall -fno-builtin -ffloat-store
 
 # 编译musl
 musl: musl/build/$(arch)/$(mode)/bin/musl-gcc
@@ -28,7 +29,14 @@ musl/build/$(arch)/release/bin/musl-gcc:
 
 
 MUCC = $(MUSL_DIR)/build/$(arch)/$(mode)/bin/musl-gcc
-APP_TARGET = bin/$(arch)/$(mode)/
+APP_TARGET = bin
+MUINC = $(MUSL_DIR)/build/$(arch)/$(mode)/include
+MULIBC = $(MUSL_DIR)/build/$(arch)/$(mode)/lib/libc.a
 
-hello:
-	$(MUCC) -static src/hello.c -o $(APP_TARGET)/hello
+
+all: apps
+
+apps: hello
+
+%: src/%.c
+	$(MUCC) -static -I$(MUINC) -o bin/$@ $<

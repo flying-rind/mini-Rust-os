@@ -36,7 +36,7 @@ fn main() {
     let rs_src_path = "../user-rs/src/bin";
     let rs_target_path = "../user-rs/target/x86_64/release/";
     let c_src_path = "../user-c/src";
-    let c_target_path = "../user-c/bin/x86_64/release/";
+    let c_target_path = "../user-c/bin/";
 
     println!("rs_src_path = {}\nrs_target_path = {}", rs_src_path, rs_target_path);
     pub const USER_IMAGE_SIZE: usize = 16 * 1024 * 1024;

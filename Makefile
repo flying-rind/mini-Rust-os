@@ -15,6 +15,7 @@ bootloader:
 
 fs-img:
 	cd user-rs && make build
+	cd user-c && make all
 	rm -f $(FS_IMG)
 	cd rcore-fs-use && cargo run --release -- -s $(CURDIR)/user-rs/src/bin -t $(CURDIR)/user-rs/target/$(arch)/release/
 
