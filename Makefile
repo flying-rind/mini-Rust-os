@@ -3,20 +3,11 @@ BUILD_ARGS = -Z build-std=core,alloc,compiler_builtins --target x86_64.json
 arch = x86_64
 FS_IMG = $(CURDIR)/user-rs/target/$(arch)/release/fs.img
 mode ?= release
-MUSL_DIR = musl-1.2.5
-
-# 设置musl target
-ifeq ($(arch), x86_64)
-	MUSL_TARGET := 
-else ifeq ($(arch), riscv64)
-	MUSL_TARGET := --target=riscv64-linux-gnu
-endif
 
 build: ncore bootloader fs-img
 
 ncore:
 	cd user-components && cargo build
-	# cd kernel && cargo build $(BUILD_ARGS)
 	cd Ncore && cargo build $(BUILD_ARGS)
 
 bootloader:
@@ -49,30 +40,3 @@ clean:
 count:
 	# cloc . --exclude-dir=target,book,build,crates,musl,source
 	cloc . --exclude-dir=crates,target
-
-# 编译musl
-musl: musl/build/$(arch)/$(mode)/bin/musl-gcc
-
-musl/build/$(arch)/debug/bin/musl-gcc:
-	cd $(MUSL_DIR) && \
-	./configure --prefix=$(CURDIR)/$(MUSL_DIR)/build/$(arch)/$(mode) \
-		$(MUSL_TARGET) \
-		--with-malloc=kymalloc \
-		--enable-debug \
-		--enable-optimize=0 &&\
-	make -j$(shell nproc) &&\
-	make install &&\
-	make distclean &&\
-	cp $(MUSL_DIR)/build/$(arch)/$(mode)/lib/libc.so user-c/bin/$(arch)/$(mode)
-
-musl/build/$(arch)/release/bin/musl-gcc:
-	cd $(MUSL_DIR) && \
-	CFLAGS='-Os -ffunction-sections -fdata-sections' \
-	LDFLAGS='-Wl,--gc-sections' \
-	./configure --prefix=$(CURDIR)/$(MUSL_DIR)/build/$(arch)/$(mode) \
-		$(MUSL_TARGET) && \
-		--with-malloc=kymalloc \
-	make -j$(shell nproc) && \
-	make install && \
-	make distclean &&\
-	cp $(MUSL_DIR)/build/$(arch)/$(mode)/lib/libc.so user-c/bin/$(arch)/$(mode)
