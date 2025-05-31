@@ -4,3 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+hybrid-objects = {path = "../hybrid-objects"}
+lazy_static = {version = "1.5.0", features = ["spin_no_std"]}
+spin = "0.10.0"
+trapframe = {path = "../crates/trapframe-rs"}

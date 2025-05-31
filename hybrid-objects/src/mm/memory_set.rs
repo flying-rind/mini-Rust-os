@@ -68,9 +68,9 @@ impl MemorySet {
         let ms = Self::new();
         for area in self.areas.get() {
             // 不复制用户栈，fork时手动复制
-            if area.mtype() != MemAreaType::USERSTACK {
+            // if area.mtype() != MemAreaType::USERSTACK {
                 ms.insert_area(area.clone_myself());
-            }
+            // }
         }
         ms
     }

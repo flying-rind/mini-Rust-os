@@ -363,10 +363,22 @@ version = "0.1.0"
 [[package]]
 name = "monolithic-objects"
 version = "0.1.0"
+dependencies = [
+ "hybrid-objects",
+ "lazy_static",
+ "spin 0.10.0",
+ "trapframe",
+]
 
 [[package]]
 name = "monolithic-syscalls"
 version = "0.1.0"
+dependencies = [
+ "hybrid-objects",
+ "num-derive",
+ "num-traits",
+ "trapframe",
+]
 
 [[package]]
 name = "num"
