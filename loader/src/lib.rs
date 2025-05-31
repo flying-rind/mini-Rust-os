@@ -8,5 +8,7 @@ extern crate cfg_if;
 cfg_if! {
     if #[cfg(feature = "hybrid")] {
         pub mod hybrid;
+    } else if #[cfg(feature = "monolithic")] {
+        pub mod monolithic;
     }
 }

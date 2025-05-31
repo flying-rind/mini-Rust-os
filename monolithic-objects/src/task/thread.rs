@@ -14,8 +14,17 @@ use alloc::sync::Arc;
 #[derive(Default)]
 pub struct ThreadInner {
     /// 用户态上下文
-    context: Box<UserContext>,
+    pub context: Option<Box<UserContext>>,
 }
+
+/// 线程状态
+#[derive(Debug, Default, Clone)]
+pub enum ThreadState {
+    /// 已退出
+    #[default]
+    Exited = 0,
+}
+
 
 /// Tid type
 pub type Tid = usize;
@@ -26,15 +35,20 @@ lazy_static! {
         RwLock::new(BTreeMap::new());
 }
 
+/// 全局变量：当前用户线程
+pub static CURRENT_THREAD: Mutex<Option<Arc<Thread>>> = Mutex::new(None);
+
 /// 线程
 #[derive(Default)]
 pub struct Thread {
     /// 可变部分
-    inner: Mutex<ThreadInner>,
+    pub inner: Mutex<ThreadInner>,
     /// Thread id
-    tid: Tid,
+    pub tid: Tid,
     /// 所属进程
-    proc: Arc<Mutex<Process>>
+    pub proc: Arc<Mutex<Process>>,
+    /// 线程状态
+    pub state: ThreadState,
 }
 
 impl Thread {
@@ -71,8 +85,9 @@ impl Thread {
         // 创建子进程主线程
         let new_thread = Thread {
             tid: 0,
-            inner: Mutex::new(ThreadInner { context: Box::new(context) }),
+            inner: Mutex::new(ThreadInner { context: Some(Box::new(context)) }),
             proc: new_proc,
+            ..default
         }.add_to_table();
         // 关联线程和进程，新进程的pid设置为新线程的tid
         let child_pid = Pid(new_thread.tid);

@@ -1,14 +1,14 @@
 [workspace]
 members = [
-    "micro-objects",
-    "micro-syscalls",
+    # "micro-objects",
+    # "micro-syscalls",
+    "monolithic-objects",
+    "monolithic-syscalls",
     "user-rs",
     "rcore-fs-use",
     "hybrid-objects",
     "hybrid-syscalls",
     "loader",
-    "monolithic-objects",
-    "monolithic-syscalls",
     "Ncore",
 ]
-exclude = ["boot", "kernel", "hal"]
+exclude = ["boot",  "hal"]

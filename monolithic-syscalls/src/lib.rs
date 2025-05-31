@@ -2,7 +2,7 @@
 #![no_std]
 
 use alloc::sync::Arc;
-use hybrid_objects::task::Thread;
+use monolithic_objects::Thread;
 use num_derive::FromPrimitive;
 use trapframe::UserContext;
 
@@ -12,9 +12,9 @@ extern crate num_traits;
 mod proc;
 
 /// 系统调用
-struct Syscall<'a> {
-    thread: &'a Arc<Thread>,
-    context: &'a mut UserContext
+pub struct Syscall<'a> {
+    pub thread: &'a Arc<Thread>,
+    pub context: &'a mut UserContext
 }
 
 pub type SysResult = Result<usize, SysError>;
