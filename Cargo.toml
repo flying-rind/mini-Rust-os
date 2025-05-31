@@ -9,6 +9,6 @@ members = [
     "hybrid-objects",
     "hybrid-syscalls",
     "loader",
-    "Ncore",
+    "Ncore", "executor",
 ]
 exclude = ["boot",  "hal"]

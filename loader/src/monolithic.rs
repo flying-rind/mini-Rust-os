@@ -20,6 +20,8 @@ async fn run_user(thread: Arc<Thread>) {
             break;
         }
         // TODO: Handle Signal
+        // 切换地址空间
+        thread.proc.lock().vm.activate();
         // 进入用户态
         let mut ctx = thread.inner.lock().context.take().unwrap();
         ctx.run();

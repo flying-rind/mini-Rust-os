@@ -98,3 +98,9 @@ impl Thread {
         new_thread
     }
 }
+
+
+/// 将用户线程加到Executor中去
+pub fn spawn_thread(threa: Arc<Thread>) {
+    
+}
