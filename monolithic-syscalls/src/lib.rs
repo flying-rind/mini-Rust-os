@@ -5,73 +5,42 @@ use alloc::sync::Arc;
 use monolithic_objects::Thread;
 use num_derive::FromPrimitive;
 use trapframe::UserContext;
+use monolithic_objects::ThreadFn;
+use error::*;
+use num::*;
 
 extern crate alloc;
 extern crate num_traits;
 
 mod proc;
-
-/// 系统调用
-pub struct Syscall<'a> {
-    pub thread: &'a Arc<Thread>,
-    pub context: &'a mut UserContext
-}
+mod error;
+mod num;
 
 pub type SysResult = Result<usize, SysError>;
 
-#[repr(isize)]
-#[derive(Debug, FromPrimitive)]
-/// 系统调用错误
-pub enum SysError {
-    EUNDEF = 0,
-    EPERM = 1,
-    ENOENT = 2,
-    ESRCH = 3,
-    EINTR = 4,
-    EIO = 5,
-    ENXIO = 6,
-    E2BIG = 7,
-    ENOEXEC = 8,
-    EBADF = 9,
-    ECHILD = 10,
-    EAGAIN = 11,
-    ENOMEM = 12,
-    EACCES = 13,
-    EFAULT = 14,
-    ENOTBLK = 15,
-    EBUSY = 16,
-    EEXIST = 17,
-    EXDEV = 18,
-    ENODEV = 19,
-    ENOTDIR = 20,
-    EISDIR = 21,
-    EINVAL = 22,
-    ENFILE = 23,
-    EMFILE = 24,
-    ENOTTY = 25,
-    ETXTBSY = 26,
-    EFBIG = 27,
-    ENOSPC = 28,
-    ESPIPE = 29,
-    EROFS = 30,
-    EMLINK = 31,
-    EPIPE = 32,
-    EDOM = 33,
-    ERANGE = 34,
-    EDEADLK = 35,
-    ENAMETOOLONG = 36,
-    ENOLCK = 37,
-    ENOSYS = 38,
-    ENOTEMPTY = 39,
-    ELOOP = 40,
-    EIDRM = 43,
-    ENOTSOCK = 80,
-    ENOPROTOOPT = 92,
-    EPFNOSUPPORT = 96,
-    EAFNOSUPPORT = 97,
-    ENOBUFS = 105,
-    EISCONN = 106,
-    ENOTCONN = 107,
-    ETIMEDOUT = 110,
-    ECONNREFUSED = 111,
+/// 系统调用
+pub struct Syscall<'a> {
+    /// 系统调用的用户线程
+    pub thread: &'a Arc<Thread>,
+    /// 用户态上下文
+    pub context: &'a mut UserContext,
+    /// 用户线程线程函数
+    pub thread_fn: ThreadFn,
+
 }
+
+impl Syscall<'_> {
+    /// 系统调用分发函数
+    pub async fn syscall(&mut self, id: usize, args: [usize; 6]) -> isize {
+        let [a0, a1, a2, a3, a4, a5] = args;
+        let ret = match id {
+            SYS_FORK => self.sys_fork(),
+            _ => unimplemented!("Not implemented"),
+        };
+        match ret {
+            Ok(code) => code as _,
+            Err(err) => -(err as isize),
+        }
+    }
+}
+

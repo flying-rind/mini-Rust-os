@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 trapframe = { path = "../crates/trapframe-rs" }
+executor = {path = "../executor"}
 log = "0.4.27"
 cfg-if = "1.0"
 hybrid-syscalls = { path = "../hybrid-syscalls", optional = true }

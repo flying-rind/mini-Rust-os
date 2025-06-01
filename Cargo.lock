@@ -319,6 +319,7 @@ version = "0.1.0"
 dependencies = [
  "bootloader_api",
  "cfg-if",
+ "executor",
  "hybrid-objects",
  "hybrid-syscalls",
  "log",
@@ -347,6 +348,7 @@ checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 name = "monolithic-objects"
 version = "0.1.0"
 dependencies = [
+ "executor",
  "hybrid-objects",
  "lazy_static",
  "spin 0.10.0",
@@ -357,6 +359,7 @@ dependencies = [
 name = "monolithic-syscalls"
 version = "0.1.0"
 dependencies = [
+ "executor",
  "monolithic-objects",
  "num-derive",
  "num-traits",

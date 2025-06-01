@@ -13,7 +13,7 @@ extern crate alloc;
 /// 包含一个Future对象和一个sleep标记
 pub struct Task {
     /// 内含的协程
-    inner_future: Mutex<Pin<Box<dyn Future<Output = ()> + Send + Sync>>>,
+    inner_future: Mutex<Pin<Box<dyn Future<Output = ()> + Send>>>,
     /// sleep标记，当为true时协程不会被执行器轮讯
     /// 协程的Waker和执行器executor是唯一能够改变
     /// sleep标记的代码区域，实现该Future的开发者
@@ -46,7 +46,7 @@ impl Task {
 
     /// 新建一个task
     pub fn new(
-        future: impl Future<Output = ()> + Send + Sync + 'static,
+        future: impl Future<Output = ()> + Send + 'static,
     ) -> Arc<Self> {
         Arc::new(Task {
             inner_future: Mutex::new(Box::pin(future)),

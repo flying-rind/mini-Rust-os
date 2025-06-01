@@ -5,8 +5,12 @@ use alloc::string::String;
 use alloc::sync::Weak;
 use alloc::vec::Vec;
 use thread::Tid;
+use lazy_static::lazy_static;
+use spin::RwLock;
+use alloc::collections::BTreeMap;
 
 /// process id type
+#[derive(Clone, Default, Ord, PartialEq, PartialOrd, Eq)]
 pub struct Pid(pub usize);
 /// process group id type
 pub type Pgid = i32;
@@ -44,7 +48,7 @@ pub struct Process {
 
 lazy_static! {
     /// Records the mapping between pid and Process struct.
-    pub static ref PROCESSES: RwLock<BTreeMap<usize, Arc<Mutex<Process>>>> =
+    pub static ref PROCESSES: RwLock<BTreeMap<Pid, Arc<Mutex<Process>>>> =
         RwLock::new(BTreeMap::new());
 }
 
@@ -54,7 +58,7 @@ pub fn add_to_process_table(proc: Arc<Mutex<Process>>, pid: Pid) {
     let mut process_table = PROCESSES.write();
 
     // set pid
-    proc.lock().pid = pid;
+    proc.lock().pid = pid.clone();
 
     // put to process table
     process_table.insert(pid, proc.clone());

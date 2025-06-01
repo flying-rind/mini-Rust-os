@@ -1,9 +1,12 @@
 //! 宏内核加载器
 
+use core::pin::Pin;
+
 use alloc::boxed::Box;
 use monolithic_objects::{Arc, Thread, ThreadState};
-use monolithic_objects::CURRENT_THREAD;
 use trapframe::UserContext;
+use monolithic_objects::set_current_thread;
+
 
 /// 用户线程入口
 /// 
@@ -11,10 +14,7 @@ use trapframe::UserContext;
 /// - 进入用户态
 /// - 处理中断/系统调用
 async fn run_user(thread: Arc<Thread>) {
-    {
-        let cur_thread = CURRENT_THREAD.lock();
-        *cur_thread = Some(thread.clone());
-    }
+    set_current_thread(Some(thread.clone()));
     loop {
         if thread.state == ThreadState::Exited {
             break;
@@ -25,13 +25,15 @@ async fn run_user(thread: Arc<Thread>) {
         // 进入用户态
         let mut ctx = thread.inner.lock().context.take().unwrap();
         ctx.run();
-        // 处理中断/系统调用
-        handle_user_trap(thread.clone(), ctx);
+        // 返回内核，处理中断/系统调用
+        handle_user_trap(thread.clone(), ctx).await;
     }
-    {
-        let cur_thread = CURRENT_THREAD.lock();
-        *cur_thread = None;
-    }
+    set_current_thread(None);
+}
+
+/// 用户线程统一线程函数
+fn thread_fn(thread: Arc<Thread>) -> Pin<Box<dyn Future<Output = ()> + Send + 'static>> {
+    Box::pin(run_user(thread))
 }
 
 /// 处理用户态中断或系统调用
@@ -44,9 +46,10 @@ async fn handle_user_trap(thread: Arc<Thread>, mut ctx: Box<UserContext>) {
         let mut syscall = monolithic_syscalls::Syscall {
             thread: &thread,
             context: &mut *ctx,
+            thread_fn:thread_fn
         };
-        let ret = syscall.syscall(num, args).await;
-        ctx.set_syscall_ret(ret, 0);
+        let ret = syscall.syscall(syscall_num, args).await;
+        ctx.set_syscall_ret(ret as _, 0);
         return;
     }
 

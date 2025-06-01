@@ -59,7 +59,7 @@ pub fn run_util_idle() {
 }
 
 /// 添加协程到执行器队列中
-pub fn spawn(future: impl Future<Output = ()> + Send + Sync + 'static) {
+pub fn spawn(future: impl Future<Output = ()> + Send + 'static) {
     // 创建协程任务
     let task = Task::new(future);
     // 添加到执行器队列中
