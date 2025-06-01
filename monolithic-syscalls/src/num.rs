@@ -1,6 +1,7 @@
 //! x86_64 syscall ids
 //! Reference: https://git.musl-libc.org/cgit/musl/tree/arch/x86_64/bits/syscall.h.in
 //! Copied from rCore
+#![allow(unused)]
 
 pub const SYS_READ: usize = 0;
 pub const SYS_WRITE: usize = 1;
@@ -158,7 +159,7 @@ pub const SYS_MUNLOCKALL: usize = 152;
 pub const SYS_VHANGUP: usize = 153;
 pub const SYS_MODIFY_LDT: usize = 154;
 pub const SYS_PIVOT_ROOT: usize = 155;
-pub const SYS__SYSCTL: usize = 156;
+pub const SYS_SYSCTL: usize = 156;
 pub const SYS_PRCTL: usize = 157;
 pub const SYS_ARCH_PRCTL: usize = 158;
 pub const SYS_ADJTIMEX: usize = 159;

@@ -360,6 +360,7 @@ name = "monolithic-syscalls"
 version = "0.1.0"
 dependencies = [
  "executor",
+ "hybrid-objects",
  "monolithic-objects",
  "num-derive",
  "num-traits",

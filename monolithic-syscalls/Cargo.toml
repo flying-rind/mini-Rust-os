@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 monolithic-objects = {path = "../monolithic-objects"}
 trapframe = {path ="../crates/trapframe-rs"}
+hybrid-objects ={ path = "../hybrid-objects"}
 executor ={ path = "../executor"}
 num-derive = "0.4.2"
 num-traits = { version = "0.2.19", default-features = false }

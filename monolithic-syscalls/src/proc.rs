@@ -10,4 +10,10 @@ impl Syscall<'_> {
         executor::spawn(future);
         Ok(pid)
     }
+
+    pub fn sys_vfork(&mut self) -> SysResult {
+        self.sys_fork()
+    }
+
+    
 }

@@ -5,6 +5,8 @@ use crate::FromPrimitive;
 #[repr(isize)]
 #[derive(Debug, FromPrimitive)]
 /// 系统调用错误
+/// 
+/// See [linux man errno(3)](https://man7.org/linux/man-pages/man3/errno.3.html)
 pub enum SysError {
     EUNDEF = 0,
     EPERM = 1,
@@ -20,6 +22,7 @@ pub enum SysError {
     EAGAIN = 11,
     ENOMEM = 12,
     EACCES = 13,
+    /// Bad address
     EFAULT = 14,
     ENOTBLK = 15,
     EBUSY = 16,
