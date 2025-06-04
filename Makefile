@@ -32,11 +32,16 @@ doc:
 	cd kernel && cargo doc --document-private-items --open
 
 clean:
-	cd user-rs && make clean
 	cd Ncore && cargo clean
 	cd boot && cargo clean
 	cd user-components && cargo clean
-	cd crates/trapframe-rs && cargo clean
+	cd hybrid-objects && cargo clean
+	cd hybrid-syscalls && cargo clean
+	cd monolithic-objects && cargo clean
+	cd monolithic-syscalls && cargo clean
+
+	cd user-c && make clean
+	cd user-rs && make clean
 
 count:
 	# cloc . --exclude-dir=target,book,build,crates,musl,source

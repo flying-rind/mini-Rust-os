@@ -12,6 +12,9 @@ MULIBC = $(MUSL_DIR)/build/$(arch)/$(mode)/lib/libc.a
 
 all: apps
 
+clean: 
+	rm bin/*
+
 apps: hello
 
 %: src/%.c
