@@ -3,6 +3,9 @@
 use crate::imp::KernelConfig;
 use crate::kernel_handler::KernelHandler;
 
+extern crate alloc;
+use alloc::string::String;
+
 /// 内核引导和初始化
 pub(crate) trait __HalTrait {
     /// The kernel command line.

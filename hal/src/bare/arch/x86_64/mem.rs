@@ -1,7 +1,7 @@
 //! x86架构的内存相关操作
 
 use core::ops::Range;
-
+use alloc::vec::Vec;
 use crate::{PhysAddr, PAGE_SIZE};
 
 pub fn free_pmem_regions() -> Vec<Range<PhysAddr>> {

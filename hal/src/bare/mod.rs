@@ -1,5 +1,7 @@
 //! 裸机的硬件接口实现
 use cfg_if::cfg_if;
+use crate::*;
+
 cfg_if! {
     if #[cfg(target_arch = "x86_64")] {
         #[path = "arch/x86_64/mod.rs"]

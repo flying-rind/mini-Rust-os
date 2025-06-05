@@ -1,6 +1,8 @@
 //! Physical memory operations.
 
 use super::*;
+use alloc::vec::Vec;
+
 /// 操作物理内存的硬件层接口
 pub(crate) trait __HalTrait {
     /// Convert physical address to virtual address.

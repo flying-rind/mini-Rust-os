@@ -4,3 +4,4 @@ pub mod cpu;
 pub mod interrupt;
 pub mod mem;
 pub mod vm;
+pub mod drivers;

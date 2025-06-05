@@ -3,6 +3,8 @@
 use crate::config::KCONFIG;
 use crate::hal_fn;
 use crate::{PhysAddr, VirtAddr};
+use alloc::vec::Vec;
+use core::ops::Range;
 
 // 为mem模块的__HalImpl结构实现接口
 impl hal_fn::mem::__HalTrait for hal_fn::mem::__HalImpl {
@@ -14,7 +16,7 @@ impl hal_fn::mem::__HalTrait for hal_fn::mem::__HalImpl {
         vaddr - KCONFIG.phys_to_virt_offset
     }
 
-    fn free_pmem_regions() -> Vec<std::ops::Range<PhysAddr>> {
+    fn free_pmem_regions() -> Vec<Range<PhysAddr>> {
         super::arch::mem::free_pmem_regions()
     }
 

@@ -4,6 +4,8 @@
 use crate::{PhysAddr, VirtAddr};
 use core::ops::Range;
 
+extern crate alloc;
+
 /// Bootstrap and initialization
 pub mod boot;
 /// CPU information

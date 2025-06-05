@@ -1,7 +1,11 @@
 //! 硬件抽象层
+#![no_std]
 #[macro_use]
 extern crate log;
+extern crate alloc;
 pub use common::*;
+
+
 // 通用模块
 mod common;
 // 硬件抽象层提供给上层的接口定义
