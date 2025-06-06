@@ -5,8 +5,7 @@ use alloc::sync::Arc;
 use hybrid_objects::task::Thread;
 use hybrid_objects::*;
 use trapframe::{TrapFrame, UserContext};
-use alloc::string::ToString;
-use bootloader_api::BootInfo;
+use hal::console::serial_print;
 
 const PAGE_FAULT: usize = 14;
 const TIMER: usize = 32;
@@ -66,7 +65,7 @@ pub fn handle_trap(
             pic::ack();
             *pic::TICKS.get_mut() += 1;
             // 用户时钟
-            if let Some(thread) = thread {
+            if let Some(_thread) = thread {
                 // 时间片轮转
                 // thread.set_state(ThreadState::Suspended);
             // 内核时钟
@@ -142,39 +141,4 @@ pub fn clear_current_thread() {
     }
 }
 
-/// 内核入口函数，参数为bootloader收集的硬件信息
-pub fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
-    // 初始化串口
-    hybrid_objects::utils::serial::init(0x3f8);
-    // 初始化堆
-    hybrid_objects::mm::heap_init();
-    // 初始化中断描述符表
-    hybrid_objects::trap::init();
-    // 初始化内存管理
-    hybrid_objects::mm::init(&mut boot_info.memory_regions);
-    // 初始化中断
-    hybrid_objects::pic::init();
-    // 初始化驱动
-    hybrid_objects::drivers::init();
-    // DEBUG
-    println!("Can print now");
-    // 初始化文件系统
-    hybrid_objects::fs::init();
-    // 创建根内核线程
-    Kthread::new_root();
-    // 初始化内核服务线程
-    kthread::init();
-    // 创建并启动shell进程
-    let test_args = vec![
-        "testarg1".to_string(),
-        "testarg2".to_string(),
-        "testarg3".to_string(),
-    ];
-    let shell_str = "shell";
-    let shell_process = Process::new(String::from(shell_str), &shell_str, Some(test_args)).unwrap();
-    shell_process.root_thread().resume();
 
-    // 跳转到用户态
-    main_loop();
-    unreachable!("Should never reach here");
-}

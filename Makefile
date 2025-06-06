@@ -44,5 +44,5 @@ clean:
 	cd user-rs && make clean
 
 count:
-	# cloc . --exclude-dir=target,book,build,crates,musl,source
-	cloc . --exclude-dir=crates,target
+	cloc . --exclude-dir=crates,target,musl,tutorial
+	# cloc . --exclude-dir=crates,target,musl,user-c,user-rs, tutorial

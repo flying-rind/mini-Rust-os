@@ -10,6 +10,7 @@ use super::println;
 use super::trap::Kthread;
 use super::trap::ThreadState;
 use super::trap::{Process, Thread};
+use crate::serial_print;
 
 /// 用户线程等待一个进程结束
 ///

@@ -1,4 +1,5 @@
 use crate::{fs::ROOT_INODE, println};
+use crate::serial_print;
 
 /// 测试内核线程
 pub fn kthread_test_entry(_ktid: usize) {

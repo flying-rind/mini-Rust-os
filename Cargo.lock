@@ -7,8 +7,10 @@ name = "Ncore"
 version = "0.1.0"
 dependencies = [
  "bootloader_api",
+ "hal",
  "hybrid-objects",
  "loader",
+ "log",
 ]
 
 [[package]]
@@ -214,6 +216,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "hal"
+version = "0.1.0"
+dependencies = [
+ "bitflags 1.3.2",
+ "cfg-if",
+ "log",
+ "numeric-enum-macro",
+ "raw-cpuid 11.5.0",
+ "spin 0.10.0",
+ "x86_64",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -236,12 +251,13 @@ dependencies = [
 name = "hybrid-objects"
 version = "0.1.0"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags 2.9.0",
  "bitmap-allocator",
  "bootloader_api",
  "buddy_system_allocator 0.10.0",
  "downcast-rs",
  "futures-util",
+ "hal",
  "hashbrown",
  "isomorphic_drivers",
  "lazy_static",
@@ -266,6 +282,7 @@ dependencies = [
 name = "hybrid-syscalls"
 version = "0.1.0"
 dependencies = [
+ "hal",
  "hybrid-objects",
  "num",
  "num-derive",
@@ -320,6 +337,7 @@ dependencies = [
  "bootloader_api",
  "cfg-if",
  "executor",
+ "hal",
  "hybrid-objects",
  "hybrid-syscalls",
  "log",
@@ -440,6 +458,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "numeric-enum-macro"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "300e4bdb6b46b592948e700ea1ef24a4296491f6a0ee722b258040abd15a3714"
+
+[[package]]
 name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -541,6 +565,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c297679cb867470fa8c9f67dbba74a78d78e3e98d7cf2b08d6d71540f797332"
 dependencies = [
  "bitflags 1.3.2",
+]
+
+[[package]]
+name = "raw-cpuid"
+version = "11.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6df7ab838ed27997ba19a4664507e6f82b41fe6e20be42929332156e5e85146"
+dependencies = [
+ "bitflags 2.9.0",
 ]
 
 [[package]]
@@ -663,7 +696,7 @@ dependencies = [
 name = "trapframe"
 version = "0.9.0"
 dependencies = [
- "raw-cpuid",
+ "raw-cpuid 10.7.0",
  "x86_64",
 ]
 

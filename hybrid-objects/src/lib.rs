@@ -27,7 +27,7 @@ pub use alloc::{
 pub use mem::{size_of, size_of_val, transmute};
 pub use task::{CURRENT_KTHREAD, KthreadType};
 pub use utils::*;
-
+pub use hal::{print, println, console::serial_print};
 pub use task::*;
 
 pub mod drivers;

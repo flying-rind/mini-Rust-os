@@ -181,14 +181,14 @@ impl fmt::Write for SerialPort {
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {
-        $crate::utils::serial::serial_print(format_args!($($arg)*));
+        hal::console::serial_print(format_args!($($arg)*));
     };
 }
 
 /// 通过串口输出到宿主机
 #[macro_export]
 macro_rules! println {
-    () => ($crate::print!("\n"));
+    () => (hal::print!("\n"));
     ($fmt:expr) => ($crate::print!(concat!($fmt, "\n")));
     ($fmt:expr, $($arg:tt)*) => ($crate::print!(
         concat!($fmt, "\n"), $($arg)*));

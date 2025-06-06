@@ -1,5 +1,5 @@
 //! 定义标准输入输出，为其实现文件访问接口
-use serial::serial_receive;
+use hal::console::serial_receive;
 
 use super::File;
 use crate::*;

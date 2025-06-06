@@ -12,7 +12,7 @@ use alloc::collections::BTreeMap;
 
 lazy_static! {
     /// Records the mapping between pid and Process struct.
-    pub static ref THREADS: RwLock<BTreeMap<usize, Arc<Thread>>> =
+    pub static ref THREADS: RwLock<BTreeMap<Tid, Arc<Thread>>> =
         RwLock::new(BTreeMap::new());
 }
 

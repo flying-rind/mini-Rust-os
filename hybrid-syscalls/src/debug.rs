@@ -2,8 +2,8 @@
 use hybrid_objects::fs::ROOT_INODE;
 use hybrid_objects::print;
 use hybrid_objects::println;
-use hybrid_objects::serial::serial_receive;
 use alloc::string::String;
+use hal::console::serial_receive;
 
 /// 输出用户态内容
 ///

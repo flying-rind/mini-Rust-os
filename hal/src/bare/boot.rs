@@ -11,7 +11,7 @@ impl __HalTrait for __HalImpl {
         unimplemented!()
     }
     fn primary_init() {
-        unimplemented!()
+        super::arch::primary_init();
     }
     fn primary_init_early(cfg: KernelConfig, handler: &'static impl KernelHandler) {
         unimplemented!()

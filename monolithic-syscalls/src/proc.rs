@@ -11,9 +11,24 @@ impl Syscall<'_> {
         Ok(pid)
     }
 
+    /// Same as fork for now.
     pub fn sys_vfork(&mut self) -> SysResult {
         self.sys_fork()
     }
 
-    
+    /// Replaces the current ** process ** with a new process image
+    ///
+    /// `argv` is an array of argument strings passed to the new program.
+    /// `envp` is an array of strings, conventionally of the form `key=value`,
+    /// which are passed as environment to the new program.
+    ///
+    /// NOTICE: `argv` & `envp` can not be NULL (different from Linux)
+    ///
+    /// NOTICE: for multi-thread programs
+    /// A call to any exec function from a process with more than one thread
+    /// shall result in all threads being terminated and the new executable image
+    /// being loaded and executed.
+    pub fn sys_exec(&mut self, path: *const u8, argv: *const *const u8, envp: *const *const u8) -> SysResult{
+        unimplemented!()
+    }
 }

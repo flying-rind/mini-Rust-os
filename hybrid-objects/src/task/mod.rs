@@ -1,5 +1,5 @@
 //! 任务管理模块
-mod kthread;
+pub mod kthread;
 mod process;
 mod scheduler;
 mod thread;
