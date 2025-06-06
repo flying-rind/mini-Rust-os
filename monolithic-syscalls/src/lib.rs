@@ -9,11 +9,15 @@ use monolithic_objects::ThreadFn;
 use error::*;
 use num::*;
 use hybrid_objects::mm::PHYS_OFFSET;
+use spin::MutexGuard;
+
+pub use log::error;
 
 extern crate alloc;
 extern crate num_traits;
 
 mod proc;
+mod fs;
 mod error;
 mod num;
 
@@ -31,6 +35,11 @@ pub struct Syscall<'a> {
 }
 
 impl Syscall<'_> {
+    /// Get current processs
+    pub fn process(&self) -> MutexGuard<'_, monolithic_objects::Process>{
+        self.thread.proc.lock()
+    }
+
     /// 系统调用分发函数
     pub async fn syscall(&mut self, id: usize, args: [usize; 6]) -> isize {
         let [a0, a1, a2, a3, a4, a5] = args;

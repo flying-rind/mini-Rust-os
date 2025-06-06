@@ -5,6 +5,7 @@ use crate::future::executor;
 use crate::*;
 use alloc::sync::Arc;
 use alloc::sync::Weak;
+use rcore_fs::vfs::FsError;
 use core::task::Waker;
 use future::futures::fs::WaitForPipeBuffer;
 
@@ -155,5 +156,9 @@ impl File for Pipe {
         assert!(self.writable());
         self.buf.get_mut().buf.extend(buf.iter().copied());
         buf.len()
+    }
+
+    fn lookup_follow(&self, _path: &str, _max_follow: usize) -> rcore_fs::vfs::Result<Arc<dyn rcore_fs::vfs::INode>> {
+        Err(FsError::NotFile)
     }
 }

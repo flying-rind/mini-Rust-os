@@ -369,6 +369,8 @@ dependencies = [
  "executor",
  "hybrid-objects",
  "lazy_static",
+ "log",
+ "rcore-fs",
  "spin 0.10.0",
  "trapframe",
 ]
@@ -379,9 +381,11 @@ version = "0.1.0"
 dependencies = [
  "executor",
  "hybrid-objects",
+ "log",
  "monolithic-objects",
  "num-derive",
  "num-traits",
+ "spin 0.10.0",
  "trapframe",
 ]
 

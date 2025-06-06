@@ -1,11 +1,14 @@
 //! 内核中的文件抽象
 
+use alloc::sync::Arc;
 use downcast_rs::impl_downcast;
 use downcast_rs::DowncastSync;
 
 pub use inode::{init, open_file, OSInode, OpenFlags, ROOT_INODE};
 pub use pipe::*;
+use rcore_fs::vfs::INode;
 pub use stdio::*;
+use rcore_fs::vfs::Result;
 
 /// OS看到的文件抽象，只关心字节流的读写
 pub trait File: Sync + Send + DowncastSync {
@@ -17,6 +20,8 @@ pub trait File: Sync + Send + DowncastSync {
     fn read(&self, buf: &mut [u8]) -> usize;
     /// 从buf中写入文件，返回实际写入的字节数
     fn write(&self, buf: &[u8]) -> usize;
+    /// Lookup path from current INode, and follow symlinks at most follow_times times
+    fn lookup_follow(&self, path: &str, max_follow: usize) -> Result<Arc<dyn INode>>;
 }
 impl_downcast!(sync File);
 

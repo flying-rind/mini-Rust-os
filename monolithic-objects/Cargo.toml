@@ -9,3 +9,5 @@ lazy_static = {version = "1.5.0", features = ["spin_no_std"]}
 spin = "0.10.0"
 trapframe = {path = "../crates/trapframe-rs"}
 executor = {path = "../executor"}
+rcore-fs = {git = "https://github.com/rcore-os/rcore-fs"}
+log = "0.4.27"

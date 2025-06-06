@@ -1,5 +1,6 @@
 //! 任务管理类系统调用
 use crate::*;
+use log::info;
 
 impl Syscall<'_> {
     /// Fork current process, return child's PID.
@@ -29,6 +30,18 @@ impl Syscall<'_> {
     /// shall result in all threads being terminated and the new executable image
     /// being loaded and executed.
     pub fn sys_exec(&mut self, path: *const u8, argv: *const *const u8, envp: *const *const u8) -> SysResult{
+        info!("exec: path: {:?}, argv: {:?}, envp: {:?}", path, argv, envp);
+        let proc = self.process();
+        let path = check_n_clone_cstr(path)?;
+        let args = check_n_clone_cstr_array(argv)?;
+        let envs = check_n_clone_cstr_array(envp)?;
+
+        if args.is_empty() {
+            error!("exec: args is null");
+            return Err(SysError::EINVAL);
+        }
+
+        info!("exec: path: {:?}, args: {:?}, envs: {:?}", path, args, envs);
         unimplemented!()
     }
 }

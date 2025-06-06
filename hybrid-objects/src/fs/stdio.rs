@@ -1,5 +1,6 @@
 //! 定义标准输入输出，为其实现文件访问接口
 use hal::console::serial_receive;
+use rcore_fs::vfs::FsError;
 
 use super::File;
 use crate::*;
@@ -30,6 +31,10 @@ impl File for Stdin {
     fn write(&self, buf: &[u8]) -> usize {
         panic!("Cannot write to stdin!");
     }
+
+    fn lookup_follow(&self, _path: &str, _max_follow: usize) -> rcore_fs::vfs::Result<alloc::sync::Arc<dyn rcore_fs::vfs::INode>> {
+        Err(FsError::NotFile)
+    }
 }
 
 impl File for Stdout {
@@ -54,5 +59,9 @@ impl File for Stdout {
         } else {
             0
         }
+    }
+
+    fn lookup_follow(&self, _path: &str, _max_follow: usize) -> rcore_fs::vfs::Result<alloc::sync::Arc<dyn rcore_fs::vfs::INode>> {
+        Err(rcore_fs::vfs::FsError::NotFile)
     }
 }

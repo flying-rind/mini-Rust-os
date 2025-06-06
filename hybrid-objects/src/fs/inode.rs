@@ -97,6 +97,10 @@ impl File for OSInode {
         *offset += n;
         n
     }
+
+    fn lookup_follow(&self, path: &str, max_follow: usize) -> rcore_fs::vfs::Result<Arc<dyn INode>> {
+        self.inode.lock().lookup_follow(path, max_follow)
+    }
 }
 
 // 初始化文件系统根节点

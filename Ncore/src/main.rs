@@ -9,12 +9,10 @@ use hybrid_objects::mm::KERNEL_STACK_BASE;
 use hybrid_objects::task::Kthread;
 use bootloader_api::BootInfo;
 use hybrid_objects::Process;
-use hal::println;
 use alloc::string::String;
 use alloc::vec;
 use alloc::string::ToString;
 use loader::hybrid::main_loop;
-use log::info;
 use log::warn;
 
 
