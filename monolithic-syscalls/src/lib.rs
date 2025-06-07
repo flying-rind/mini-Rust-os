@@ -45,6 +45,8 @@ impl Syscall<'_> {
         let [a0, a1, a2, a3, a4, a5] = args;
         let ret = match id {
             SYS_FORK => self.sys_fork(),
+            SYS_VFORK => self.sys_vfork(),
+            SYS_EXECVE => self.sys_exec(a0, a1, a2),
             _ => unimplemented!("Not implemented yet"),
         };
         match ret {

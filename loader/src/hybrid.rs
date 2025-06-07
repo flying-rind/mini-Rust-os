@@ -5,7 +5,6 @@ use alloc::sync::Arc;
 use hybrid_objects::task::Thread;
 use hybrid_objects::*;
 use trapframe::{TrapFrame, UserContext};
-use hal::console::serial_print;
 
 const PAGE_FAULT: usize = 14;
 const TIMER: usize = 32;

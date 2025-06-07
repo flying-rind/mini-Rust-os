@@ -385,6 +385,7 @@ dependencies = [
  "monolithic-objects",
  "num-derive",
  "num-traits",
+ "rcore-fs",
  "spin 0.10.0",
  "trapframe",
 ]

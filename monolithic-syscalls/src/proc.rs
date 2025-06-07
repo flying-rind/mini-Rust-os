@@ -42,6 +42,6 @@ impl Syscall<'_> {
         }
 
         info!("exec: path: {:?}, args: {:?}, envs: {:?}", path, args, envs);
-        unimplemented!()
+        let inode = proc.lookup_inode(&path)?;
     }
 }

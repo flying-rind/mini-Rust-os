@@ -114,4 +114,15 @@ impl Process {
     pub fn lookup_inode(&self, path: &str) -> Result<Arc<dyn INode>, FsError> {
         self.lookup_inode_at(Self::AT_FDCWD, path, true)
     }
+
+    /// 构造用户进程地址空间
+    /// 返回（MemorySet, entry_point, ustack_top）
+    pub fn new_user_vm(
+        inode: &Arc<dyn INode>,
+        args: Vec<String>,
+        envs: Vec<String>,
+        vm: &mut MemorySet,
+    ) -> Result<(usize, usize), &'static str>{
+        
+    }
 }

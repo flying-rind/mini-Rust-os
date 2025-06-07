@@ -1,7 +1,7 @@
 //! Linux系统调用错误编号
 //! Copied from rCore
 use crate::FromPrimitive;
-
+use core::fmt;
 #[repr(isize)]
 #[derive(Debug, FromPrimitive)]
 /// 系统调用错误
@@ -60,4 +60,66 @@ pub enum SysError {
     ENOTCONN = 107,
     ETIMEDOUT = 110,
     ECONNREFUSED = 111,
+}
+
+#[allow(non_snake_case)]
+impl fmt::Display for SysError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::SysError::*;
+        write!(
+            f,
+            "{}",
+            match self {
+                EPERM => "Operation not permitted",
+                ENOENT => "No such file or directory",
+                ESRCH => "No such process",
+                EINTR => "Interrupted system call",
+                EIO => "I/O error",
+                ENXIO => "No such device or address",
+                E2BIG => "Argument list too long",
+                ENOEXEC => "Exec format error",
+                EBADF => "Bad file number",
+                ECHILD => "No child processes",
+                EAGAIN => "Try again",
+                ENOMEM => "Out of memory",
+                EACCES => "Permission denied",
+                EFAULT => "Bad address",
+                ENOTBLK => "Block device required",
+                EBUSY => "Device or resource busy",
+                EEXIST => "File exists",
+                EXDEV => "Cross-device link",
+                ENODEV => "No such device",
+                ENOTDIR => "Not a directory",
+                EISDIR => "Is a directory",
+                EINVAL => "Invalid argument",
+                ENFILE => "File table overflow",
+                EMFILE => "Too many open files",
+                ENOTTY => "Not a typewriter",
+                ETXTBSY => "Text file busy",
+                EFBIG => "File too large",
+                ENOSPC => "No space left on device",
+                ESPIPE => "Illegal seek",
+                EROFS => "Read-only file system",
+                EMLINK => "Too many links",
+                EPIPE => "Broken pipe",
+                EDOM => "Math argument out of domain of func",
+                ERANGE => "Math result not representable",
+                EDEADLK => "Resource deadlock would occur",
+                ENAMETOOLONG => "File name too long",
+                ENOLCK => "No record locks available",
+                ENOSYS => "Function not implemented",
+                ENOTEMPTY => "Directory not empty",
+                ELOOP => "Too many symbolic links encountered",
+                ENOTSOCK => "Socket operation on non-socket",
+                ENOPROTOOPT => "Protocol not available",
+                EPFNOSUPPORT => "Protocol family not supported",
+                EAFNOSUPPORT => "Address family not supported by protocol",
+                ENOBUFS => "No buffer space available",
+                EISCONN => "Transport endpoint is already connected",
+                ENOTCONN => "Transport endpoint is not connected",
+                ECONNREFUSED => "Connection refused",
+                _ => "Unknown error",
+            },
+        )
+    }
 }
