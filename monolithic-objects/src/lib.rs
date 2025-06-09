@@ -1,6 +1,8 @@
 //! 宏内核对象
 #![no_std]
+pub use log::debug;
 pub use task::*;
-pub use log::{debug};
+
+extern crate alloc;
 
 mod task;

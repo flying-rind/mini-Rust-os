@@ -30,6 +30,7 @@ pub static BOOTLOADER_CONFIG: BootloaderConfig = {
 };
 
 // 内核入口函数，参数为bootloader收集的硬件信息
+#[cfg(feature ="hybrid")]
 pub fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     // 初始化串口
     hal::hal_fn::boot::primary_init();
@@ -66,6 +67,33 @@ pub fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     main_loop();
     unreachable!("Should never reach here");
 }
+
+#[cfg(feature ="monolithic")]
+pub fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
+    // 初始化串口
+
+    use log::info;
+    hal::hal_fn::boot::primary_init();
+    // 初始化日志
+    logging::init();
+    warn!("Test for warn");
+    // 初始化堆
+    hybrid_objects::mm::heap_init();
+    // 初始化中断描述符表
+    hybrid_objects::trap::init();
+    // 初始化内存管理
+    hybrid_objects::mm::init(&mut boot_info.memory_regions);
+    // 初始化中断
+    hybrid_objects::pic::init();
+    // 初始化驱动
+    hybrid_objects::drivers::init();
+    // 初始化文件系统
+    hybrid_objects::fs::init();
+    // 测试宏内核入口
+    info!("Now enter the monolithic kernel!");
+    // unreachable!("Should never reach here");
+}
+
 
 // 使用bootloader_api库提供的宏声明内核入口
 bootloader_api::entry_point!(kernel_main, config = &BOOTLOADER_CONFIG);

@@ -373,6 +373,7 @@ dependencies = [
  "rcore-fs",
  "spin 0.10.0",
  "trapframe",
+ "xmas-elf",
 ]
 
 [[package]]

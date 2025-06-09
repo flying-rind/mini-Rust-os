@@ -9,3 +9,8 @@ loader = { path = "../loader" }
 hybrid-objects ={ path = "../hybrid-objects" }
 hal = {path = "../hal"}
 log = "0.4.27"
+
+[features]
+default = ["hybrid"]
+hybrid = ["loader/hybrid"]
+monolithic = ["loader/monolithic"]

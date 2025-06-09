@@ -1,16 +1,18 @@
 //! 进程
 use super::*;
-use hybrid_objects::{fs::File, mm::MemorySet};
+use crate::debug;
+use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::sync::Weak;
 use alloc::vec::Vec;
-use thread::Tid;
-use lazy_static::lazy_static;
-use spin::RwLock;
-use alloc::collections::BTreeMap;
-use rcore_fs::vfs::{FsError, INode};
-use crate::debug;
 use hybrid_objects::fs::ROOT_INODE;
+use hybrid_objects::mm::load_app;
+use hybrid_objects::{fs::File, mm::MemorySet};
+use lazy_static::lazy_static;
+use rcore_fs::vfs::{FsError, INode};
+use spin::RwLock;
+use thread::Tid;
+use xmas_elf::ElfFile;
 
 /// process id type
 #[derive(Clone, Default, Ord, PartialEq, PartialOrd, Eq)]
@@ -57,7 +59,6 @@ lazy_static! {
         RwLock::new(BTreeMap::new());
 }
 
-
 /// 设置pid并加入全局进程映射表
 pub fn add_to_process_table(proc: Arc<Mutex<Process>>, pid: Pid) {
     let mut process_table = PROCESSES.write();
@@ -74,9 +75,8 @@ impl Process {
     const AT_FDCWD: usize = -100isize as usize;
     pub const FOLLOW_MAX_DEPTH: usize = 3;
 
-
     /// Lookup Inode from the process.
-    /// 
+    ///
     /// - If `path` is relative, then it is interpreted relative to the directory
     ///   referred to by the file descriptor `dirfd`.
     ///
@@ -96,13 +96,12 @@ impl Process {
             "lookup_inode_at: dirfd: {:?}, cwd: {:?}, path: {:?}, follow: {:?}",
             dirfd as isize, self.cwd, path, follow
         );
-        let follow_max_depth = if follow {Self::FOLLOW_MAX_DEPTH} else {0};
+        let follow_max_depth = if follow { Self::FOLLOW_MAX_DEPTH } else { 0 };
         // 从当前工作目录寻找
         if dirfd == Self::AT_FDCWD {
             Ok(ROOT_INODE
-                    .lookup(&self.cwd)?
-                    .lookup_follow(path, follow_max_depth)?
-                )
+                .lookup(&self.cwd)?
+                .lookup_follow(path, follow_max_depth)?)
         // 从进程文件表中的dir_fd查找
         } else {
             let file = self.files.get(&dirfd).ok_or(FsError::EntryNotFound)?;
@@ -115,14 +114,25 @@ impl Process {
         self.lookup_inode_at(Self::AT_FDCWD, path, true)
     }
 
-    /// 构造用户进程地址空间
-    /// 返回（MemorySet, entry_point, ustack_top）
-    pub fn new_user_vm(
-        inode: &Arc<dyn INode>,
-        args: Vec<String>,
-        envs: Vec<String>,
-        vm: &mut MemorySet,
-    ) -> Result<(usize, usize), &'static str>{
-        
+    /// 替换当前进程的elf文件
+    /// FIXME: 适配MUSL
+    pub fn exec(&self, inode: &Arc<dyn INode>, cur_tid: usize) -> Result<_, &'static str> {
+        // Read ELF header
+        // 0x3c0: magic number from ld-musl.so
+        let mut data = [0u8; 0x3c0];
+        inode
+            .read_at(0, data)
+            .map_err(|_| "Failed to read from INode!")?;
+
+        // paese elf
+        let elf = ElfFile::new(&data)?;
+        // clear old elf, load new one.
+        self.vm.clear_elf();
+        load_app(self.vm.clone(), &elf);
+
+        // Kill other threads
+        self.threads.retain(|&tid| tid == cur_tid);
+        // 准备参数
+        self.vm.activate();
     }
 }

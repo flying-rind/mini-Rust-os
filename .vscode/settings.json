@@ -1,4 +1,10 @@
 {
     "rust-analyzer.check.allTargets": false,
     "rust-analyzer.checkOnSave": true,
+
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.formatOnSave": true
+    }
 }
+
