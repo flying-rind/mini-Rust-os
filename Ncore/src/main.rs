@@ -3,18 +3,17 @@
 
 //! 内核主函数
 extern crate alloc;
-use bootloader_api::{BootloaderConfig, config::Mapping};
-use hybrid_objects::mm::PHYS_OFFSET;
-use hybrid_objects::mm::KERNEL_STACK_BASE;
-use hybrid_objects::task::Kthread;
-use bootloader_api::BootInfo;
-use hybrid_objects::Process;
 use alloc::string::String;
-use alloc::vec;
 use alloc::string::ToString;
+use alloc::vec;
+use bootloader_api::BootInfo;
+use bootloader_api::{BootloaderConfig, config::Mapping};
+use hybrid_objects::Process;
+use hybrid_objects::mm::KERNEL_STACK_BASE;
+use hybrid_objects::mm::PHYS_OFFSET;
+use hybrid_objects::task::Kthread;
 use loader::hybrid::main_loop;
-use log::warn;
-
+use log::{info, warn};
 
 mod lang;
 mod logging;
@@ -30,8 +29,8 @@ pub static BOOTLOADER_CONFIG: BootloaderConfig = {
 };
 
 // 内核入口函数，参数为bootloader收集的硬件信息
-#[cfg(feature ="hybrid")]
-pub fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
+#[cfg(all(feature = "hybrid", not(feature = "monolithic")))]
+pub fn kernel_main_hybrid(boot_info: &'static mut BootInfo) -> ! {
     // 初始化串口
     hal::hal_fn::boot::primary_init();
     // 初始化日志
@@ -68,11 +67,9 @@ pub fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     unreachable!("Should never reach here");
 }
 
-#[cfg(feature ="monolithic")]
-pub fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
+#[cfg(feature = "monolithic")]
+pub fn kernel_main_monolithic(boot_info: &'static mut BootInfo) -> ! {
     // 初始化串口
-
-    use log::info;
     hal::hal_fn::boot::primary_init();
     // 初始化日志
     logging::init();
@@ -92,8 +89,11 @@ pub fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     // 测试宏内核入口
     info!("Now enter the monolithic kernel!");
     // unreachable!("Should never reach here");
+    unreachable!("Should not reach here!");
 }
 
-
 // 使用bootloader_api库提供的宏声明内核入口
-bootloader_api::entry_point!(kernel_main, config = &BOOTLOADER_CONFIG);
+#[cfg(feature = "hybrid")]
+bootloader_api::entry_point!(kernel_main_hybrid, config = &BOOTLOADER_CONFIG);
+#[cfg(feature = "monolithic")]
+bootloader_api::entry_point!(kernel_main_monolithic, config = &BOOTLOADER_CONFIG);

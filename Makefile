@@ -3,13 +3,14 @@ BUILD_ARGS = -Z build-std=core,alloc,compiler_builtins --target x86_64.json
 arch = x86_64
 FS_IMG = $(CURDIR)/user-rs/target/$(arch)/release/fs.img
 mode ?= release
-feature ?= hybrid
+# feature ?= hybrid
+feature ?= monolithic
 
 build: ncore bootloader fs-img
 
 ncore:
 	cd user-components && cargo build
-	cd Ncore && cargo build $(BUILD_ARGS) --features $(feature)
+	cd Ncore && cargo build $(BUILD_ARGS) --no-default-features --features $(feature)
 
 bootloader:
 	cd boot && cargo build
