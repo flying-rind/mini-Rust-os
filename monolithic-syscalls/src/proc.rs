@@ -36,7 +36,7 @@ impl Syscall<'_> {
         envp: *const *const u8,
     ) -> SysResult {
         info!("exec: path: {:?}, argv: {:?}, envp: {:?}", path, argv, envp);
-        let proc = self.process();
+        let mut proc = self.process();
         let cur_tid = self.thread.tid;
         let path = check_n_clone_cstr(path)?;
         let args = check_n_clone_cstr_array(argv)?;
@@ -49,6 +49,6 @@ impl Syscall<'_> {
 
         info!("exec: path: {:?}, args: {:?}, envs: {:?}", path, args, envs);
         let inode = proc.lookup_inode(&path)?;
-        proc.exec(&inode, cur_tid);
+        Ok(proc.exec(&inode, cur_tid, args, envs)?)
     }
 }
