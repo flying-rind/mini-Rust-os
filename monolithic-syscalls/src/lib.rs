@@ -2,21 +2,19 @@
 #![no_std]
 
 use alloc::{string::String, sync::Arc, vec::Vec};
-use error::*;
 use hybrid_objects::mm::PHYS_OFFSET;
 use monolithic_objects::Thread;
 use monolithic_objects::ThreadFn;
 use num::*;
-use num_derive::FromPrimitive;
 use spin::MutexGuard;
 use trapframe::UserContext;
+use user_syscall::monolithic::error::SysError;
 
 pub use log::error;
 
 extern crate alloc;
 extern crate num_traits;
 
-mod error;
 mod fs;
 mod num;
 mod proc;

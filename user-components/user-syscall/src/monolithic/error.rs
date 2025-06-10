@@ -1,11 +1,13 @@
+//! 系统调用错误
 //! Linux系统调用错误编号
 //! Copied from rCore
-use crate::FromPrimitive;
 use core::fmt;
+use num_derive::FromPrimitive;
+
 #[repr(isize)]
 #[derive(Debug, FromPrimitive)]
 /// 系统调用错误
-/// 
+///
 /// See [linux man errno(3)](https://man7.org/linux/man-pages/man3/errno.3.html)
 pub enum SysError {
     EUNDEF = 0,

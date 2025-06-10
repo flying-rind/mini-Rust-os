@@ -7,14 +7,14 @@ mod task;
 
 extern crate alloc;
 
-use hybrid_objects::*;
 use alloc::sync::Arc;
 use debug::*;
 use fs::*;
 use hybrid_objects::task::Thread;
+use hybrid_objects::*;
 use sync::*;
 use task::*;
-use user_syscall::SyscallNum::*;
+use user_syscall::hybrid::SyscallNum::*;
 
 /// 系统调用结构体，包含了用于执行一个系统调用的信息
 pub struct Syscall<'a> {

@@ -389,6 +389,7 @@ dependencies = [
  "rcore-fs",
  "spin 0.10.0",
  "trapframe",
+ "user-syscall",
 ]
 
 [[package]]
@@ -725,6 +726,7 @@ dependencies = [
  "bitflags 2.9.0",
  "num-derive",
  "num-traits",
+ "rcore-fs",
  "spin 0.9.8",
 ]
 

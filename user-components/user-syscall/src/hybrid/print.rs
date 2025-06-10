@@ -1,5 +1,5 @@
-use crate::read;
-use crate::write;
+use super::read;
+use super::write;
 
 use core::fmt::{self, Write};
 
@@ -29,7 +29,7 @@ macro_rules! print {
 #[macro_export]
 macro_rules! println {
     ($fmt: literal $(, $($arg: tt)+)?) => {
-        $crate::print::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
+        crate::hybrid::print::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
     }
 }
 

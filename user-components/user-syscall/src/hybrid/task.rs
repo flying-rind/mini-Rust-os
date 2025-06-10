@@ -1,7 +1,7 @@
 //! 任务管理类系统调用
 
-use crate::sys_proc_exit;
-use crate::*;
+use super::sys_proc_exit;
+use super::*;
 use alloc::{string::String, vec::Vec};
 
 /// 退出当前进程
