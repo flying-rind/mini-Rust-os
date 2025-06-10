@@ -45,6 +45,8 @@ pub type ThreadFn = fn(thread: Arc<Thread>) -> Pin<Box<dyn Future<Output = ()> +
 pub struct ThreadInner {
     /// 用户态上下文
     pub context: Option<Box<UserContext>>,
+    /// 线程状态
+    pub state: ThreadState,
 }
 
 /// 线程状态
@@ -66,8 +68,6 @@ pub struct Thread {
     pub tid: Tid,
     /// 所属进程
     pub proc: Arc<Mutex<Process>>,
-    /// 线程状态
-    pub state: ThreadState,
 }
 
 impl Thread {
@@ -114,6 +114,7 @@ impl Thread {
         files.insert(2, Arc::new(Stdout));
         let thread = Thread {
             inner: Mutex::new(ThreadInner {
+                state: ThreadState::Ready,
                 context: Some(Box::new(context)),
             }),
             proc: Arc::new(Mutex::new(Process {
@@ -129,7 +130,6 @@ impl Thread {
                 threads: Vec::new(),
             })),
             tid: 0,
-            state: ThreadState::Ready,
         };
         let res = thread.add_to_table();
         res
@@ -159,6 +159,7 @@ impl Thread {
             tid: 0,
             inner: Mutex::new(ThreadInner {
                 context: Some(Box::new(context)),
+                state: ThreadState::Ready,
             }),
             proc: new_proc.clone(),
             ..Thread::default()

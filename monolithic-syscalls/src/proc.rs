@@ -1,6 +1,7 @@
 //! 任务管理类系统调用
 use crate::*;
 use log::info;
+use monolithic_objects::{THREADS, task::ThreadState};
 
 impl Syscall<'_> {
     /// Fork current process, return child's PID.
@@ -50,5 +51,24 @@ impl Syscall<'_> {
         info!("exec: path: {:?}, args: {:?}, envs: {:?}", path, args, envs);
         let inode = proc.lookup_inode(&path)?;
         Ok(proc.exec(&inode, cur_thread, args, envs)?)
+    }
+
+    /// Exit the current thread
+    pub fn sys_exit(&mut self, exit_code: usize) -> SysResult {
+        let tid = self.thread.tid;
+        info!("exit: {}, code: {}", tid, exit_code);
+        // Delete tid ref in process.
+        let mut proc = self.process();
+        proc.threads.retain(|&id| id != tid);
+        // Delete arc ref in THREAD table;
+        let mut threads_table = THREADS.write();
+        threads_table.remove(&tid);
+        // for last thread, eixt the process
+        if proc.threads.len() == 0 {
+            proc.exit(exit_code);
+        };
+        drop(proc);
+        self.thread.inner.lock().state = ThreadState::Exited;
+        Ok(0)
     }
 }

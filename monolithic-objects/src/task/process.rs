@@ -10,6 +10,7 @@ use hybrid_objects::fs::ROOT_INODE;
 use hybrid_objects::mm::{USER_STACK_BASE, USER_STACK_SIZE, load_app};
 use hybrid_objects::{fs::File, mm::MemorySet};
 use lazy_static::lazy_static;
+use log::info;
 use rcore_fs::vfs::{FsError, INode};
 use spin::RwLock;
 use thread::{Thread, Tid};
@@ -27,6 +28,10 @@ impl Pid {
     /// Return 0
     pub fn new() -> Self {
         Pid(0)
+    }
+
+    pub fn get(&self) -> usize {
+        self.0
     }
 }
 
@@ -149,5 +154,12 @@ impl Process {
         context.set_ip(entry);
         context.set_sp(sp);
         Ok(0)
+    }
+
+    /// Exit the process
+    pub fn exit(&mut self, exit_code: usize) {
+        // Clear fd_table
+        self.files.clear();
+        info!("process {} exit with {}", self.pid.get(), exit_code);
     }
 }
