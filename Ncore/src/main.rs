@@ -13,6 +13,7 @@ use hybrid_objects::mm::KERNEL_STACK_BASE;
 use hybrid_objects::mm::PHYS_OFFSET;
 use hybrid_objects::task::Kthread;
 use loader::hybrid::main_loop;
+#[allow(unused)]
 use log::{info, warn};
 
 mod lang;

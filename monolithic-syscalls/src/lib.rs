@@ -41,6 +41,7 @@ impl Syscall<'_> {
 
     /// 系统调用分发函数
     pub async fn syscall(&mut self, id: usize, args: [usize; 6]) -> isize {
+        #[allow(unused)]
         let [a0, a1, a2, a3, a4, a5] = args;
         let ret = match id {
             SYS_FORK => self.sys_fork(),

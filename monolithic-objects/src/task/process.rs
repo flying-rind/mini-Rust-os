@@ -24,6 +24,7 @@ pub type Pgid = i32;
 impl Pid {
     pub const INIT: usize = 1;
 
+    /// Return 0
     pub fn new() -> Self {
         Pid(0)
     }
