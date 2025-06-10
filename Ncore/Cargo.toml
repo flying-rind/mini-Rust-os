@@ -11,6 +11,6 @@ hal = {path = "../hal"}
 log = "0.4.27"
 
 [features]
-default = ["hybrid"]
+default = ["monolithic"]
 hybrid = ["loader/hybrid"]
 monolithic = ["loader/monolithic"]

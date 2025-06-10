@@ -10,6 +10,7 @@ mod lang_items;
 extern crate alloc;
 extern crate bitflags;
 
+#[allow(unused)]
 use alloc::vec::Vec;
 use buddy_system_allocator::LockedHeap;
 pub use user_syscall::*;
@@ -25,8 +26,16 @@ pub fn handle_alloc_error(layout: core::alloc::Layout) -> ! {
     panic!("Heap allocation error, layout = {:?}", layout);
 }
 
+#[linkage = "weak"]
+#[no_mangle]
+#[cfg(feature = "hybrid")]
+fn main(_argc: usize, _argv: &[&str]) -> isize {
+    panic!("Cannot find main!");
+}
+
 #[no_mangle]
 #[link_section = ".text.entry"]
+#[cfg(feature = "hybrid")]
 /// 用户态程序入口
 ///
 /// 栈的情况：
@@ -67,6 +76,41 @@ pub extern "C" fn _start(argc: usize, argv: usize) -> ! {
     panic!("Should never reach after proc_exit");
 }
 
+#[linkage = "weak"]
+#[no_mangle]
+#[cfg(feature = "monolithic")]
+fn main() -> isize {
+    panic!("Cannot find main!");
+}
+
+#[no_mangle]
+#[link_section = ".text.entry"]
+#[cfg(feature = "monolithic")]
+/// 用户态程序入口
+///
+/// 栈的情况：
+///
+/// ----high
+///
+/// \0
+///
+/// ptr2
+///
+/// ptr1    <--argv
+///
+/// str1
+///
+/// str2
+///
+/// ----low
+pub extern "C" fn _start() -> ! {
+    init_heap();
+    // 调用应用主函数
+    let exit_code = main();
+    proc_exit(exit_code as _);
+    panic!("Should never reach after proc_exit");
+}
+
 /// 用户态初始化堆内存
 pub fn init_heap() {
     // 初始化堆内存分配器
@@ -74,10 +118,4 @@ pub fn init_heap() {
         HEAP.lock()
             .init(HEAP_SPACE.as_ptr() as usize, USER_HEAP_SIZE);
     }
-}
-
-#[linkage = "weak"]
-#[no_mangle]
-fn main(_argc: usize, _argv: &[&str]) -> isize {
-    panic!("Cannot find main!");
 }

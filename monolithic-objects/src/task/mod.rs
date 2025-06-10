@@ -9,3 +9,8 @@ pub use thread::*;
 mod abi;
 mod process;
 mod thread;
+
+/// 进程初始化
+pub fn init() {
+    unimplemented!()
+}

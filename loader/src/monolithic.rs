@@ -3,13 +3,28 @@
 use core::pin::Pin;
 
 use alloc::boxed::Box;
+use alloc::vec::Vec;
+use log::info;
+use monolithic_objects::ROOT_INODE;
+use monolithic_objects::set_current_thread;
 use monolithic_objects::{Arc, Thread, ThreadState};
 use trapframe::UserContext;
-use monolithic_objects::set_current_thread;
 
+/// 加载运行第一个用户程序Shell
+pub fn run_shell() {
+    let shell = "simple_shell";
+    info!("Trying to enter user shell now!");
+    if let Ok(inode) = ROOT_INODE.lookup(shell) {
+        let thread = Thread::new_user(&inode, shell, Vec::new(), Vec::new());
+        let future = thread_fn(thread.clone());
+        executor::spawn(future);
+    } else {
+        panic!("Failed to load shell");
+    }
+}
 
 /// 用户线程入口
-/// 
+///
 /// loop:
 /// - 进入用户态
 /// - 处理中断/系统调用
@@ -46,7 +61,7 @@ async fn handle_user_trap(thread: Arc<Thread>, mut ctx: Box<UserContext>) {
         let mut syscall = monolithic_syscalls::Syscall {
             thread: &thread,
             context: &mut *ctx,
-            thread_fn:thread_fn
+            thread_fn: thread_fn,
         };
         let ret = syscall.syscall(syscall_num, args).await;
         ctx.set_syscall_ret(ret as _, 0);

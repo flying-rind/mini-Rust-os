@@ -12,7 +12,7 @@ use hybrid_objects::{fs::File, mm::MemorySet};
 use lazy_static::lazy_static;
 use rcore_fs::vfs::{FsError, INode};
 use spin::RwLock;
-use thread::Tid;
+use thread::{Thread, Tid};
 use xmas_elf::ElfFile;
 
 /// process id type
@@ -121,7 +121,7 @@ impl Process {
     pub fn exec(
         &mut self,
         inode: &Arc<dyn INode>,
-        cur_tid: usize,
+        cur_thread: Arc<Thread>,
         args: Vec<String>,
         envs: Vec<String>,
     ) -> Result<usize, FsError> {
@@ -132,18 +132,22 @@ impl Process {
 
         // paese elf
         let elf = ElfFile::new(&data).map_err(|_| FsError::NotFile)?;
+        let entry = elf.header.pt2.entry_point() as usize;
         // clear old elf, load new one.
         self.vm.clear_elf();
         load_app(self.vm.clone(), &elf);
 
         // Kill other threads
-        self.threads.retain(|&tid| tid == cur_tid);
+        self.threads.retain(|&tid| tid == cur_thread.tid);
         // 环境变量和参数压栈
         self.vm.activate();
         let init_info = ProcInfo { args, envs };
-        unsafe {
-            init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE);
-        }
+        let sp = unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) };
+        // 修改线程上下文
+        let mut inner = cur_thread.inner.lock();
+        let context = inner.context.as_mut().unwrap();
+        context.set_ip(entry);
+        context.set_sp(sp);
         Ok(0)
     }
 }

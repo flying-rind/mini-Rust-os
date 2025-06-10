@@ -8,3 +8,8 @@ bitflags = "1"
 buddy_system_allocator = "*"
 log = "0.4"
 user-syscall = { path = "../user-components/user-syscall" }
+
+[features]
+default = ["monolithic"]
+hybrid=[]
+monolithic=[]

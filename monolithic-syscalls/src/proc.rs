@@ -37,7 +37,7 @@ impl Syscall<'_> {
     ) -> SysResult {
         info!("exec: path: {:?}, argv: {:?}, envp: {:?}", path, argv, envp);
         let mut proc = self.process();
-        let cur_tid = self.thread.tid;
+        let cur_thread = self.thread.clone();
         let path = check_n_clone_cstr(path)?;
         let args = check_n_clone_cstr_array(argv)?;
         let envs = check_n_clone_cstr_array(envp)?;
@@ -49,6 +49,6 @@ impl Syscall<'_> {
 
         info!("exec: path: {:?}, args: {:?}, envs: {:?}", path, args, envs);
         let inode = proc.lookup_inode(&path)?;
-        Ok(proc.exec(&inode, cur_tid, args, envs)?)
+        Ok(proc.exec(&inode, cur_thread, args, envs)?)
     }
 }

@@ -3,15 +3,21 @@
 
 //! 内核主函数
 extern crate alloc;
+#[allow(unused)]
 use alloc::string::String;
+#[allow(unused)]
 use alloc::string::ToString;
+#[allow(unused)]
 use alloc::vec;
 use bootloader_api::BootInfo;
 use bootloader_api::{BootloaderConfig, config::Mapping};
+#[allow(unused)]
 use hybrid_objects::Process;
 use hybrid_objects::mm::KERNEL_STACK_BASE;
 use hybrid_objects::mm::PHYS_OFFSET;
+#[allow(unused)]
 use hybrid_objects::task::Kthread;
+#[cfg(feature = "hybrid")]
 use loader::hybrid::main_loop;
 #[allow(unused)]
 use log::{info, warn};
@@ -88,8 +94,7 @@ pub fn kernel_main_monolithic(boot_info: &'static mut BootInfo) -> ! {
     // 初始化文件系统
     hybrid_objects::fs::init();
     // 测试宏内核入口
-    info!("Now enter the monolithic kernel!");
-    // unreachable!("Should never reach here");
+    loader::monolithic::run_shell();
     unreachable!("Should not reach here!");
 }
 
