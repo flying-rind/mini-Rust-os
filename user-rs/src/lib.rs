@@ -13,7 +13,10 @@ extern crate bitflags;
 #[allow(unused)]
 use alloc::vec::Vec;
 use buddy_system_allocator::LockedHeap;
-pub use user_syscall::*;
+#[cfg(feature = "hybrid")]
+pub use user_syscall::hybrid::*;
+#[cfg(feature = "monolithic")]
+pub use user_syscall::monolithic::*;
 
 const USER_HEAP_SIZE: usize = 0x40000;
 static mut HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];

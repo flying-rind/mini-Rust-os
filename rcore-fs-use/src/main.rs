@@ -2,11 +2,11 @@ use clap::{App, Arg};
 use rcore_fs::dev::{DevError, Device};
 use rcore_fs::vfs::FileSystem;
 use rcore_fs_sfs::SimpleFileSystem;
-use std::fs::{read_dir, File, OpenOptions};
+use std::env;
+use std::fs::{File, OpenOptions, read_dir};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::env;
 
 struct BlockFile(Mutex<File>);
 
@@ -38,14 +38,18 @@ fn main() {
     let c_src_path = "../user-c/src";
     let c_target_path = "../user-c/bin/";
 
-    println!("rs_src_path = {}\nrs_target_path = {}", rs_src_path, rs_target_path);
+    println!(
+        "rs_src_path = {}\nrs_target_path = {}",
+        rs_src_path, rs_target_path
+    );
     pub const USER_IMAGE_SIZE: usize = 16 * 1024 * 1024;
     let block_file = Arc::new(BlockFile(Mutex::new({
         let f = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
-            .open(format!("{}{}", rs_target_path, "fs.img")).unwrap();
+            .open(format!("{}{}", rs_target_path, "fs.img"))
+            .unwrap();
         f.set_len(USER_IMAGE_SIZE as _).unwrap();
         f
     })));
@@ -108,4 +112,3 @@ fn main() {
         println!("{}", app);
     }
 }
-

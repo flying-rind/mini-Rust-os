@@ -1,9 +1,7 @@
 //! 任务管理类系统调用
-use crate::monolithic::error::SysError;
 use crate::monolithic::error::SysResult;
 use alloc::string::String;
 use alloc::vec::Vec;
-use num_traits::FromPrimitive;
 
 use super::*;
 

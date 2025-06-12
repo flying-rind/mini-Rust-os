@@ -90,7 +90,7 @@ impl Thread {
     ) -> Arc<Thread> {
         // 创建虚存空间并加载app
         // 0x3c0: magic number from ld-musl.so
-        let mut data = [0u8; 0x3c0];
+        let mut data = [0u8; 16 * 1024 * 1024];
         inode
             .read_at(0, &mut data)
             .expect("Failed to read elf data!");

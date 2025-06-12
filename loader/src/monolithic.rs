@@ -1,21 +1,34 @@
 //! 宏内核加载器
 
 use core::pin::Pin;
+use core::str::FromStr;
 
 use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec;
 use alloc::vec::Vec;
+use hal::println;
 use log::info;
 use monolithic_objects::ROOT_INODE;
 use monolithic_objects::set_current_thread;
 use monolithic_objects::{Arc, Thread, ThreadState};
+use trapframe::TrapFrame;
 use trapframe::UserContext;
+
+const PAGE_FAULT: usize = 14;
+const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "simple_shell";
+    let shell = "app1";
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
-        let thread = Thread::new_user(&inode, shell, Vec::new(), Vec::new());
+        let thread = Thread::new_user(
+            &inode,
+            shell,
+            vec![String::from_str("app1").unwrap()],
+            Vec::new(),
+        );
         let future = thread_fn(thread.clone());
         executor::spawn(future);
     } else {
@@ -51,6 +64,23 @@ fn thread_fn(thread: Arc<Thread>) -> Pin<Box<dyn Future<Output = ()> + Send + 's
     Box::pin(run_user(thread))
 }
 
+/// 内核态中断处理入口，由汇编直接调用无需手动调用
+#[unsafe(no_mangle)]
+pub extern "C" fn trap_handler(tf: &mut TrapFrame) {
+    match tf.trap_num {
+        PAGE_FAULT => {
+            println!("[Trap Handler]: PAGEFAULT",);
+            panic!("page fault");
+        }
+        TIMER => {
+            // do nothing?
+        }
+        _ => {
+            unimplemented!();
+        }
+    }
+}
+
 /// 处理用户态中断或系统调用
 async fn handle_user_trap(thread: Arc<Thread>, mut ctx: Box<UserContext>) {
     // 用户态系统调用
@@ -70,6 +100,13 @@ async fn handle_user_trap(thread: Arc<Thread>, mut ctx: Box<UserContext>) {
 
     // 内核或用户中断
     match ctx.trap_num {
+        PAGE_FAULT => {
+            println!("[Trap Handler]: PAGEFAULT",);
+            panic!("page fault");
+        }
+        TIMER => {
+            // do nothing?
+        }
         _ => {
             unimplemented!();
         }

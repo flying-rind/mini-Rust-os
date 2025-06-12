@@ -8,8 +8,8 @@ pub mod hybrid;
 pub mod monolithic;
 
 extern crate alloc;
-
 pub use alloc::string::String;
+
 #[cfg(feature = "hybrid")]
 pub use hybrid::*;
 #[cfg(feature = "monolithic")]

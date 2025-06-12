@@ -13,6 +13,7 @@ use bootloader_api::BootInfo;
 use bootloader_api::{BootloaderConfig, config::Mapping};
 #[allow(unused)]
 use hybrid_objects::Process;
+use hybrid_objects::future::executor;
 use hybrid_objects::mm::KERNEL_STACK_BASE;
 use hybrid_objects::mm::PHYS_OFFSET;
 #[allow(unused)]
@@ -95,7 +96,10 @@ pub fn kernel_main_monolithic(boot_info: &'static mut BootInfo) -> ! {
     hybrid_objects::fs::init();
     // 测试宏内核入口
     loader::monolithic::run_shell();
-    unreachable!("Should not reach here!");
+    loop {
+        executor::run_util_idle();
+    }
+    // unreachable!("Should not reach here!");
 }
 
 // 使用bootloader_api库提供的宏声明内核入口

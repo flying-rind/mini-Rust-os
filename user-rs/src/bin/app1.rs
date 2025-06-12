@@ -1,7 +1,8 @@
 #![no_std]
 #![no_main]
 
-#[macro_use]
+use user_syscall::println;
+
 extern crate user_lib;
 
 #[no_mangle]

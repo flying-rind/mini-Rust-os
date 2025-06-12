@@ -1,5 +1,7 @@
 //! 文件系统类系统调用
 
+use crate::{sys_write, SysResult};
+
 use super::error::SysError;
 use rcore_fs::vfs::FsError;
 
@@ -27,4 +29,11 @@ impl From<FsError> for SysError {
             FsError::Interrupted => SysError::EINTR,
         }
     }
+}
+
+/// Write to file descriptor
+pub fn write(fd: usize, buf: &[u8]) -> SysResult {
+    let buf_ptr = buf.as_ptr() as *const u8;
+    let size = buf.len();
+    sys_write(fd, buf_ptr, size)
 }

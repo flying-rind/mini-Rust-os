@@ -1,16 +1,23 @@
 //! 宏内核系统调用
 pub mod error;
 pub mod fs;
+pub mod print;
 pub mod task;
 
 pub use error::*;
+pub use fs::*;
 use num_traits::FromPrimitive;
 pub use task::*;
+
+/// 系统调用号
 enum SyscallNum {
+    // TASK
     Fork = 57,
     Vfork = 58,
     Execve = 59,
     Exit = 60,
+    // FS
+    Write = 1,
 }
 
 /// 用户态使用系统调用
@@ -56,4 +63,8 @@ pub fn sys_exec(path: *const u8, argv: *const *const u8, envp: *const *const u8)
 
 pub fn sys_exit(exit_code: usize) -> SysResult {
     syscall(SyscallNum::Exit, [exit_code, 0, 0, 0, 0, 0])
+}
+
+pub fn sys_write(fd: usize, buf: *const u8, size: usize) -> SysResult {
+    syscall(SyscallNum::Write, [fd, buf as _, size, 0, 0, 0])
 }
