@@ -31,7 +31,7 @@ pub fn run_shell() {
 async fn run_user(thread: Arc<Thread>) {
     set_current_thread(Some(thread.clone()));
     loop {
-        if thread.state == ThreadState::Exited {
+        if thread.inner.lock().state == ThreadState::Exited {
             break;
         }
         // TODO: Handle Signal

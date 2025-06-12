@@ -3,7 +3,7 @@
 
 #[macro_use]
 extern crate user_lib;
-use user_lib::fork;
+use user_lib::hybrid::fork;
 use user_lib::proc_wait;
 
 #[no_mangle]

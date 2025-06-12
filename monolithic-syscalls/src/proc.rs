@@ -56,7 +56,7 @@ impl Syscall<'_> {
     /// Exit the current thread
     pub fn sys_exit(&mut self, exit_code: usize) -> SysResult {
         let tid = self.thread.tid;
-        info!("exit: {}, code: {}", tid, exit_code);
+        info!("Thread exit, tid: {}, code: {}", tid, exit_code);
         // Delete tid ref in process.
         let mut proc = self.process();
         proc.threads.retain(|&id| id != tid);

@@ -22,14 +22,14 @@ pub fn print(args: fmt::Arguments) {
 #[macro_export]
 macro_rules! print {
     ($fmt: literal $(, $($arg: tt)+)?) => {
-        $crate::print::print(format_args!($fmt $(, $($arg)+)?));
+        user_syscall::hybrid::print::print(format_args!($fmt $(, $($arg)+)?));
     }
 }
 
 #[macro_export]
 macro_rules! println {
     ($fmt: literal $(, $($arg: tt)+)?) => {
-        crate::hybrid::print::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
+        user_syscall::hybrid::print::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
     }
 }
 

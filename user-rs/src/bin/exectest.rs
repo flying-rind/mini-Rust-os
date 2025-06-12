@@ -6,8 +6,8 @@ extern crate user_lib;
 extern crate alloc;
 use alloc::string::ToString;
 use alloc::vec;
-use user_lib::exec;
-use user_lib::fork;
+use user_lib::hybrid::exec;
+use user_lib::hybrid::fork;
 use user_lib::proc_wait;
 
 #[no_mangle]

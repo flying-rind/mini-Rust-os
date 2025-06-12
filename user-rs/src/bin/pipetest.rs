@@ -7,7 +7,7 @@ use user_lib::close;
 use user_lib::println;
 use user_lib::proc_wait;
 use user_lib::read;
-use user_syscall::fork;
+use user_syscall::hybrid::fork;
 use user_syscall::make_pipe;
 use user_syscall::write;
 

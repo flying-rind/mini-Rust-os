@@ -160,6 +160,6 @@ impl Process {
     pub fn exit(&mut self, exit_code: usize) {
         // Clear fd_table
         self.files.clear();
-        info!("process {} exit with {}", self.pid.get(), exit_code);
+        info!("Process {} exit with {}", self.pid.get(), exit_code);
     }
 }

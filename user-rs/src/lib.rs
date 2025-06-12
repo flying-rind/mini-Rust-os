@@ -107,7 +107,7 @@ pub extern "C" fn _start() -> ! {
     init_heap();
     // 调用应用主函数
     let exit_code = main();
-    proc_exit(exit_code as _);
+    exit(exit_code as _).expect("Exit failed");
     panic!("Should never reach after proc_exit");
 }
 

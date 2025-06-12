@@ -4,6 +4,8 @@
 use core::fmt;
 use num_derive::FromPrimitive;
 
+pub type SysResult = Result<usize, SysError>;
+
 #[repr(isize)]
 #[derive(Debug, FromPrimitive)]
 /// 系统调用错误

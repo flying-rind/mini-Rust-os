@@ -1,4 +1,4 @@
-use crate::println;
+use user_syscall::println;
 
 #[panic_handler]
 fn panic_handler(panic_info: &core::panic::PanicInfo) -> ! {

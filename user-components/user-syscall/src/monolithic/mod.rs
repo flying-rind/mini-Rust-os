@@ -3,15 +3,19 @@ pub mod error;
 pub mod fs;
 pub mod task;
 
+pub use error::*;
+use num_traits::FromPrimitive;
+pub use task::*;
 pub enum SyscallNum {
     Fork = 57,
     Vfork = 58,
     Execve = 59,
+    Exit = 60,
 }
 
 /// 用户态使用系统调用
-fn syscall(id: SyscallNum, args: [usize; 6]) -> isize {
-    let mut ret0: usize;
+fn syscall(id: SyscallNum, args: [usize; 6]) -> SysResult {
+    let mut ret0: isize;
     let mut _ret1: usize;
     unsafe {
         core::arch::asm!(
@@ -29,20 +33,27 @@ fn syscall(id: SyscallNum, args: [usize; 6]) -> isize {
             lateout("rdx") _ret1,
         );
     }
-    ret0 as _
+    match ret0 {
+        ret if ret >= 0 => Ok(ret as _),
+        err => Err(SysError::from_isize(err).unwrap()),
+    }
 }
 
-pub fn sys_fork() -> isize {
+pub fn sys_fork() -> SysResult {
     syscall(SyscallNum::Fork, [0x0; 6])
 }
 
-pub fn sys_vfork() -> isize {
+pub fn sys_vfork() -> SysResult {
     syscall(SyscallNum::Vfork, [0x0; 6])
 }
 
-pub fn sys_exec(path: *const u8, argv: *const *const u8, envp: *const *const u8) -> isize {
+pub fn sys_exec(path: *const u8, argv: *const *const u8, envp: *const *const u8) -> SysResult {
     syscall(
         SyscallNum::Execve,
         [path as usize, argv as usize, envp as usize, 0, 0, 0],
     )
+}
+
+pub fn sys_exit(exit_code: usize) -> SysResult {
+    syscall(SyscallNum::Exit, [exit_code, 0, 0, 0, 0, 0])
 }

@@ -12,4 +12,9 @@ user-syscall = { path = "../user-components/user-syscall" }
 [features]
 default = ["monolithic"]
 hybrid=[]
-monolithic=[]
+monolithic=["user-syscall/monolithic"]
+
+[[bin]]
+name = "monolithic-app"
+path = "src/bin/monolithic/app1"
+required-features = ["monolithic"]

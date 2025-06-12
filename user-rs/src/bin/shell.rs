@@ -6,12 +6,12 @@ extern crate user_lib;
 extern crate alloc;
 
 use user_lib::close;
-use user_lib::exec;
+use user_lib::hybrid::exec;
 use user_lib::make_pipe;
 use user_lib::proc_wait;
 use user_lib::{print::getchar, println};
 use user_syscall::dup;
-use user_syscall::fork;
+use user_syscall::hybrid::fork;
 use user_syscall::open;
 use user_syscall::OpenFlags;
 
