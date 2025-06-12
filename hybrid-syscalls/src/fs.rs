@@ -1,18 +1,18 @@
 //! 文件相关系统调用
 
-use hybrid_objects::fs;
+use crate::future::{executor, futures::WaitForKthread};
+use crate::trap::{KTHREAD_MAP, KthreadType};
 use fs::OSInode;
 use fs::*;
-use crate::future::{executor, futures::WaitForKthread};
-use requests_info::fsreqinfo::FsReqDescription;
-use requests_info::CastBytes;
+use hybrid_objects::ThreadState;
+use hybrid_objects::current_proc;
+use hybrid_objects::fs;
+use hybrid_objects::print;
+use hybrid_objects::println;
 use hybrid_objects::task;
+use requests_info::CastBytes;
+use requests_info::fsreqinfo::FsReqDescription;
 use task::CURRENT_THREAD;
-use crate::trap::{KthreadType, KTHREAD_MAP};
-use crate::trap;
-use crate::println;
-use crate::current_proc;
-use crate::print;
 
 /// 当前进程打开文件
 ///
@@ -35,7 +35,7 @@ pub fn sys_open(path_ptr: usize, flags: usize, fd_ptr: usize) -> (usize, usize) 
             let fs_kthread = fs_kthread.clone();
             let req_id = fs_kthread.add_request(fsreq);
             // 当前线程进入异步等待
-            current_thread.set_state(trap::ThreadState::Waiting);
+            current_thread.set_state(ThreadState::Waiting);
             // 生成等待协程
             executor::spawn(WaitForKthread::new(current_thread, fs_kthread, req_id));
             return (0, 0);
@@ -82,7 +82,7 @@ pub fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) ->
                 let fs_kthread = fs_kthread.clone();
                 let req_id = fs_kthread.add_request(fsreq);
                 // 当前线程进入异步等待
-                current_thread.set_state(trap::ThreadState::Waiting);
+                current_thread.set_state(ThreadState::Waiting);
                 // 生成等待协程
                 executor::spawn(WaitForKthread::new(current_thread, fs_kthread, req_id));
                 return (0, 0);
@@ -139,7 +139,7 @@ pub fn sys_write(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) -
                 let fs_kthread = fs_kthread.clone();
                 let req_id = fs_kthread.add_request(fsreq);
                 // 当前线程进入异步等待
-                current_thread.set_state(trap::ThreadState::Waiting);
+                current_thread.set_state(ThreadState::Waiting);
                 // 生成等待协程
                 executor::spawn(WaitForKthread::new(current_thread, fs_kthread, req_id));
                 return (0, 0);

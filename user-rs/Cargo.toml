@@ -16,5 +16,5 @@ monolithic=["user-syscall/monolithic"]
 
 [[bin]]
 name = "monolithic-app"
-path = "src/bin/monolithic/app1"
+path = "src/bin/monolithic/app1.rs"
 required-features = ["monolithic"]

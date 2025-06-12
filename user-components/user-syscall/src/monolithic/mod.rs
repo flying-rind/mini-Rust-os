@@ -6,7 +6,7 @@ pub mod task;
 pub use error::*;
 use num_traits::FromPrimitive;
 pub use task::*;
-pub enum SyscallNum {
+enum SyscallNum {
     Fork = 57,
     Vfork = 58,
     Execve = 59,

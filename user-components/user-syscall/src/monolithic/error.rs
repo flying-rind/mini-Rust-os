@@ -3,6 +3,7 @@
 //! Copied from rCore
 use core::fmt;
 use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
 
 pub type SysResult = Result<usize, SysError>;
 
@@ -64,6 +65,12 @@ pub enum SysError {
     ENOTCONN = 107,
     ETIMEDOUT = 110,
     ECONNREFUSED = 111,
+}
+
+impl From<usize> for SysError {
+    fn from(value: usize) -> Self {
+        SysError::from_usize(value).expect("Can not convert to SysError")
+    }
 }
 
 #[allow(non_snake_case)]

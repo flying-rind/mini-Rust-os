@@ -1,6 +1,5 @@
 //! 封装混合内核系统调用给用户态使用
 
-#![no_std]
 mod debug;
 mod fs;
 pub mod print;

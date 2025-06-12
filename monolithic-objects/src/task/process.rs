@@ -78,9 +78,7 @@ pub fn add_to_process_table(proc: Arc<Mutex<Process>>, pid: Pid) {
 }
 
 impl Process {
-    /// Pathname is interpreted relative to the current working directory(CWD)
     const AT_FDCWD: usize = -100isize as usize;
-    pub const FOLLOW_MAX_DEPTH: usize = 3;
 
     /// Lookup Inode from the process.
     ///
@@ -99,11 +97,13 @@ impl Process {
         path: &str,
         follow: bool,
     ) -> Result<Arc<dyn INode>, FsError> {
+        /// Pathname is interpreted relative to the current working directory(CWD)
+        pub const FOLLOW_MAX_DEPTH: usize = 3;
         debug!(
             "lookup_inode_at: dirfd: {:?}, cwd: {:?}, path: {:?}, follow: {:?}",
             dirfd as isize, self.cwd, path, follow
         );
-        let follow_max_depth = if follow { Self::FOLLOW_MAX_DEPTH } else { 0 };
+        let follow_max_depth = if follow { FOLLOW_MAX_DEPTH } else { 0 };
         // 从当前工作目录寻找
         if dirfd == Self::AT_FDCWD {
             Ok(ROOT_INODE
@@ -119,6 +119,12 @@ impl Process {
     /// 在进程当前目录查找INode
     pub fn lookup_inode(&self, path: &str) -> Result<Arc<dyn INode>, FsError> {
         self.lookup_inode_at(Self::AT_FDCWD, path, true)
+    }
+
+    /// Get file
+    pub fn get_file(&mut self, fd: usize) -> Result<Arc<dyn File>, usize> {
+        const EBADF: usize = 9;
+        self.files.get_mut(&fd).ok_or(EBADF).cloned()
     }
 
     /// 替换当前进程的elf文件
