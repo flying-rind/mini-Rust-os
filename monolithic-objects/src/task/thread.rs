@@ -10,6 +10,7 @@ use core::pin::Pin;
 use hybrid_objects::fs::File;
 use hybrid_objects::fs::Stdin;
 use hybrid_objects::fs::Stdout;
+use hybrid_objects::mm::MemoryArea;
 use hybrid_objects::mm::MemorySet;
 use hybrid_objects::mm::load_app;
 use lazy_static::lazy_static;
@@ -17,6 +18,7 @@ use rcore_fs::vfs::INode;
 use spin::Mutex;
 use spin::RwLock;
 use trapframe::UserContext;
+use x86_64::structures::paging::PageTableFlags;
 use xmas_elf::ElfFile;
 
 lazy_static! {
@@ -81,6 +83,27 @@ impl Thread {
         self_ref
     }
 
+    /// Construct a new user stack memory area, insert to vm.
+    /// And push args and envs to stack, return new sp.
+    pub fn new_user_stack(vm: Arc<MemorySet>, args: Vec<String>, envs: Vec<String>) -> usize {
+        use hybrid_objects::mm::MemAreaType;
+        let flags =
+            PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
+        let stack_area = MemoryArea::new(
+            USER_STACK_BASE,
+            USER_STACK_SIZE,
+            flags,
+            MemAreaType::USERSTACK,
+        );
+        vm.insert_area(stack_area);
+        // 参数压栈
+        vm.activate();
+        use crate::task::abi::ProcInfo;
+        use hybrid_objects::mm::{USER_STACK_BASE, USER_STACK_SIZE};
+        let init_info = ProcInfo { args, envs };
+        unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) }
+    }
+
     /// Construct a new user process, should only be used in root process.
     pub fn new_user(
         inode: &Arc<dyn INode>,
@@ -98,12 +121,8 @@ impl Thread {
         let entry = elf.header.pt2.entry_point() as usize;
         let vm = MemorySet::new();
         load_app(vm.clone(), &elf);
-        // 参数压栈
-        vm.activate();
-        use crate::task::abi::ProcInfo;
-        use hybrid_objects::mm::{USER_STACK_BASE, USER_STACK_SIZE};
-        let init_info = ProcInfo { args, envs };
-        let sp = unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) };
+        // 创建用户栈并压栈
+        let sp = Thread::new_user_stack(vm.clone(), args, envs);
         // 构造用户上下文和用户线程
         let mut context = UserContext::default();
         context.set_ip(entry);

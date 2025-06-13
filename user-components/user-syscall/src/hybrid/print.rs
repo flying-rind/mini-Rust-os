@@ -19,21 +19,21 @@ pub fn print(args: fmt::Arguments) {
     Stdout.write_fmt(args).unwrap();
 }
 
-#[macro_export]
-#[cfg(feature = "hybrid")]
-macro_rules! print {
-    ($fmt: literal $(, $($arg: tt)+)?) => {
-        user_syscall::hybrid::print::print(format_args!($fmt $(, $($arg)+)?));
-    }
-}
+// #[macro_export]
+// #[cfg(feature = "hybrid")]
+// macro_rules! print {
+//     ($fmt: literal $(, $($arg: tt)+)?) => {
+//         user_syscall::hybrid::print::print(format_args!($fmt $(, $($arg)+)?));
+//     }
+// }
 
-#[macro_export]
-#[cfg(feature = "hybrid")]
-macro_rules! println {
-    ($fmt: literal $(, $($arg: tt)+)?) => {
-        user_syscall::hybrid::print::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
-    }
-}
+// #[macro_export]
+// #[cfg(feature = "hybrid")]
+// macro_rules! println {
+//     ($fmt: literal $(, $($arg: tt)+)?) => {
+//         user_syscall::hybrid::print::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
+//     }
+// }
 
 pub fn getchar() -> u8 {
     let mut c = [0u8; 1];

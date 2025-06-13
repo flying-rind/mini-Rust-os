@@ -12,3 +12,4 @@ executor = {path = "../executor"}
 rcore-fs = {git = "https://github.com/rcore-os/rcore-fs"}
 log = "0.4.27"
 xmas-elf = "0.10.0"
+x86_64 = "0.15.2"
