@@ -7,6 +7,7 @@ name = "Ncore"
 version = "0.1.0"
 dependencies = [
  "bootloader_api",
+ "executor",
  "hal",
  "hybrid-objects",
  "loader",
@@ -157,6 +158,7 @@ name = "executor"
 version = "0.1.0"
 dependencies = [
  "lazy_static",
+ "log",
  "spin 0.10.0",
  "woke",
 ]

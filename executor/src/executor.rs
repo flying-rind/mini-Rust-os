@@ -1,15 +1,15 @@
 //! 协程执行器
 use crate::*;
+use alloc::collections::VecDeque;
 use alloc::sync::Arc;
-use spin::Mutex;
 use core::{
     future::Future,
     task::{Context, Poll},
 };
-use woke::waker_ref;
 use lazy_static::lazy_static;
-use alloc::collections::VecDeque;
-
+use log::info;
+use spin::Mutex;
+use woke::waker_ref;
 
 lazy_static! {
     /// 全局协程执行器
@@ -27,12 +27,19 @@ impl Executor {
     /// 添加任务
     pub fn add_task(&self, task: Arc<Task>) {
         self.tasks_queue.lock().push_back(task);
+        // Debug
+        // info!("task queue len: {}", self.tasks_queue.lock().len());
     }
 
     /// 轮讯所有就绪任务直到没有任务是就绪态
     pub fn run_until_idle(&self) {
+        // Debug
+        info!("In run_until_idle!");
         let mut tasks = self.tasks_queue.lock();
-        for _ in 0..tasks.len() {
+        let len = tasks.len();
+        // Debug
+        info!("tasks len: {}", len);
+        for _ in 0..len {
             let task = tasks.pop_front().unwrap();
             if task.need_poll() {
                 // 每次轮讯都让其睡眠，等待唤醒后被再次轮讯或直接返回Ready

@@ -13,7 +13,6 @@ use bootloader_api::BootInfo;
 use bootloader_api::{BootloaderConfig, config::Mapping};
 #[allow(unused)]
 use hybrid_objects::Process;
-use hybrid_objects::future::executor;
 use hybrid_objects::mm::KERNEL_STACK_BASE;
 use hybrid_objects::mm::PHYS_OFFSET;
 #[allow(unused)]
