@@ -34,11 +34,11 @@ impl Executor {
     /// 轮讯所有就绪任务直到没有任务是就绪态
     pub fn run_until_idle(&self) {
         // Debug
-        info!("In run_until_idle!");
+        // info!("In run_until_idle!");
         let mut tasks = self.tasks_queue.lock();
         let len = tasks.len();
         // Debug
-        info!("tasks len: {}", len);
+        // info!("tasks len: {}", len);
         for _ in 0..len {
             let task = tasks.pop_front().unwrap();
             if task.need_poll() {

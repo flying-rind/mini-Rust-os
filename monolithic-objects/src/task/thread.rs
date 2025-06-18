@@ -83,6 +83,16 @@ impl Thread {
         self_ref
     }
 
+    /// Take out user context, return the ctx.
+    pub fn begin_running(&self) -> Box<UserContext> {
+        self.inner.lock().context.take().unwrap()
+    }
+
+    /// Restore the user context into thread
+    pub fn end_running(&self, ctx: Box<UserContext>) {
+        self.inner.lock().context = Some(ctx)
+    }
+
     /// Construct a new user stack memory area, insert to vm.
     /// And push args and envs to stack, return new sp.
     pub fn new_user_stack(vm: Arc<MemorySet>, args: Vec<String>, envs: Vec<String>) -> usize {
@@ -129,7 +139,7 @@ impl Thread {
         context.set_sp(sp);
         let mut files: BTreeMap<usize, Arc<dyn File>> = BTreeMap::new();
         files.insert(0, Arc::new(Stdin));
-        files.insert(1, Arc::new(Stdin));
+        files.insert(1, Arc::new(Stdout));
         files.insert(2, Arc::new(Stdout));
         let thread = Thread {
             inner: Mutex::new(ThreadInner {
