@@ -33,14 +33,22 @@ impl Syscall<'_> {
     pub fn sys_exec(
         &mut self,
         path: *const u8,
-        argv: *const *const u8,
+        argvp: *const *const u8,
         envp: *const *const u8,
     ) -> SysResult {
-        info!("exec: path: {:?}, argv: {:?}, envp: {:?}", path, argv, envp);
+        info!(
+            "exec: path: {:?}, argvp: {:?}, envp: {:?}",
+            path, argvp, envp
+        );
         let mut proc = self.process();
         let cur_thread = self.thread.clone();
         let path = check_n_clone_cstr(path)?;
-        let args = check_n_clone_cstr_array(argv)?;
+        // Debug
+        info!("path = {}", path);
+        unsafe {
+            info!("*argvp = {:?}", *argvp);
+        }
+        let args = check_n_clone_cstr_array(argvp)?;
         let envs = check_n_clone_cstr_array(envp)?;
 
         if args.is_empty() {

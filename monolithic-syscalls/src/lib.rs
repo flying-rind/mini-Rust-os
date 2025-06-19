@@ -85,10 +85,11 @@ pub fn check_n_clone_cstr_array(user: *const *const u8) -> Result<Vec<String>, S
         Ok(Vec::new())
     } else {
         let mut buffer = Vec::new();
-        for i in 1.. {
+        for i in 0.. {
             let addr = unsafe { user.add(i) };
             let str_ptr = copy_from_user(addr).ok_or(SysError::EFAULT)?;
             if str_ptr.is_null() {
+                error!("str_ptr is Null!");
                 break;
             }
             let string = check_n_clone_cstr(str_ptr)?;
@@ -101,7 +102,8 @@ pub fn check_n_clone_cstr_array(user: *const *const u8) -> Result<Vec<String>, S
 /// 从用户态复制到内核
 /// FIXME:Move to HAL
 pub fn copy_from_user<T>(addr: *const T) -> Option<T> {
-    extern "C" fn read_user<T>(dst: *mut T, src: *const T) -> usize {
+    #[inline(never)]
+    unsafe extern "C" fn read_user<T>(dst: *mut T, src: *const T) -> usize {
         unsafe {
             dst.copy_from_nonoverlapping(src, 1);
         }
@@ -111,7 +113,7 @@ pub fn copy_from_user<T>(addr: *const T) -> Option<T> {
         return None;
     }
     let mut dst: T = unsafe { core::mem::zeroed() };
-    match read_user(&mut dst, addr) {
+    match unsafe { read_user(&mut dst, addr) } {
         0 => Some(dst),
         _ => None,
     }

@@ -20,7 +20,7 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "app1";
+    let shell = "exec_test";
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
         let thread = Thread::new_user(
@@ -88,9 +88,6 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
     if ctx.trap_num == 0x100 {
         let syscall_num = ctx.get_syscall_num();
         let args = ctx.get_syscall_args();
-        // Debug
-        info!("args = {:?}", args.clone());
-        // TODO:好像需要把上下文放回context
         let mut syscall = monolithic_syscalls::Syscall {
             thread: &thread,
             context: &mut *ctx,

@@ -2,6 +2,7 @@
 use crate::monolithic::error::SysResult;
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::ptr;
 
 use super::*;
 
@@ -24,8 +25,22 @@ pub fn fork() -> SysResult {
 /// being loaded and executed.
 pub fn exec(path: &str, argv: Vec<String>, env: Vec<String>) -> SysResult {
     let path = path.as_ptr() as *const u8;
-    let argvp = argv.as_ptr() as *const *const u8;
-    let envp = env.as_ptr() as *const *const u8;
+    let argvp: *const *const u8 = if argv.is_empty() {
+        ptr::null()
+    } else {
+        let mut ptrs: Vec<*const u8> = argv.iter().map(|s| s.as_ptr()).collect();
+        crate::monolithic::print::print(format_args!("In userspace exec,ptrs = {:?}\n", ptrs));
+        ptrs.push(ptr::null());
+        ptrs.as_ptr()
+    };
+    let envp = if env.is_empty() {
+        ptr::null()
+    } else {
+        let mut ptrs: Vec<*const u8> = env.iter().map(|s| s.as_ptr()).collect();
+        ptrs.push(ptr::null());
+        let envp = ptrs.as_ptr();
+        envp
+    };
     sys_exec(path, argvp, envp)
 }
 

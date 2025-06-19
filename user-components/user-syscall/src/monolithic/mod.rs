@@ -54,10 +54,10 @@ pub fn sys_vfork() -> SysResult {
     syscall(SyscallNum::Vfork, [0x0; 6])
 }
 
-pub fn sys_exec(path: *const u8, argv: *const *const u8, envp: *const *const u8) -> SysResult {
+pub fn sys_exec(path: *const u8, argvp: *const *const u8, envp: *const *const u8) -> SysResult {
     syscall(
         SyscallNum::Execve,
-        [path as usize, argv as usize, envp as usize, 0, 0, 0],
+        [path as usize, argvp as usize, envp as usize, 0, 0, 0],
     )
 }
 
