@@ -1,4 +1,6 @@
 //! 调试类系统调用
+use alloc::vec::Vec;
+
 use super::*;
 
 /// 输出缓冲区
@@ -36,4 +38,12 @@ pub fn serial_read(buf: &mut [u8]) -> usize {
 pub fn get_time() -> usize {
     let (ret0, _ret1) = sys_get_time();
     ret0
+}
+
+/// 测试用户到内核传递字符串数组
+pub fn test_cstr(strs: &[&str]) -> bool {
+    let str_ptrs: Vec<*const u8> = strs.iter().map(|&s| s.as_ptr()).collect();
+    let ptr = str_ptrs.as_ptr();
+    sys_test_cstr(ptr);
+    true
 }

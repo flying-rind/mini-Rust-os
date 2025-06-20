@@ -24,11 +24,11 @@ pub use alloc::{
     vec,
     vec::Vec,
 };
+pub use hal::{console::serial_print, print, println};
 pub use mem::{size_of, size_of_val, transmute};
+pub use task::*;
 pub use task::{CURRENT_KTHREAD, KthreadType};
 pub use utils::*;
-pub use hal::{print, println, console::serial_print};
-pub use task::*;
 
 pub mod drivers;
 pub mod fs;

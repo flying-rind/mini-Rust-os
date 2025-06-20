@@ -1,12 +1,13 @@
 #![no_std]
 #![no_main]
 
-use user_syscall::println;
-
 extern crate user_lib;
+// use user_syscall::hybrid::test_cstr;
+use user_syscall::monolithic::test_cstr;
 
 #[no_mangle]
-fn main() -> i32 {
-    println!("Hello world!, i'm app1");
-    1
+// fn main(_argc: usize, _argv: &[&str]) -> usize {
+fn main() -> isize {
+    let _ = test_cstr(&["app1\0", "app2\0"]);
+    0
 }

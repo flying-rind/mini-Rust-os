@@ -1,9 +1,11 @@
 //! 宏内核系统调用
+pub mod custom;
 pub mod error;
 pub mod fs;
 pub mod print;
 pub mod task;
 
+pub use custom::*;
 pub use error::*;
 pub use fs::*;
 use num_traits::FromPrimitive;
@@ -18,6 +20,8 @@ enum SyscallNum {
     Exit = 60,
     // FS
     Write = 1,
+    // Custom
+    TestCstr = 999,
 }
 
 /// 用户态使用系统调用
@@ -67,4 +71,8 @@ pub fn sys_exit(exit_code: usize) -> SysResult {
 
 pub fn sys_write(fd: usize, buf: *const u8, size: usize) -> SysResult {
     syscall(SyscallNum::Write, [fd, buf as _, size, 0, 0, 0])
+}
+
+pub fn sys_test_cstr(argvp: *const *const u8) -> SysResult {
+    syscall(SyscallNum::TestCstr, [argvp as _, 0, 0, 0, 0, 0])
 }

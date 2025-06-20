@@ -11,5 +11,5 @@ user-syscall = { path = "../user-components/user-syscall" }
 
 [features]
 default = ["monolithic"]
-hybrid=[]
+hybrid=["user-syscall/hybrid"]
 monolithic=["user-syscall/monolithic"]

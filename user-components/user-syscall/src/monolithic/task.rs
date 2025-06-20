@@ -1,6 +1,5 @@
 //! 任务管理类系统调用
 use crate::monolithic::error::SysResult;
-use crate::monolithic::print::print;
 use alloc::vec::Vec;
 use core::ptr;
 
@@ -26,19 +25,10 @@ pub fn fork() -> SysResult {
 pub fn exec(path: &str, argv: &[&str], env: &[&str]) -> SysResult {
     let path = path.as_ptr() as *const u8;
     let argvp: *const *const u8 = if argv.is_empty() {
-        crate::monolithic::print::print(format_args!("In userspace exec, argv is empty\n"));
         ptr::null()
     } else {
         let ptrs: Vec<*const u8> = argv.iter().map(|&s| s.as_ptr()).collect();
-        let argvp = ptrs.as_ptr();
-        // Debug
-        unsafe {
-            print(format_args!(
-                "In userspace exec, argvp = {:?}, *argvp = {:?}, **argvp = {}\n",
-                argvp, *argvp, **argvp as char
-            ));
-        }
-        argvp
+        ptrs.as_ptr()
     };
     let envp = if env.is_empty() {
         ptr::null()

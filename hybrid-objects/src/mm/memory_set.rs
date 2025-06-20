@@ -6,11 +6,11 @@ use x86_64::structures::paging::PageTableFlags;
 use x86_64::structures::paging::PhysFrame;
 use xmas_elf::{
     program::{SegmentData, Type},
-    {header, ElfFile},
+    {ElfFile, header},
 };
 
-use super::memory_area::MemoryArea;
 use super::PageTable;
+use super::memory_area::MemoryArea;
 use crate::Cell;
 use alloc::{sync::Arc, vec::Vec};
 
@@ -46,6 +46,10 @@ impl MemorySet {
         if Cr3::read().0 != frame {
             unsafe { Cr3::write(frame, Cr3Flags::empty()) };
         }
+        // info!(
+        //     "Vm switched now!, PageTable root_pa = {}",
+        //     self.page_table().paddr()
+        // );
     }
 
     /// 清理地址空间中ELF类型的区域，取消映射

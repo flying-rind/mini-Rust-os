@@ -10,8 +10,7 @@ extern crate user_lib;
 
 #[no_mangle]
 fn main() -> i32 {
-    let _ = exec("app1\0", &["app1\0"], &["app2\0"]);
-    // test(&["app1\0"]);
+    let _ = exec("123456\0", &["arg1\0", "arg2\0"], &["env1\0"]);
     1
 }
 

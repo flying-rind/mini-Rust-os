@@ -30,6 +30,8 @@ pub enum SyscallNum {
     SerialRead,
     /// 获取时间
     GetTime,
+    /// 测试用户传输字符串数组到内核
+    TestCstr,
 
     /// 退出进程
     ProcExit,
@@ -129,6 +131,10 @@ fn sys_debug_data_transport(bufs_ptr: usize, ret_ptr: usize) -> (usize, usize) {
 
 fn sys_debug_open(name_ptr: usize) -> (usize, usize) {
     syscall(SyscallNum::DebugOpen, [name_ptr, 0, 0, 0, 0, 0])
+}
+
+fn sys_test_cstr(ptr: *const *const u8) -> (usize, usize) {
+    syscall(SyscallNum::TestCstr, [ptr as _, 0, 0, 0, 0, 0])
 }
 
 fn sys_proc_exit(exit_code: usize) -> (usize, usize) {

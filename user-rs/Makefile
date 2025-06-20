@@ -21,7 +21,7 @@ OBJCOPY := rust-objcopy --binary-architecture=$(ARCH)
 all: build
 
 elf:
-	cargo build $(BUILD_ARGS) --features $(feature)
+	cargo build $(BUILD_ARGS) --no-default-features --features $(feature)
 
 $(ELFS): elf
 

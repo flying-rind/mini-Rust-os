@@ -16,6 +16,7 @@ use user_syscall::monolithic::error::SysError;
 extern crate alloc;
 extern crate num_traits;
 
+mod custom;
 mod fs;
 mod num;
 mod proc;
@@ -51,6 +52,9 @@ impl Syscall<'_> {
 
             // FS
             SYS_WRITE => self.sys_write(a0 as _, a1 as _, a2 as _),
+
+            // Custom
+            SYS_TEST_CSTR => self.sys_test_cstr(a0 as _),
             _ => unimplemented!("Not implemented yet"),
         };
         match ret {
@@ -113,17 +117,9 @@ pub fn copy_from_user<T: Debug>(addr: *const T) -> Option<T> {
     if !access_ok(addr as usize, size_of::<T>()) {
         return None;
     }
-    // Debug
-    assert!(!addr.is_null());
-    unsafe {
-        info!("addr = {:?}, *addr  = {:?}", addr, *addr);
-    }
     let mut dst: T = unsafe { core::mem::zeroed() };
     match unsafe { read_user(&mut dst as *mut T, addr) } {
-        0 => {
-            info!("dst = {:?}", dst);
-            Some(dst)
-        }
+        0 => Some(dst),
         _ => None,
     }
 }

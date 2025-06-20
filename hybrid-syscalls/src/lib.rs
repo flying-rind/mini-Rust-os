@@ -33,6 +33,7 @@ impl Syscall<'_> {
             DebugOpen => sys_debug_open(args[0]),
             SerialRead => sys_serial_read(args[0]),
             GetTime => (*pic::TICKS as _, 0),
+            TestCstr => sys_test_cstr(args[0] as _),
 
             // 任务相关
             ProcExit => sys_proc_exit(args[0]),
