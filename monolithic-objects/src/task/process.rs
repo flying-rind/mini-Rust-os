@@ -156,9 +156,7 @@ impl Process {
         let init_info = ProcInfo { args, envs };
         let sp = unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) };
         // 修改线程上下文
-        let context = &mut cur_thread.inner.lock().context;
-        context.set_ip(entry);
-        context.set_sp(sp);
+        cur_thread.set_context(entry, sp);
         Ok(0)
     }
 

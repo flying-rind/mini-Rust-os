@@ -46,7 +46,7 @@ pub type ThreadFn = fn(thread: Arc<Thread>) -> Pin<Box<dyn Future<Output = ()> +
 #[derive(Default)]
 pub struct ThreadInner {
     /// 用户态上下文
-    pub context: Box<UserContext>,
+    pub context: Option<Box<UserContext>>,
     /// 线程状态
     pub state: ThreadState,
 }
@@ -73,6 +73,16 @@ pub struct Thread {
 }
 
 impl Thread {
+    /// Take away the context, then begin running.
+    pub fn begin_running(&self) -> Box<UserContext> {
+        self.inner.lock().context.take().unwrap()
+    }
+
+    /// Put back the context
+    pub fn end_running(&self, ctx: Box<UserContext>) {
+        self.inner.lock().context = Some(ctx)
+    }
+
     /// 分配一个tid并加入全局线程映射表
     pub fn add_to_table(mut self) -> Arc<Self> {
         let mut thread_table = THREADS.write();
@@ -81,6 +91,14 @@ impl Thread {
         let self_ref = Arc::new(self);
         thread_table.insert(tid, self_ref.clone());
         self_ref
+    }
+
+    /// Set user context, set ip and sp
+    pub fn set_context(&self, ip: usize, sp: usize) {
+        let mut inner = self.inner.lock();
+        let context = inner.context.as_mut().unwrap();
+        context.set_ip(ip);
+        context.set_sp(sp);
     }
 
     /// Construct a new user stack memory area, insert to vm.
@@ -134,7 +152,7 @@ impl Thread {
         let thread = Thread {
             inner: Mutex::new(ThreadInner {
                 state: ThreadState::Ready,
-                context: Box::new(context),
+                context: Some(Box::new(context)),
             }),
             proc: Arc::new(Mutex::new(Process {
                 pid: Pid::new(),
@@ -158,7 +176,8 @@ impl Thread {
     pub fn fork(&self, cur_thread: Arc<Thread>) -> Arc<Thread> {
         // 复制进程地址空间
         let vm = self.proc.lock().vm.clone_myself();
-        let context = *(cur_thread.inner.lock().context);
+        let mut inner = cur_thread.inner.lock();
+        let context = inner.context.as_mut().unwrap();
         // 设置上下文
         let mut new_context = context.clone();
         new_context.set_syscall_ret(0, 0);
@@ -178,7 +197,7 @@ impl Thread {
         let new_thread = Thread {
             tid: 0,
             inner: Mutex::new(ThreadInner {
-                context: Box::new(new_context),
+                context: Some(new_context),
                 state: ThreadState::Ready,
             }),
             proc: new_proc.clone(),
