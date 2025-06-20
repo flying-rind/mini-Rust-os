@@ -138,7 +138,7 @@ impl Process {
     ) -> Result<usize, FsError> {
         // Read ELF header
         // 0x3c0: magic number from ld-musl.so
-        let mut data = [0u8; 0x3c0];
+        let mut data = [0u8; 16 * 1024 * 1024];
         inode.read_at(0, &mut data)?;
 
         // paese elf

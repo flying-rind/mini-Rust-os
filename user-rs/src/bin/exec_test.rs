@@ -1,20 +1,28 @@
 #![no_std]
 #![no_main]
 
-use alloc::string::ToString;
-use alloc::vec;
 use alloc::vec::Vec;
-use user_lib::exec;
+use user_syscall::monolithic::exec;
+use user_syscall::println;
 
 extern crate alloc;
 extern crate user_lib;
 
 #[no_mangle]
 fn main() -> i32 {
-    let _ = exec(
-        "app1\0",
-        vec!["app1\0".to_string(), "app2\0".to_string()],
-        Vec::new(),
-    );
+    let _ = exec("app1\0", &["app1\0"], &["app2\0"]);
+    // test(&["app1\0"]);
     1
+}
+
+fn test(argv: &[&str]) {
+    let ptrs: Vec<*const u8> = argv.iter().map(|&s| s.as_ptr()).collect();
+    let argvp = ptrs.as_ptr();
+    unsafe {
+        println!(
+            "argvp = {:?}, *argvp = {:?}, **argvp = {}",
+            argvp, *argvp, **argvp as char
+        );
+    }
+    println!("test passed")
 }

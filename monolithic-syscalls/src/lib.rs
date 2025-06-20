@@ -2,15 +2,16 @@
 #![no_std]
 
 use alloc::{string::String, sync::Arc, vec::Vec};
+use core::fmt::Debug;
 use hybrid_objects::mm::PHYS_OFFSET;
+pub use log::error;
+use log::info;
 use monolithic_objects::Thread;
 use monolithic_objects::ThreadFn;
 use num::*;
 use spin::MutexGuard;
 use trapframe::UserContext;
 use user_syscall::monolithic::error::SysError;
-
-pub use log::error;
 
 extern crate alloc;
 extern crate num_traits;
@@ -101,7 +102,7 @@ pub fn check_n_clone_cstr_array(user: *const *const u8) -> Result<Vec<String>, S
 
 /// 从用户态复制到内核
 /// FIXME:Move to HAL
-pub fn copy_from_user<T>(addr: *const T) -> Option<T> {
+pub fn copy_from_user<T: Debug>(addr: *const T) -> Option<T> {
     #[inline(never)]
     unsafe extern "C" fn read_user<T>(dst: *mut T, src: *const T) -> usize {
         unsafe {
@@ -112,9 +113,17 @@ pub fn copy_from_user<T>(addr: *const T) -> Option<T> {
     if !access_ok(addr as usize, size_of::<T>()) {
         return None;
     }
+    // Debug
+    assert!(!addr.is_null());
+    unsafe {
+        info!("addr = {:?}, *addr  = {:?}", addr, *addr);
+    }
     let mut dst: T = unsafe { core::mem::zeroed() };
-    match unsafe { read_user(&mut dst, addr) } {
-        0 => Some(dst),
+    match unsafe { read_user(&mut dst as *mut T, addr) } {
+        0 => {
+            info!("dst = {:?}", dst);
+            Some(dst)
+        }
         _ => None,
     }
 }
