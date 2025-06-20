@@ -129,6 +129,7 @@ impl Process {
 
     /// 替换当前进程的elf文件
     /// FIXME: 适配MUSL
+    /// return (ip, sp)
     pub fn exec(
         &mut self,
         inode: &Arc<dyn INode>,
@@ -155,8 +156,7 @@ impl Process {
         let init_info = ProcInfo { args, envs };
         let sp = unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) };
         // 修改线程上下文
-        let mut inner = cur_thread.inner.lock();
-        let context = inner.context.as_mut().unwrap();
+        let context = &mut cur_thread.inner.lock().context;
         context.set_ip(entry);
         context.set_sp(sp);
         Ok(0)

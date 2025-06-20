@@ -30,6 +30,7 @@ build/$(arch)/debug/bin/musl-gcc:
 	make -j$(shell nproc) &&\
 	make install &&\
 	make distclean &&\
+	mkdir ../../../user-c/bin &&\
 	cp ../../../build/$(arch)/$(mode)/lib/libc.so ../../../../user-c/bin/
 
 build/$(arch)/release/bin/musl-gcc:
@@ -40,6 +41,7 @@ build/$(arch)/release/bin/musl-gcc:
 	make -j$(shell nproc) && \
 	make install && \
 	make distclean &&\
+	mkdir ../../../user-c/bin &&\
 	cp ../../../build/$(arch)/$(mode)/lib/libc.so ../../../../user-c/bin/
 
 # 下载并编译musl

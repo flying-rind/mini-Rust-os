@@ -46,7 +46,7 @@ pub type ThreadFn = fn(thread: Arc<Thread>) -> Pin<Box<dyn Future<Output = ()> +
 #[derive(Default)]
 pub struct ThreadInner {
     /// 用户态上下文
-    pub context: Option<Box<UserContext>>,
+    pub context: Box<UserContext>,
     /// 线程状态
     pub state: ThreadState,
 }
@@ -81,16 +81,6 @@ impl Thread {
         let self_ref = Arc::new(self);
         thread_table.insert(tid, self_ref.clone());
         self_ref
-    }
-
-    /// Take out user context, return the ctx.
-    pub fn begin_running(&self) -> Box<UserContext> {
-        self.inner.lock().context.take().unwrap()
-    }
-
-    /// Restore the user context into thread
-    pub fn end_running(&self, ctx: Box<UserContext>) {
-        self.inner.lock().context = Some(ctx)
     }
 
     /// Construct a new user stack memory area, insert to vm.
@@ -144,7 +134,7 @@ impl Thread {
         let thread = Thread {
             inner: Mutex::new(ThreadInner {
                 state: ThreadState::Ready,
-                context: Some(Box::new(context)),
+                context: Box::new(context),
             }),
             proc: Arc::new(Mutex::new(Process {
                 pid: Pid::new(),
@@ -165,12 +155,13 @@ impl Thread {
     }
 
     /// 从当前进程复制进程
-    pub fn fork(&self, context: &UserContext) -> Arc<Thread> {
+    pub fn fork(&self, cur_thread: Arc<Thread>) -> Arc<Thread> {
         // 复制进程地址空间
         let vm = self.proc.lock().vm.clone_myself();
+        let context = *(cur_thread.inner.lock().context);
         // 设置上下文
-        let mut context = context.clone();
-        context.set_syscall_ret(0, 0);
+        let mut new_context = context.clone();
+        new_context.set_syscall_ret(0, 0);
         // 创建子进程
         let mut cur_proc = self.proc.lock();
         let new_proc = Arc::new(Mutex::new(Process {
@@ -187,7 +178,7 @@ impl Thread {
         let new_thread = Thread {
             tid: 0,
             inner: Mutex::new(ThreadInner {
-                context: Some(Box::new(context)),
+                context: Box::new(new_context),
                 state: ThreadState::Ready,
             }),
             proc: new_proc.clone(),

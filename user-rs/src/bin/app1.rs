@@ -8,6 +8,6 @@ use user_syscall::monolithic::test_cstr;
 #[no_mangle]
 // fn main(_argc: usize, _argv: &[&str]) -> usize {
 fn main() -> isize {
-    let _ = test_cstr(&["app1\0", "app2\0"]);
+    let _ = test_cstr(&["arg1\0", "arg2\0"]);
     0
 }

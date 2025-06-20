@@ -6,7 +6,7 @@ use monolithic_objects::{THREADS, task::ThreadState};
 impl Syscall<'_> {
     /// Fork current process, return child's PID.
     pub fn sys_fork(&mut self) -> SysResult {
-        let new_thread = self.thread.fork(self.context);
+        let new_thread = self.thread.fork(self.thread());
         let pid = new_thread.proc.lock().pid.0;
         let future = (self.thread_fn)(self.thread.clone());
         executor::spawn(future);
@@ -40,8 +40,8 @@ impl Syscall<'_> {
             "exec: pathp: {:?}, argvp: {:?}, envp: {:?}",
             pathp, argvp, envp
         );
-        let mut proc = self.process();
-        let cur_thread = self.thread.clone();
+        let cur_thread = self.thread;
+        let mut proc = cur_thread.proc.lock();
         let path = check_n_clone_cstr(pathp)?;
         let args = check_n_clone_cstr_array(argvp)?;
         let envs = check_n_clone_cstr_array(envp)?;
@@ -53,7 +53,7 @@ impl Syscall<'_> {
 
         info!("exec: path: {:?}, args: {:?}, envs: {:?}", path, args, envs);
         let inode = proc.lookup_inode(&path)?;
-        Ok(proc.exec(&inode, cur_thread, args, envs)?)
+        Ok(proc.exec(&inode, cur_thread.clone(), args, envs)?)
     }
 
     /// Exit the current thread

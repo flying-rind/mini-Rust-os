@@ -52,11 +52,9 @@ async fn run_user(thread: Arc<Thread>) {
         // 切换地址空间
         thread.proc.lock().vm.activate();
         // 进入用户态
-        let mut ctx = thread.begin_running();
-        ctx.run();
+        thread.inner.lock().context.run();
         // 返回内核，处理中断/系统调用
         handle_user_trap(thread.clone(), &mut ctx).await;
-        thread.end_running(ctx);
     }
     set_current_thread(None);
 }
@@ -91,7 +89,6 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
         let args = ctx.get_syscall_args();
         let mut syscall = monolithic_syscalls::Syscall {
             thread: &thread,
-            context: &mut *ctx,
             thread_fn: thread_fn,
         };
         let ret = syscall.syscall(syscall_num, args).await;

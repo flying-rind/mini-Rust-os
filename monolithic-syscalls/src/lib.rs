@@ -27,16 +27,19 @@ pub type SysResult = Result<usize, SysError>;
 pub struct Syscall<'a> {
     /// 系统调用的用户线程
     pub thread: &'a Arc<Thread>,
-    /// 用户态上下文
-    pub context: &'a mut UserContext,
     /// 用户线程线程函数
     pub thread_fn: ThreadFn,
 }
 
 impl Syscall<'_> {
     /// Get current processs
-    pub fn process(&self) -> MutexGuard<'_, monolithic_objects::Process> {
+    pub fn process(&mut self) -> MutexGuard<'_, monolithic_objects::Process> {
         self.thread.proc.lock()
+    }
+
+    /// Get current thread
+    pub fn thread(&mut self) -> Arc<Thread> {
+        self.thread.clone()
     }
 
     /// 系统调用分发函数
@@ -94,7 +97,6 @@ pub fn check_n_clone_cstr_array(user: *const *const u8) -> Result<Vec<String>, S
             let addr = unsafe { user.add(i) };
             let str_ptr = copy_from_user(addr).ok_or(SysError::EFAULT)?;
             if str_ptr.is_null() {
-                error!("str_ptr is Null!");
                 break;
             }
             let string = check_n_clone_cstr(str_ptr)?;

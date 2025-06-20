@@ -1,5 +1,6 @@
 //! 任务管理类系统调用
 use crate::monolithic::error::SysResult;
+// use crate::monolithic::print::print;
 use alloc::vec::Vec;
 use core::ptr;
 
@@ -22,23 +23,20 @@ pub fn fork() -> SysResult {
 /// A call to any exec function from a process with more than one thread
 /// shall result in all threads being terminated and the new executable image
 /// being loaded and executed.
-pub fn exec(path: &str, argv: &[&str], env: &[&str]) -> SysResult {
-    let path = path.as_ptr() as *const u8;
-    let argvp: *const *const u8 = if argv.is_empty() {
-        ptr::null()
+///
+/// FIXME: Ignore env for now.
+pub fn exec(path: &str, argv: &[&str], _env: &[&str]) -> SysResult {
+    let pathp = path.as_ptr() as *const u8;
+    // This vec cannot be dropped because kernel will use it. :)
+    let mut argv_ptrs: Vec<*const u8> = argv.iter().map(|&s| s.as_ptr()).collect();
+    if argv.is_empty() {
+        // no arg
+        sys_exec(pathp, ptr::null(), ptr::null())
     } else {
-        let ptrs: Vec<*const u8> = argv.iter().map(|&s| s.as_ptr()).collect();
-        ptrs.as_ptr()
-    };
-    let envp = if env.is_empty() {
-        ptr::null()
-    } else {
-        let mut ptrs: Vec<*const u8> = env.iter().map(|s| s.as_ptr()).collect();
-        ptrs.push(ptr::null());
-        let envp = ptrs.as_ptr();
-        envp
-    };
-    sys_exec(path, argvp, envp)
+        // Indicate the end of argv(*const u8)
+        argv_ptrs.push(ptr::null());
+        sys_exec(pathp, argv_ptrs.as_ptr(), ptr::null())
+    }
 }
 
 /// Exit the current thread
