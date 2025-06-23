@@ -4,14 +4,13 @@ use core::fmt::Display;
 use super::*;
 use crate::debug;
 use crate::sync::{Event, EventBus};
-use crate::task::abi::ProcInfo;
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::sync::Weak;
 use alloc::vec::Vec;
 use hybrid_objects::fs::ROOT_INODE;
-use hybrid_objects::mm::{USER_STACK_BASE, USER_STACK_SIZE, load_app};
+use hybrid_objects::mm::load_app;
 use hybrid_objects::{fs::File, mm::MemorySet};
 use lazy_static::lazy_static;
 use log::info;
@@ -161,14 +160,12 @@ impl Process {
         let entry = elf.header.pt2.entry_point() as usize;
         // clear old elf, load new one.
         self.vm.clear_elf();
+        self.vm.clear_ustack();
+        // Create new user stack, and load app to vm.
         load_app(self.vm.clone(), &elf);
-
+        let sp = Thread::new_user_stack(self.vm.clone(), args, envs);
         // Kill other threads
         self.threads.retain(|&tid| tid == cur_thread.tid);
-        // 环境变量和参数压栈
-        self.vm.activate();
-        let init_info = ProcInfo { args, envs };
-        let sp = unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) };
         // 修改线程上下文
         context.set_ip(entry);
         context.set_sp(sp);

@@ -26,8 +26,6 @@ impl Executor {
     /// 添加任务
     pub fn add_task(&self, task: Arc<Task>) {
         self.tasks_queue.lock().push_back(task);
-        // Debug
-        // info!("task queue len: {}", self.tasks_queue.lock().len());
     }
 
     /// Get first runnable task

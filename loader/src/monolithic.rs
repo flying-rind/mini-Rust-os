@@ -20,7 +20,8 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "fork_test";
+    // let shell = "exec_test";
+    let shell = "shell";
     // let shell = "app1";
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
@@ -98,6 +99,7 @@ async fn handle_user_trap(thread: Arc<Thread>, mut ctx: Box<UserContext>) {
         };
         let ret = syscall.syscall(syscall_num, args).await;
         ctx.set_syscall_ret(ret as _, 0);
+        thread.end_running(ctx);
         return;
     }
 

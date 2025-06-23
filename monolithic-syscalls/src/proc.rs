@@ -14,7 +14,7 @@ impl Syscall<'_> {
         let new_thread = self.thread.fork(self.context);
         let pid = new_thread.proc.lock().pid.0;
         info!("fork: {} -> {}", self.process().pid, pid);
-        let future = (self.thread_fn)(self.thread.clone());
+        let future = (self.thread_fn)(new_thread);
         executor::spawn(future);
         Ok(pid)
     }
@@ -216,6 +216,7 @@ impl Syscall<'_> {
                     return Err(SysError::ECHILD);
                 }
                 // Block and wait for proc to exit here.
+                info!("wait4 not ready yet!");
                 let bus = proc.eventbus.clone();
                 drop(proc);
                 wait_for_event(bus.clone(), Event::CHILD_PROCESS_QUIT).await;

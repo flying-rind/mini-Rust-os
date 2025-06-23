@@ -79,7 +79,7 @@ impl Thread {
     /// Take away the context, then begin running.
     pub fn begin_running(&self) -> Box<UserContext> {
         let proc = self.proc.lock();
-        info!("Pid {}, begin running!", proc.pid);
+        // info!("Pid: {} tid: {}, begin running!", proc.pid, self.tid);
         drop(proc);
         self.inner.lock().context.take().unwrap()
     }
@@ -195,6 +195,7 @@ impl Thread {
             exit_code: 0,
             exec_path: cur_proc.exec_path.clone(),
             cwd: cur_proc.cwd.clone(),
+            files: cur_proc.files.clone(),
             parent: (cur_proc.pid.clone(), Arc::downgrade(&self.proc)),
             ..Process::default()
         }));
@@ -209,6 +210,7 @@ impl Thread {
             ..Thread::default()
         }
         .add_to_table();
+        info!("Created new thread, tid = {}", new_thread.tid);
         // 关联线程和进程，新进程的pid设置为新线程的tid
         let child_pid = Pid(new_thread.tid);
         add_to_process_table(new_proc.clone(), child_pid.clone());
