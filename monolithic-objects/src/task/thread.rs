@@ -22,7 +22,7 @@ use x86_64::structures::paging::PageTableFlags;
 use xmas_elf::ElfFile;
 
 lazy_static! {
-    /// Records the mapping between pid and Process struct.
+    /// Records the mapping between tid and Thread struct.
     pub static ref THREADS: RwLock<BTreeMap<Tid, Arc<Thread>>> =
         RwLock::new(BTreeMap::new());
 }

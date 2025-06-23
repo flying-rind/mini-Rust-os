@@ -10,7 +10,7 @@ use crate::{activate_proc_ms, println, task::PROCESS_MAP};
 use super::*;
 use crate::fs::*;
 use alloc::sync::Arc;
-use requests_info::{fsreqinfo::FsReqDescription, CastBytes};
+use requests_info::{CastBytes, fsreqinfo::FsReqDescription};
 
 /// 文件系统请求处理器
 pub struct FsProcessor;
@@ -111,7 +111,7 @@ impl Processor for FsProcessor {
                     // 文件已存在
                     if let Ok(inode) = ROOT_INODE.find(path) {
                         // clear size
-                        inode.resize(0);
+                        let _ = inode.resize(0);
                         Some(Arc::new(OSInode::new(readable, writable, inode)))
                     // 不存在，需要创建
                     } else {
@@ -126,7 +126,7 @@ impl Processor for FsProcessor {
                         .find(path)
                         .map(|inode| {
                             if flags.contains(OpenFlags::TRUNC) {
-                                inode.resize(0);
+                                let _ = inode.resize(0);
                             }
                             Arc::new(OSInode::new(readable, writable, inode))
                         })

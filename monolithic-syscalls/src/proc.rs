@@ -74,4 +74,10 @@ impl Syscall<'_> {
         self.thread.inner.lock().state = ThreadState::Exited;
         Ok(0)
     }
+
+    /// Wait 4 the process exit.
+    /// Return the PID.
+    pub fn wait4(&mut self) -> SysResult {
+        unimplemented!();
+    }
 }

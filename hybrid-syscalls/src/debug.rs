@@ -7,7 +7,7 @@ use hybrid_objects::fs::ROOT_INODE;
 use hybrid_objects::mm::PHYS_OFFSET;
 use hybrid_objects::print;
 use hybrid_objects::println;
-use log::{error, info};
+use log::info;
 
 #[derive(Debug)]
 pub enum SysError {

@@ -385,6 +385,7 @@ name = "monolithic-syscalls"
 version = "0.1.0"
 dependencies = [
  "executor",
+ "hal",
  "hybrid-objects",
  "log",
  "monolithic-objects",

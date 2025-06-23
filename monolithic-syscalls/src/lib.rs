@@ -55,9 +55,11 @@ impl Syscall<'_> {
             SYS_VFORK => self.sys_vfork(),
             SYS_EXECVE => self.sys_exec(a0 as _, a1 as _, a2 as _),
             SYS_EXIT => self.sys_exit(a0 as _),
+            // SYS_WAIT4 => self.wait4()
 
             // FS
             SYS_WRITE => self.sys_write(a0 as _, a1 as _, a2 as _),
+            SYS_READ => self.sys_read(a0.into(), a1.into(), a2 as _).await,
 
             // Custom
             SYS_TEST_CSTR => self.sys_test_cstr(a0 as _),

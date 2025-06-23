@@ -1,6 +1,8 @@
 //! 定义内核使用的Inode结构，为其实现文件访问接口
+use super::File;
 use crate::drivers::BlockDriverWrapper;
 use crate::println;
+use crate::*;
 use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
@@ -11,8 +13,6 @@ use rcore_fs::vfs::FileType;
 use rcore_fs::vfs::INode;
 use rcore_fs_sfs::SimpleFileSystem;
 use spin::Mutex;
-use crate::*;
-use super::File;
 
 bitflags::bitflags! {
     /// 打开文件时的读写权限
@@ -68,7 +68,7 @@ impl OSInode {
         let inode = self.inode.lock();
         let size = inode.metadata().unwrap().size;
         let mut buffer = vec![0u8; size];
-        inode.read_at(0, buffer.as_mut_slice());
+        let _ = inode.read_at(0, buffer.as_mut_slice());
         buffer
     }
 }
@@ -98,7 +98,11 @@ impl File for OSInode {
         n
     }
 
-    fn lookup_follow(&self, path: &str, max_follow: usize) -> rcore_fs::vfs::Result<Arc<dyn INode>> {
+    fn lookup_follow(
+        &self,
+        path: &str,
+        max_follow: usize,
+    ) -> rcore_fs::vfs::Result<Arc<dyn INode>> {
         self.inode.lock().lookup_follow(path, max_follow)
     }
 }
@@ -137,7 +141,7 @@ pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
     if flags.contains(OpenFlags::CREATE) {
         match ROOT_INODE.find(name) {
             Ok(inode) => {
-                inode.resize(0);
+                let _ = inode.resize(0);
                 Some(Arc::new(OSInode::new(readable, writable, inode)))
             }
             Err(_) => {
@@ -153,7 +157,7 @@ pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
             .find(name)
             .map(|inode| {
                 if flags.contains(OpenFlags::TRUNC) {
-                    inode.resize(0);
+                    let _ = inode.resize(0);
                 }
                 Arc::new(OSInode::new(readable, writable, inode))
             })

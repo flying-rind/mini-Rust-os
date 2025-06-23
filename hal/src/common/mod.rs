@@ -2,8 +2,8 @@
 pub(super) mod defs;
 pub(super) mod mem;
 
-
 pub mod console;
+pub mod user;
 
 pub use defs::*;
 pub use mem::*;

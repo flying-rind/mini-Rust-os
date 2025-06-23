@@ -20,6 +20,7 @@ enum SyscallNum {
     Exit = 60,
     // FS
     Write = 1,
+    Read = 0,
     // Custom
     TestCstr = 999,
 }

@@ -5,9 +5,8 @@ use core::pin::Pin;
 use core::task::Context;
 use core::task::Poll;
 
-use crate::fs::*;
 use crate::Cell;
-use crate::serial_print;
+use crate::fs::*;
 
 use alloc::sync::Arc;
 
