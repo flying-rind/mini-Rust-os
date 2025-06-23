@@ -1,8 +1,12 @@
 //! 任务管理类系统调用
 use crate::*;
-use hal::user::{Error, UserInOutPtr, UserPtrError};
+use hal::user::UserInOutPtr;
 use log::info;
-use monolithic_objects::{PROCESSES, THREADS, task::ThreadState};
+use monolithic_objects::{
+    PROCESSES, THREADS,
+    sync::{Event, wait_for_event},
+    task::ThreadState,
+};
 
 impl Syscall<'_> {
     /// Fork current process, return child's PID.
@@ -162,7 +166,7 @@ impl Syscall<'_> {
                 process_table.remove(&pid);
                 // remove from children table.
                 proc.children.retain(|(p, _)| *p != pid);
-                return Ok(pid);
+                return Ok(pid.0);
             // Not exited yet. Check if argmument is valid.
             } else {
                 let invalid = match target {
@@ -170,30 +174,38 @@ impl Syscall<'_> {
                         let children: Vec<_> = proc
                             .children
                             .iter()
-                            .filter(|(pid, child)| !child.upgrade().is_none())
+                            .filter(|(_pid, child)| !child.upgrade().is_none())
                             .collect();
                         children.len() == 0
                     }
                     WaitForTarget::AnyChildInGroup => {
-                        let children: Vec<_> = proc.children.iter().filter(|(pid, child)| {
-                            if let Some(child) = child.upgrade() {
-                                if child.lock().pgid == pgid {
-                                    return ture;
+                        let children: Vec<_> = proc
+                            .children
+                            .iter()
+                            .filter(|(_pid, child)| {
+                                if let Some(child) = child.upgrade() {
+                                    if child.lock().pgid == pgid {
+                                        return true;
+                                    }
                                 }
-                            }
-                            return false;
-                        });
+                                return false;
+                            })
+                            .collect();
                         children.len() == 0
                     }
                     WaitForTarget::Pid(waitpid) => {
-                        let children: Vec<_> = proc.children.iter().filter(|(pid, child)| {
-                            if let Some(child) = child.upgrade() {
-                                if child.lock().pid == waitpid {
-                                    return true;
+                        let children: Vec<_> = proc
+                            .children
+                            .iter()
+                            .filter(|(_pid, child)| {
+                                if let Some(child) = child.upgrade() {
+                                    if child.lock().pid.0 == waitpid {
+                                        return true;
+                                    }
                                 }
-                            }
-                            return false;
-                        });
+                                return false;
+                            })
+                            .collect();
                         children.len() == 0
                     }
                 };
@@ -201,6 +213,11 @@ impl Syscall<'_> {
                     info!("Wait: no valid child proc!");
                     return Err(SysError::ECHILD);
                 }
+                // Block and wait for proc to exit here.
+                let bus = proc.eventbus.clone();
+                drop(proc);
+                wait_for_event(bus.clone(), Event::CHILD_PROCESS_QUIT).await;
+                bus.lock().clear(Event::CHILD_PROCESS_QUIT);
             }
         }
     }

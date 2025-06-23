@@ -1,5 +1,5 @@
 use super::write;
-
+use crate::monolithic::read;
 use core::fmt::{self, Write};
 
 // const STDIN: usize = 0;
@@ -37,6 +37,6 @@ macro_rules! println {
 
 pub fn getchar() -> u8 {
     let mut c = [0u8; 1];
-    read(STDIN, &mut c);
+    let _ = read(STDIN, &mut c);
     c[0]
 }

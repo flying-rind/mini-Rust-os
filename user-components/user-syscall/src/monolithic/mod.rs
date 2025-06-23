@@ -74,6 +74,10 @@ pub fn sys_write(fd: usize, buf: *const u8, size: usize) -> SysResult {
     syscall(SyscallNum::Write, [fd, buf as _, size, 0, 0, 0])
 }
 
+pub fn sys_read(fd: usize, buf: *mut u8, size: usize) -> SysResult {
+    syscall(SyscallNum::Read, [fd, buf as _, size, 0, 0, 0])
+}
+
 pub fn sys_test_cstr(argvp: *const *const u8) -> SysResult {
     syscall(SyscallNum::TestCstr, [argvp as _, 0, 0, 0, 0, 0])
 }

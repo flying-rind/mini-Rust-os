@@ -3,6 +3,7 @@ use core::fmt::Display;
 
 use super::*;
 use crate::debug;
+use crate::sync::EventBus;
 use crate::task::abi::ProcInfo;
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
@@ -68,6 +69,8 @@ pub struct Process {
     pub children: Vec<(Pid, Weak<Mutex<Process>>)>,
     /// Threads
     pub threads: Vec<Tid>,
+    /// Event bus
+    pub eventbus: Arc<Mutex<EventBus>>,
 }
 
 lazy_static! {

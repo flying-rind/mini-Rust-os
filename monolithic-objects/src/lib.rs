@@ -6,4 +6,5 @@ pub use task::*;
 
 extern crate alloc;
 
+pub mod sync;
 pub mod task;

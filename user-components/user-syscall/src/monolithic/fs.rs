@@ -1,6 +1,6 @@
 //! 文件系统类系统调用
 
-use crate::{sys_write, SysResult};
+use crate::{sys_read, sys_write, SysResult};
 
 use super::error::SysError;
 use rcore_fs::vfs::FsError;
@@ -36,4 +36,11 @@ pub fn write(fd: usize, buf: &[u8]) -> SysResult {
     let buf_ptr = buf.as_ptr() as *const u8;
     let size = buf.len();
     sys_write(fd, buf_ptr, size)
+}
+
+/// Read from a file descriptor
+pub fn read(fd: usize, buf: &mut [u8]) -> SysResult {
+    let buf_ptr = buf.as_mut_ptr();
+    let size = buf.len();
+    sys_read(fd, buf_ptr, size)
 }

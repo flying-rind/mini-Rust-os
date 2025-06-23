@@ -1,4 +1,6 @@
 //! 宏内核线程
+use crate::sync::EventBus;
+
 use super::*;
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
@@ -165,6 +167,7 @@ impl Thread {
                 parent: (Pid::new(), Weak::new()),
                 children: Vec::new(),
                 threads: Vec::new(),
+                eventbus: Arc::new(Mutex::new(EventBus::default())),
             })),
             tid: 0,
         };
