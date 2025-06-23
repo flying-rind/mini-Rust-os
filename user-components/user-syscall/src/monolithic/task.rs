@@ -43,3 +43,9 @@ pub fn exec(path: &str, argv: &[&str], _env: &[&str]) -> SysResult {
 pub fn exit(exit_code: usize) -> SysResult {
     sys_exit(exit_code)
 }
+
+/// Wait the process to exit.
+/// Return the PID. Store exit coe to `code` if it's not null.
+pub fn wait4(pid: usize, wstatus: *mut i32) -> SysResult {
+    sys_wait(pid, wstatus)
+}

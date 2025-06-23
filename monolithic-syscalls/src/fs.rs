@@ -15,7 +15,7 @@ impl Syscall<'_> {
         let slice = unsafe { core::slice::from_raw_parts(buf, size) };
         let file = proc.get_file(fd)?;
         let len = file.write(slice);
-        Ok(len)
+        Ok(len as _)
     }
 
     /// Read from a file descriptor
@@ -27,6 +27,6 @@ impl Syscall<'_> {
         let mut buf = vec![0u8; len];
         let len = file.read(&mut buf);
         let _ = base.write_array(&buf);
-        Ok(len)
+        Ok(len as _)
     }
 }

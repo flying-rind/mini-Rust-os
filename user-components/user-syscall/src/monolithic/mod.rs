@@ -18,6 +18,7 @@ enum SyscallNum {
     Vfork = 58,
     Execve = 59,
     Exit = 60,
+    Wait = 61,
     // FS
     Write = 1,
     Read = 0,
@@ -68,6 +69,10 @@ pub fn sys_exec(path: *const u8, argvp: *const *const u8, envp: *const *const u8
 
 pub fn sys_exit(exit_code: usize) -> SysResult {
     syscall(SyscallNum::Exit, [exit_code, 0, 0, 0, 0, 0])
+}
+
+pub fn sys_wait(pid: usize, wstatus: *mut i32) -> SysResult {
+    syscall(SyscallNum::Wait, [pid, wstatus as _, 0, 0, 0, 0])
 }
 
 pub fn sys_write(fd: usize, buf: *const u8, size: usize) -> SysResult {

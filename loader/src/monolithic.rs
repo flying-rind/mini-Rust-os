@@ -20,14 +20,14 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "exec_test";
+    let shell = "shell";
     // let shell = "app1";
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
         let thread = Thread::new_user(
             &inode,
             shell,
-            vec![String::from_str("exec_test").unwrap()],
+            vec![String::from_str("shell").unwrap()],
             Vec::new(),
         );
         let future = thread_fn(thread.clone());

@@ -176,11 +176,9 @@ impl Thread {
     }
 
     /// 从当前进程复制进程
-    pub fn fork(&self, cur_thread: Arc<Thread>) -> Arc<Thread> {
+    pub fn fork(&self, context: &mut Box<UserContext>) -> Arc<Thread> {
         // 复制进程地址空间
         let vm = self.proc.lock().vm.clone_myself();
-        let mut inner = cur_thread.inner.lock();
-        let context = inner.context.as_mut().unwrap();
         // 设置上下文
         let mut new_context = context.clone();
         new_context.set_syscall_ret(0, 0);

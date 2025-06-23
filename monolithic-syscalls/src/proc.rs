@@ -11,7 +11,7 @@ use monolithic_objects::{
 impl Syscall<'_> {
     /// Fork current process, return child's PID.
     pub fn sys_fork(&mut self) -> SysResult {
-        let new_thread = self.thread.fork(self.thread());
+        let new_thread = self.thread.fork(self.context);
         let pid = new_thread.proc.lock().pid.0;
         let future = (self.thread_fn)(self.thread.clone());
         executor::spawn(future);
@@ -81,8 +81,9 @@ impl Syscall<'_> {
     }
 
     /// Wait 4 the process exit.
-    /// Return the PID. Currently no option argument yet so just wait for the process to exit.(FIXME?)
+    /// Return the PID. Currently no option argument yet so just wait for the process to exit.(FIXME, read zcore)
     ///
+    /// FIXME: Refactor to simplify this function.
     /// See [wait(2)](https://man7.org/linux/man-pages/man2/waitpid.2.html)
     pub async fn sys_wait4(&mut self, pid: isize, mut wstatus: UserInOutPtr<i32>) -> SysResult {
         info!("wait4: pid: {}, code: {:?}", pid, wstatus);

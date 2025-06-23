@@ -7,7 +7,6 @@ use core::{
     task::{Context, Poll},
 };
 use lazy_static::lazy_static;
-use log::info;
 use spin::Mutex;
 use woke::waker_ref;
 
