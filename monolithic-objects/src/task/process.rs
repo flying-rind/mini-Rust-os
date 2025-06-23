@@ -3,7 +3,7 @@ use core::fmt::Display;
 
 use super::*;
 use crate::debug;
-use crate::sync::EventBus;
+use crate::sync::{Event, EventBus};
 use crate::task::abi::ProcInfo;
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
@@ -180,6 +180,13 @@ impl Process {
         // Clear fd_table
         self.files.clear();
         info!("Process {} exit with {}", self.pid.get(), exit_code);
+
+        // Set event bus.
+        self.eventbus.lock().set(Event::PROCESS_QUIT);
+        if let Some(parent) = self.parent.1.upgrade() {
+            parent.lock().eventbus.lock().set(Event::CHILD_PROCESS_QUIT);
+        }
+        self.exit_code = exit_code;
     }
 
     /// Check if is exied

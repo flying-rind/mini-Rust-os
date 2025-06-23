@@ -4,6 +4,7 @@
 use alloc::boxed::Box;
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::fmt::Debug;
+use hal::user::UserInOutPtr;
 use hybrid_objects::mm::PHYS_OFFSET;
 pub use log::error;
 use log::info;
@@ -55,7 +56,7 @@ impl Syscall<'_> {
             SYS_VFORK => self.sys_vfork(),
             SYS_EXECVE => self.sys_exec(a0 as _, a1 as _, a2 as _),
             SYS_EXIT => self.sys_exit(a0 as _),
-            // SYS_WAIT4 => self.wait4()
+            SYS_WAIT4 => self.sys_wait4(a0 as _, UserInOutPtr::from(a1)).await,
 
             // FS
             SYS_WRITE => self.sys_write(a0 as _, a1 as _, a2 as _),
