@@ -16,6 +16,7 @@ use hybrid_objects::mm::MemoryArea;
 use hybrid_objects::mm::MemorySet;
 use hybrid_objects::mm::load_app;
 use lazy_static::lazy_static;
+use log::info;
 use rcore_fs::vfs::INode;
 use spin::Mutex;
 use spin::RwLock;
@@ -77,6 +78,9 @@ pub struct Thread {
 impl Thread {
     /// Take away the context, then begin running.
     pub fn begin_running(&self) -> Box<UserContext> {
+        let proc = self.proc.lock();
+        info!("Pid {}, begin running!", proc.pid);
+        drop(proc);
         self.inner.lock().context.take().unwrap()
     }
 
@@ -180,7 +184,7 @@ impl Thread {
         // 复制进程地址空间
         let vm = self.proc.lock().vm.clone_myself();
         // 设置上下文
-        let mut new_context = context.clone();
+        let mut new_context = *context.clone();
         new_context.set_syscall_ret(0, 0);
         // 创建子进程
         let mut cur_proc = self.proc.lock();
@@ -198,7 +202,7 @@ impl Thread {
         let new_thread = Thread {
             tid: 0,
             inner: Mutex::new(ThreadInner {
-                context: Some(new_context),
+                context: Some(Box::new(new_context)),
                 state: ThreadState::Ready,
             }),
             proc: new_proc.clone(),

@@ -13,6 +13,7 @@ impl Syscall<'_> {
     pub fn sys_fork(&mut self) -> SysResult {
         let new_thread = self.thread.fork(self.context);
         let pid = new_thread.proc.lock().pid.0;
+        info!("fork: {} -> {}", self.process().pid, pid);
         let future = (self.thread_fn)(self.thread.clone());
         executor::spawn(future);
         Ok(pid)

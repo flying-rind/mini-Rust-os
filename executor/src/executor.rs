@@ -30,29 +30,32 @@ impl Executor {
         // info!("task queue len: {}", self.tasks_queue.lock().len());
     }
 
-    /// 轮讯所有就绪任务直到没有任务是就绪态
-    pub fn run_until_idle(&self) {
-        // Debug
-        // info!("In run_until_idle!");
+    /// Get first runnable task
+    pub fn pop_runnable_task(&self) -> Option<Arc<Task>> {
         let mut tasks = self.tasks_queue.lock();
-        let len = tasks.len();
-        // Debug
-        // info!("tasks len: {}", len);
-        for _ in 0..len {
+        for _ in 0..tasks.len() {
             let task = tasks.pop_front().unwrap();
             if task.need_poll() {
-                // 每次轮讯都让其睡眠，等待唤醒后被再次轮讯或直接返回Ready
-                task.sleep();
-                // 由task创建waker
-                let waker = waker_ref(&task);
-                // 由waker创建context
-                let mut context = Context::from_waker(&*waker);
-                match task.poll_inner(&mut context) {
-                    Poll::Ready(_) => continue,
-                    Poll::Pending => tasks.push_back(task),
-                }
+                return Some(task);
             } else {
                 tasks.push_back(task);
+            }
+        }
+        None
+    }
+
+    /// 轮讯所有就绪任务直到没有任务是就绪态
+    pub fn run_until_idle(&self) {
+        while let Some(task) = self.pop_runnable_task() {
+            // 每次轮讯都让其睡眠，等待唤醒后被再次轮讯或直接返回Ready
+            task.sleep();
+            // 由task创建waker
+            let waker = waker_ref(&task);
+            // 由waker创建context
+            let mut context = Context::from_waker(&*waker);
+            match task.poll_inner(&mut context) {
+                Poll::Ready(_) => continue,
+                Poll::Pending => self.add_task(task),
             }
         }
     }

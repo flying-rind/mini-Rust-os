@@ -20,7 +20,7 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "shell";
+    let shell = "fork_test";
     // let shell = "app1";
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
@@ -58,8 +58,7 @@ async fn run_user(thread: Arc<Thread>) {
         let mut context = thread.begin_running();
         context.run();
         // 返回内核，处理中断/系统调用
-        handle_user_trap(thread.clone(), &mut context).await;
-        thread.end_running(context);
+        handle_user_trap(thread.clone(), context).await;
     }
     set_current_thread(None);
 }
@@ -87,7 +86,7 @@ pub extern "C" fn trap_handler(tf: &mut TrapFrame) {
 }
 
 /// 处理用户态中断或系统调用
-async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
+async fn handle_user_trap(thread: Arc<Thread>, mut ctx: Box<UserContext>) {
     // 用户态系统调用
     if ctx.trap_num == 0x100 {
         let syscall_num = ctx.get_syscall_num();
@@ -95,7 +94,7 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
         let mut syscall = monolithic_syscalls::Syscall {
             thread: &thread,
             thread_fn: thread_fn,
-            context: ctx,
+            context: &mut ctx,
         };
         let ret = syscall.syscall(syscall_num, args).await;
         ctx.set_syscall_ret(ret as _, 0);
@@ -115,4 +114,5 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
             unimplemented!();
         }
     }
+    thread.end_running(ctx);
 }
