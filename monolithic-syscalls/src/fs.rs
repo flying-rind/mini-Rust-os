@@ -26,7 +26,7 @@ impl Syscall<'_> {
         let file = proc.get_file(fd)?;
         let mut buf = vec![0u8; len];
         let len = file.read(&mut buf);
-        base.write_array(&buf);
+        let _ = base.write_array(&buf);
         Ok(len)
     }
 }

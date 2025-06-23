@@ -2,6 +2,7 @@
 //! Linux系统调用错误编号
 //! Copied from rCore
 use core::fmt;
+use hal::user::UserPtrError;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
@@ -23,6 +24,7 @@ pub enum SysError {
     E2BIG = 7,
     ENOEXEC = 8,
     EBADF = 9,
+    /// No children process
     ECHILD = 10,
     EAGAIN = 11,
     ENOMEM = 12,
@@ -132,5 +134,11 @@ impl fmt::Display for SysError {
                 _ => "Unknown error",
             },
         )
+    }
+}
+
+impl From<UserPtrError> for SysError {
+    fn from(_value: UserPtrError) -> Self {
+        SysError::EFAULT
     }
 }

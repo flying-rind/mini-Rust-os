@@ -1,7 +1,8 @@
 //! 任务管理类系统调用
 use crate::*;
+use hal::user::{Error, UserInOutPtr, UserPtrError};
 use log::info;
-use monolithic_objects::{THREADS, task::ThreadState};
+use monolithic_objects::{PROCESSES, THREADS, task::ThreadState};
 
 impl Syscall<'_> {
     /// Fork current process, return child's PID.
@@ -76,8 +77,131 @@ impl Syscall<'_> {
     }
 
     /// Wait 4 the process exit.
-    /// Return the PID.
-    pub fn wait4(&mut self) -> SysResult {
-        unimplemented!();
+    /// Return the PID. Currently no option argument yet so just wait for the process to exit.(FIXME?)
+    ///
+    /// See [wait(2)](https://man7.org/linux/man-pages/man2/waitpid.2.html)
+    pub async fn sys_wait4(&mut self, pid: isize, mut wstatus: UserInOutPtr<i32>) -> SysResult {
+        info!("wait4: pid: {}, code: {:?}", pid, wstatus);
+        enum WaitForTarget {
+            /// pid = -1, wait for any child.
+            AnyChild,
+            /// pid = 0, wait for any child that gpid = caller's gpid.
+            AnyChildInGroup,
+            /// pid > 0, wait for the child that pid = the given pid.
+            Pid(usize),
+        }
+        let target = match pid {
+            -1 => WaitForTarget::AnyChild,
+            0 => WaitForTarget::AnyChildInGroup,
+            p if p > 0 => WaitForTarget::Pid(p as _),
+            _ => unimplemented!(),
+        };
+        loop {
+            // FIXME, maybe can be simpler.
+            let mut proc = self.process();
+            let pgid = proc.pgid;
+            // check if child exited yet.
+            let mut res: Option<(monolithic_objects::Pid, usize)> = None;
+            let exited = match target {
+                WaitForTarget::AnyChild => {
+                    for (pid, child) in &proc.children {
+                        if let Some(c) = child.upgrade() {
+                            let child_p = c.lock();
+                            if child_p.exited() {
+                                res = Some((*pid, child_p.exit_code));
+                                break;
+                            }
+                        } else {
+                            info!("Can not upgrade pid: {}", pid);
+                        }
+                    }
+                    res
+                }
+                WaitForTarget::AnyChildInGroup => {
+                    for (pid, child) in &proc.children {
+                        if let Some(c) = child.upgrade() {
+                            let child_p = c.lock();
+                            if child_p.pgid != pgid {
+                                continue;
+                            }
+                            if child_p.exited() {
+                                res = Some((*pid, child_p.exit_code));
+                                break;
+                            }
+                        } else {
+                            info!("Can not upgrade pid: {}", pid);
+                        }
+                    }
+                    res
+                }
+                WaitForTarget::Pid(wait_pid) => {
+                    for (pid, child) in &proc.children {
+                        if pid.0 != wait_pid {
+                            continue;
+                        }
+                        if let Some(c) = child.upgrade() {
+                            let child_p = c.lock();
+                            if child_p.exited() {
+                                res = Some((*pid, child_p.exit_code));
+                                break;
+                            }
+                        } else {
+                            info!("Can not upgrade pid: {}", pid);
+                        }
+                    }
+                    res
+                }
+            };
+            // Already exited, return.
+            if let Some((pid, exit_code)) = exited {
+                info!("Wait complete, pid: {}", pid);
+                // Write exit_code to uspace
+                wstatus.write(exit_code as i32)?;
+                // Remove form process table
+                let mut process_table = PROCESSES.write();
+                process_table.remove(&pid);
+                // remove from children table.
+                proc.children.retain(|(p, _)| *p != pid);
+                return Ok(pid);
+            // Not exited yet. Check if argmument is valid.
+            } else {
+                let invalid = match target {
+                    WaitForTarget::AnyChild => {
+                        let children: Vec<_> = proc
+                            .children
+                            .iter()
+                            .filter(|(pid, child)| !child.upgrade().is_none())
+                            .collect();
+                        children.len() == 0
+                    }
+                    WaitForTarget::AnyChildInGroup => {
+                        let children: Vec<_> = proc.children.iter().filter(|(pid, child)| {
+                            if let Some(child) = child.upgrade() {
+                                if child.lock().pgid == pgid {
+                                    return ture;
+                                }
+                            }
+                            return false;
+                        });
+                        children.len() == 0
+                    }
+                    WaitForTarget::Pid(waitpid) => {
+                        let children: Vec<_> = proc.children.iter().filter(|(pid, child)| {
+                            if let Some(child) = child.upgrade() {
+                                if child.lock().pid == waitpid {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });
+                        children.len() == 0
+                    }
+                };
+                if invalid {
+                    info!("Wait: no valid child proc!");
+                    return Err(SysError::ECHILD);
+                }
+            }
+        }
     }
 }

@@ -12,6 +12,7 @@ num-traits = { version = "0.2.19", default-features = false }
 spin = "0.9"
 bitflags = "*"
 rcore-fs ={ git = "https://github.com/rcore-os/rcore-fs" }
+hal = {path = "../../hal"}
 
 [features]
 default = ["monolithic"]

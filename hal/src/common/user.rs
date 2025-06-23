@@ -1,5 +1,5 @@
 //! Raw pointer from user space.
-use core::marker::PhantomData;
+use core::{fmt::Debug, marker::PhantomData};
 
 #[repr(C)]
 /// Raw pointer from uspace.
@@ -31,6 +31,12 @@ impl Write for Out {}
 impl Read for InOut {}
 impl Write for InOut {}
 
+impl<T, P: Policy> Debug for UserPtr<T, P> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:?}", self.ptr)
+    }
+}
+
 // FIXME: Read nomicon to see why it's safe?
 unsafe impl<T, P: Policy> Sync for UserPtr<T, P> {}
 unsafe impl<T, P: Policy> Send for UserPtr<T, P> {}
@@ -44,7 +50,7 @@ pub type UserInOutPtr<T> = UserPtr<T, InOut>;
 
 /// The error type which is returned from user pointer operation.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum Error {
+pub enum UserPtrError {
     InvalidUtf8,
     InvalidPointer,
     BufferTooSmall,
@@ -52,7 +58,7 @@ pub enum Error {
     InvalidVectorAddress,
 }
 
-type Result<T> = core::result::Result<T, Error>;
+type Result<T> = core::result::Result<T, UserPtrError>;
 
 impl<T, P: Policy> UserPtr<T, P> {
     /// Get raw pointer
@@ -80,7 +86,7 @@ impl<T, P: Policy> UserPtr<T, P> {
         if !self.is_null() && (self.ptr as usize) % core::mem::align_of::<T>() == 0 {
             Ok(())
         } else {
-            Err(Error::InvalidPointer)
+            Err(UserPtrError::InvalidPointer)
         }
     }
 }

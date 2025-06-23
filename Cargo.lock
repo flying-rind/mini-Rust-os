@@ -729,6 +729,7 @@ name = "user-syscall"
 version = "0.1.0"
 dependencies = [
  "bitflags 2.9.0",
+ "hal",
  "num-derive",
  "num-traits",
  "rcore-fs",

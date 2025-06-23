@@ -1,4 +1,6 @@
 //! 进程
+use core::fmt::Display;
+
 use super::*;
 use crate::debug;
 use crate::task::abi::ProcInfo;
@@ -19,8 +21,14 @@ use trapframe::UserContext;
 use xmas_elf::ElfFile;
 
 /// process id type
-#[derive(Clone, Default, Ord, PartialEq, PartialOrd, Eq)]
+#[derive(Clone, Default, Ord, PartialEq, PartialOrd, Eq, Copy)]
 pub struct Pid(pub usize);
+impl Display for Pid {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 /// process group id type
 pub type Pgid = i32;
 
@@ -169,5 +177,10 @@ impl Process {
         // Clear fd_table
         self.files.clear();
         info!("Process {} exit with {}", self.pid.get(), exit_code);
+    }
+
+    /// Check if is exied
+    pub fn exited(&self) -> bool {
+        self.threads.is_empty()
     }
 }
