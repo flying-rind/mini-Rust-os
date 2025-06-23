@@ -2,6 +2,7 @@
 use super::*;
 use crate::debug;
 use crate::task::abi::ProcInfo;
+use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::sync::Weak;
@@ -14,6 +15,7 @@ use log::info;
 use rcore_fs::vfs::{FsError, INode};
 use spin::RwLock;
 use thread::{Thread, Tid};
+use trapframe::UserContext;
 use xmas_elf::ElfFile;
 
 /// process id type
@@ -136,6 +138,7 @@ impl Process {
         cur_thread: Arc<Thread>,
         args: Vec<String>,
         envs: Vec<String>,
+        context: &mut Box<UserContext>,
     ) -> Result<usize, FsError> {
         // Read ELF header
         // 0x3c0: magic number from ld-musl.so
@@ -156,7 +159,8 @@ impl Process {
         let init_info = ProcInfo { args, envs };
         let sp = unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) };
         // 修改线程上下文
-        cur_thread.set_context(entry, sp);
+        context.set_ip(entry);
+        context.set_sp(sp);
         Ok(0)
     }
 

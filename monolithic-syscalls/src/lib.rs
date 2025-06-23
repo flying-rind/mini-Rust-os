@@ -1,6 +1,7 @@
 //! 宏内核系统调用
 #![no_std]
 
+use alloc::boxed::Box;
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::fmt::Debug;
 use hybrid_objects::mm::PHYS_OFFSET;
@@ -29,6 +30,8 @@ pub struct Syscall<'a> {
     pub thread: &'a Arc<Thread>,
     /// 用户线程线程函数
     pub thread_fn: ThreadFn,
+    /// User-space context
+    pub context: &'a mut Box<UserContext>,
 }
 
 impl Syscall<'_> {

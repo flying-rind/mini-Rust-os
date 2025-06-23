@@ -40,8 +40,10 @@ pub fn run_shell() {
 /// 用户线程入口
 ///
 /// loop:
+/// - Get UserContext
 /// - 进入用户态
 /// - 处理中断/系统调用
+/// - Put back UserContext
 async fn run_user(thread: Arc<Thread>) {
     set_current_thread(Some(thread.clone()));
     loop {
@@ -49,12 +51,15 @@ async fn run_user(thread: Arc<Thread>) {
             break;
         }
         // TODO: Handle Signal
+        // FIXME: Should not change user-space here(in loop)
         // 切换地址空间
         thread.proc.lock().vm.activate();
         // 进入用户态
         let mut context = thread.begin_running();
+        context.run();
         // 返回内核，处理中断/系统调用
         handle_user_trap(thread.clone(), &mut context).await;
+        thread.end_running(context);
     }
     set_current_thread(None);
 }
@@ -90,6 +95,7 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
         let mut syscall = monolithic_syscalls::Syscall {
             thread: &thread,
             thread_fn: thread_fn,
+            context: ctx,
         };
         let ret = syscall.syscall(syscall_num, args).await;
         ctx.set_syscall_ret(ret as _, 0);

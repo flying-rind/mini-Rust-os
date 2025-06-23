@@ -53,7 +53,7 @@ impl Syscall<'_> {
 
         info!("exec: path: {:?}, args: {:?}, envs: {:?}", path, args, envs);
         let inode = proc.lookup_inode(&path)?;
-        Ok(proc.exec(&inode, cur_thread.clone(), args, envs)?)
+        Ok(proc.exec(&inode, cur_thread.clone(), args, envs, self.context)?)
     }
 
     /// Exit the current thread
