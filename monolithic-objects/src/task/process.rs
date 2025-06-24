@@ -147,8 +147,8 @@ impl Process {
         &mut self,
         inode: &Arc<dyn INode>,
         cur_thread: Arc<Thread>,
-        args: Vec<String>,
-        envs: Vec<String>,
+        _args: Vec<String>,
+        _envs: Vec<String>,
         context: &mut Box<UserContext>,
     ) -> Result<usize, FsError> {
         // Read ELF header
@@ -172,6 +172,7 @@ impl Process {
         context.set_ip(entry);
         context.set_sp(sp);
         info!("Exec set ip: 0x{:x}, sp: 0x{:x}", entry, sp);
+        info!("After exec, vm:\n {:#?}", self.vm);
         Ok(0)
     }
 

@@ -20,7 +20,7 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "exec_test";
+    let shell = "fork_test";
     // let shell = "fork_test";
     // let shell = "shell";
     info!("Trying to enter user shell now!");

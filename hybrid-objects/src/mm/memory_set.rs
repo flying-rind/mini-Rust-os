@@ -1,5 +1,6 @@
 //! 进程地址空间
 use super::*;
+use core::fmt::Debug;
 use x86_64::registers::control::Cr3;
 use x86_64::registers::control::Cr3Flags;
 use x86_64::structures::paging::PageTableFlags;
@@ -46,10 +47,6 @@ impl MemorySet {
         if Cr3::read().0 != frame {
             unsafe { Cr3::write(frame, Cr3Flags::empty()) };
         }
-        // info!(
-        //     "Vm switched now!, PageTable root_pa = {}",
-        //     self.page_table().paddr()
-        // );
     }
 
     /// 清理地址空间中ELF类型的区域，取消映射
@@ -106,6 +103,16 @@ impl Drop for MemorySet {
         }
         self.areas.clear();
         // println!("[Rust] MemorySet dropped now");
+    }
+}
+
+impl Debug for MemorySet {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let areas = self.areas.get();
+        for area in areas {
+            write!(f, "area: {:?}\n", area)?;
+        }
+        Ok(())
     }
 }
 

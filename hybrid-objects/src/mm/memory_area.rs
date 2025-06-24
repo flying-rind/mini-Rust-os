@@ -1,15 +1,16 @@
 //! 虚拟内存区域
 
 use alloc::sync::Arc;
-use hashbrown::{hash_map::Entry, HashMap};
+use hashbrown::{HashMap, hash_map::Entry};
 use x86_64::structures::paging::PageTableFlags;
 
 use super::physframe::PhysFrame;
 use super::*;
-use crate::mm::{align_down, is_aligned, phys_to_virt, PAGE_SIZE};
 use crate::Cell;
+use crate::mm::{PAGE_SIZE, align_down, is_aligned, phys_to_virt};
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::fmt::Debug;
 use core::mem::size_of;
 
 /// 虚存区域的类型
@@ -130,6 +131,16 @@ impl MemoryArea {
             mapper,
             mtype: self.mtype.clone(),
         })
+    }
+}
+
+impl Debug for MemoryArea {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Memory area, start vaddr: 0x{:x}, size: 0x{:x}, flags: {:#?}",
+            self.start_vaddr, self.size, self.flags
+        )
     }
 }
 
