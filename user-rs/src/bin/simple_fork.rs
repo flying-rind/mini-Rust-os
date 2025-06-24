@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use user_lib::{exec, fork, wait4};
+use user_lib::{exec, exit, fork, wait4};
 use user_syscall::println;
 
 extern crate alloc;
@@ -12,8 +12,7 @@ fn main() -> isize {
     let pid = fork().expect("Fork failed");
     if pid == 0 {
         println!("I am child");
-        exec("app1\0", &["app1\0"], &[]).expect("Failed to exec");
-        unreachable!()
+        exit(1).expect("Failed to exit");
     } else {
         println!("I am parent");
         let mut exit_code: i32 = 0;

@@ -79,7 +79,13 @@ impl Thread {
     /// Take away the context, then begin running.
     pub fn begin_running(&self) -> Box<UserContext> {
         let proc = self.proc.lock();
-        // info!("Pid: {} tid: {}, begin running!", proc.pid, self.tid);
+        let inner = self.inner.lock();
+        let context = inner.context.as_ref().unwrap();
+        info!(
+            "Pid: {} tid: {}, begin running!, ip = {}, sp = {}",
+            proc.pid, self.tid, context.general.rip, context.general.rsp
+        );
+        drop(inner);
         drop(proc);
         self.inner.lock().context.take().unwrap()
     }
@@ -137,7 +143,7 @@ impl Thread {
     ) -> Arc<Thread> {
         // 创建虚存空间并加载app
         // 0x3c0: magic number from ld-musl.so
-        let mut data = [0u8; 16 * 1024 * 1024];
+        let mut data = [0u8; 16 * 1024 * 10];
         inode
             .read_at(0, &mut data)
             .expect("Failed to read elf data!");

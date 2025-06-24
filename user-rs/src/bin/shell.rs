@@ -41,7 +41,7 @@ pub fn main() -> i32 {
                         let mut exit_code: i32 = 0;
                         let exit_pid =
                             wait4(pid as usize, &mut exit_code).expect("Failed to wait4");
-                        // assert_eq!(pid, exit_pid);
+                        assert_eq!(pid, exit_pid);
                         println!("Shell: Process {} exited with code {}", pid, exit_code);
                     }
                     cursor = 0;

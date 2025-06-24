@@ -31,7 +31,7 @@ pub struct Syscall<'a> {
     pub thread: &'a Arc<Thread>,
     /// 用户线程线程函数
     pub thread_fn: ThreadFn,
-    /// User-space context
+    /// User-space context, we will put it into thread after trap/syscall.
     pub context: &'a mut Box<UserContext>,
 }
 

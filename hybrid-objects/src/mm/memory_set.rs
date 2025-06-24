@@ -132,7 +132,7 @@ pub fn load_app(ms: Arc<MemorySet>, elf: &ElfFile) {
         }
         // 准备映射标志
         let mut flags = PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
-        if flags.contains(PageTableFlags::WRITABLE) {
+        if ph.flags().is_write() {
             flags |= PageTableFlags::WRITABLE;
         }
         let offset = ph.virtual_addr() as usize & (PAGE_SIZE - 1);
