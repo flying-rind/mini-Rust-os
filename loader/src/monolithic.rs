@@ -20,9 +20,8 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "fork_test";
     // let shell = "fork_test";
-    // let shell = "shell";
+    let shell = "shell";
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
         let thread = Thread::new_user(

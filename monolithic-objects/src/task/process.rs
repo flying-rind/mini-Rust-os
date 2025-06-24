@@ -11,7 +11,6 @@ use alloc::sync::Weak;
 use alloc::vec::Vec;
 use hybrid_objects::fs::ROOT_INODE;
 use hybrid_objects::mm::load_app;
-use hybrid_objects::mm::{USER_STACK_BASE, USER_STACK_SIZE};
 use hybrid_objects::{fs::File, mm::MemorySet};
 use lazy_static::lazy_static;
 use log::info;
@@ -147,8 +146,8 @@ impl Process {
         &mut self,
         inode: &Arc<dyn INode>,
         cur_thread: Arc<Thread>,
-        _args: Vec<String>,
-        _envs: Vec<String>,
+        args: Vec<String>,
+        envs: Vec<String>,
         context: &mut Box<UserContext>,
     ) -> Result<usize, FsError> {
         // Read ELF header
@@ -159,20 +158,18 @@ impl Process {
         // paese elf
         let elf = ElfFile::new(&data).map_err(|_| FsError::NotFile)?;
         let entry = elf.header.pt2.entry_point() as usize;
-        // clear old elf, load new one.
-        self.vm.clear_elf();
-        load_app(self.vm.clone(), &elf);
-        // let init_info = ProcInfo { args, envs };
-        // let sp = unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) };
-        let sp = USER_STACK_BASE + USER_STACK_SIZE;
+        let new_vm = MemorySet::new();
+        let sp = Thread::new_user_stack(new_vm.clone(), args, envs);
+        self.vm = new_vm.clone();
+        load_app(new_vm, &elf);
         // Kill other threads
         self.threads.retain(|&tid| tid == cur_thread.tid);
         // 修改线程上下文
         **context = UserContext::default();
         context.set_ip(entry);
         context.set_sp(sp);
-        info!("Exec set ip: 0x{:x}, sp: 0x{:x}", entry, sp);
-        info!("After exec, vm:\n {:#?}", self.vm);
+        // info!("Exec set ip: 0x{:x}, sp: 0x{:x}", entry, sp);
+        // info!("After exec, vm:\n {:#?}", self.vm);
         Ok(0)
     }
 

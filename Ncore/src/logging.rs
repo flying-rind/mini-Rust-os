@@ -1,12 +1,12 @@
 //! 支持日志
 use core::fmt;
-use log::{Log, Level};
+use log::{Level, Log};
 
 /// 日志初始化
 pub fn init() {
     static LOGGER: SimpleLogger = SimpleLogger;
     let _ = log::set_logger(&LOGGER);
-    log::set_max_level(log::LevelFilter::Info);
+    log::set_max_level(log::LevelFilter::Warn);
 }
 
 #[allow(dead_code)]
@@ -30,11 +30,10 @@ enum ColorCode {
     BrightWhite = 97,
 }
 
-
 /// Add escape sequence to print with color in Linux console
 macro_rules! with_color {
     ($color_code:expr, $($arg:tt)*) => {
-        format_args!("\u{1B}[{}m{}\u{1B}[m", $color_code as u8, format_args!($($arg)*)) 
+        format_args!("\u{1B}[{}m{}\u{1B}[m", $color_code as u8, format_args!($($arg)*))
     };
 }
 
@@ -45,7 +44,7 @@ pub fn print(args: fmt::Arguments) {
 
 struct SimpleLogger;
 
-impl Log for SimpleLogger{
+impl Log for SimpleLogger {
     fn enabled(&self, _metadata: &log::Metadata) -> bool {
         true
     }
@@ -80,7 +79,5 @@ impl Log for SimpleLogger{
         ))
     }
 
-    fn flush(&self) {
-        
-    }
+    fn flush(&self) {}
 }
