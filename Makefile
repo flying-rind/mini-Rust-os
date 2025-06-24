@@ -20,7 +20,7 @@ fs-img:
 	cd musl && make all
 	cd user-c && make all
 	rm -f $(FS_IMG)
-	cd rcore-fs-use && cargo run --release -- -s $(CURDIR)/user-rs/src/bin -t $(CURDIR)/user-rs/target/$(arch)/release/
+	cd rcore-fs-use && cargo run --release -- -s $(CURDIR)/user-rs/src/bin -t $(CURDIR)/user-rs/target/$(arch)/$(mode)/
 
 test: build
 	cd kernel && cargo test -- --${boot}

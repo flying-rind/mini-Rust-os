@@ -85,6 +85,8 @@ fn main() {
     for app in rs_apps {
         // load app data from host file system
         let mut host_file = File::open(format!("{}{}", rs_target_path, app)).unwrap();
+        // debug
+        println!("Loading app: {}", app);
         let mut all_data: Vec<u8> = Vec::new();
         host_file.read_to_end(&mut all_data).unwrap();
         // create a file in easy-fs
@@ -95,9 +97,13 @@ fn main() {
         inode.write_at(0, all_data.as_slice()).unwrap();
     }
 
+    // debug
+    println!("Finished loading rust apps");
+
     for app in c_apps {
         // load app data from host file system
         let mut host_file = File::open(format!("{}{}", c_target_path, app)).unwrap();
+        println!("Loading app: {}", app);
         let mut all_data: Vec<u8> = Vec::new();
         host_file.read_to_end(&mut all_data).unwrap();
         // create a file in easy-fs
@@ -107,6 +113,10 @@ fn main() {
         // write data to easy-fs
         inode.write_at(0, all_data.as_slice()).unwrap();
     }
+
+    // debug
+    println!("Finished loading all apps!");
+
     // list apps
     for app in root_inode.list().unwrap() {
         println!("{}", app);

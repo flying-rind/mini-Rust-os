@@ -82,7 +82,7 @@ impl Thread {
         let inner = self.inner.lock();
         let context = inner.context.as_ref().unwrap();
         info!(
-            "Pid: {} tid: {}, begin running!, ip = {}, sp = {}",
+            "Pid: {} tid: {}, begin running!, ip = 0x{:x}, sp = 0x{:x}",
             proc.pid, self.tid, context.general.rip, context.general.rsp
         );
         drop(inner);

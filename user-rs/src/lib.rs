@@ -107,9 +107,6 @@ fn main() -> isize {
 ///
 /// ----low
 pub extern "C" fn _start() -> ! {
-    use user_syscall::println;
-
-    println!("In _start");
     init_heap();
     // 调用应用主函数
     let exit_code = main();
@@ -119,12 +116,9 @@ pub extern "C" fn _start() -> ! {
 
 /// 用户态初始化堆内存
 pub fn init_heap() {
-    use user_syscall::println;
-    println!("Init user heap!");
     // 初始化堆内存分配器
     unsafe {
         HEAP.lock()
             .init(HEAP_SPACE.as_ptr() as usize, USER_HEAP_SIZE);
     }
-    println!("Init_heap done!");
 }

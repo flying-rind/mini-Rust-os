@@ -11,7 +11,7 @@ extern crate user_lib;
 fn main() -> isize {
     let pid = fork().expect("Fork failed");
     if pid == 0 {
-        println!("I am child");
+        // println!("I am child");
         exec("app1\0", &["app1\0"], &[]).expect("Failed to exec");
         unreachable!()
     } else {
