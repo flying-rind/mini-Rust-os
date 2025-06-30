@@ -38,6 +38,10 @@
 ## 在线文档
   我们在[NUDT-OS-BOOK](https://flying-rind.github.io/mini-Rust-os/)中更加详细地介绍了内核的设计原则和一些特点
 
+## PPT
+
+  在[一种基于Rust语言的内核服务可靠性增强设计与实现](tutorial/一种基于Rust语言的操作系统内核服务可靠性增强设计与实现.pptx)中
+
 ## 效果演示
   在[效果演示](https://flying-rind.github.io/mini-Rust-os/md/%E6%95%88%E6%9E%9C%E6%BC%94%E7%A4%BA.html)演示了内核运行效果
 
