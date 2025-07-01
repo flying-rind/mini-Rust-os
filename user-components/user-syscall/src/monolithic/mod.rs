@@ -22,6 +22,7 @@ enum SyscallNum {
     // FS
     Write = 1,
     Read = 0,
+    Dup = 292,
     // Custom
     TestCstr = 999,
 }
@@ -81,6 +82,10 @@ pub fn sys_write(fd: usize, buf: *const u8, size: usize) -> SysResult {
 
 pub fn sys_read(fd: usize, buf: *mut u8, size: usize) -> SysResult {
     syscall(SyscallNum::Read, [fd, buf as _, size, 0, 0, 0])
+}
+
+pub fn sys_dup(arg1: usize) -> SysResult {
+    syscall(SyscallNum::Dup, [arg1, 0, 0, 0, 0, 0])
 }
 
 pub fn sys_test_cstr(argvp: *const *const u8) -> SysResult {

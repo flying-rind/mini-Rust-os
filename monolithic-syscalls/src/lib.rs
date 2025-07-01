@@ -61,6 +61,7 @@ impl Syscall<'_> {
             // FS
             SYS_WRITE => self.sys_write(a0 as _, a1 as _, a2 as _),
             SYS_READ => self.sys_read(a0.into(), a1.into(), a2 as _).await,
+            SYS_DUP => self.sys_dup(a0),
 
             // Custom
             SYS_TEST_CSTR => self.sys_test_cstr(a0 as _),

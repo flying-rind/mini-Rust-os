@@ -29,4 +29,9 @@ impl Syscall<'_> {
         let _ = base.write_array(&buf);
         Ok(len as _)
     }
+
+    /// Dup
+    pub fn sys_dup(&mut self, _arg1: usize) -> SysResult {
+        unimplemented!()
+    }
 }
