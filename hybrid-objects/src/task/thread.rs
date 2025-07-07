@@ -12,7 +12,7 @@ use x86_64::instructions::tlb;
 pub static CURRENT_THREAD: Cell<Option<Arc<Thread>>> = Cell::new(None);
 
 /// 全局变量：用户线程队列
-pub static THREAD_DEQUE: Cell<VecDeque<Arc<Thread>>> = Cell::new(VecDeque::new());
+pub static THREADS_DEQUE: Cell<VecDeque<Arc<Thread>>> = Cell::new(VecDeque::new());
 
 #[derive(Default, Debug, Copy, Clone, PartialEq)]
 pub enum ThreadState {
@@ -80,7 +80,7 @@ impl Thread {
         });
 
         // 加入全局线程队列
-        let thread_deque = THREAD_DEQUE.get_mut();
+        let thread_deque = THREADS_DEQUE.get_mut();
         thread_deque.push_back(thread.clone());
         thread
     }
@@ -99,16 +99,6 @@ impl Thread {
         self.user_context.get_mut().run()
     }
 
-    // /// 线程执行系统调用
-    // pub fn do_syscall(&self) {
-    //     let syscall_num = self.user_context.get_syscall_num();
-    //     let args = self.user_context.get_syscall_args();
-
-    //     // 执行系统调用
-    //     let (ret0, ret1) = syscall(syscall_num, args);
-    //     self.user_context.get_mut().set_syscall_ret(ret0, ret1);
-    // }
-
     /// 设置用户态上下文的返回值
     pub fn set_syscall_ret(&self, ret0: usize, ret1: usize) {
         self.user_context.get_mut().set_syscall_ret(ret0, ret1);
@@ -117,22 +107,15 @@ impl Thread {
     /// 线程退出，删除其所属进程中对其的引用
     ///
     /// 若为根线程，则退出相应的进程
-    ///
-    /// 这个函数应该被调度器执行
     pub fn exit(&self) {
-        let process = self.proc.upgrade();
-        if process.is_none() {
-            // panic!("[Kernel] Proc already exited")
-            // 进程已经被清理了，直接退出
-            return;
-        }
-        let process = process.unwrap();
+        let process = self.proc.upgrade().unwrap();
+        // 删除进程对自己的引用
+        process.remove_thread(self.tid);
+        // 删除全局线程表的引用
+        THREADS_DEQUE.get_mut().remove(self.tid);
         if self.tid == 0 {
             // 退出进程
             process.exit();
-        } else {
-            // 删除进程对自己的引用
-            process.remove_thread(self.tid);
         }
     }
 

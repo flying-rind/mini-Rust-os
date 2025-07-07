@@ -8,13 +8,11 @@ mod task;
 extern crate alloc;
 
 use alloc::sync::Arc;
-use debug::*;
 use fs::*;
 use hybrid_objects::task::Thread;
 use hybrid_objects::*;
-use sync::*;
 use task::*;
-use user_syscall::hybrid::SyscallNum::*;
+use user_syscall::num::*;
 
 /// 系统调用结构体，包含了用于执行一个系统调用的信息
 pub struct Syscall<'a> {
@@ -24,50 +22,41 @@ pub struct Syscall<'a> {
 
 impl Syscall<'_> {
     /// 系统调用总控函数
-    pub fn do_syscall(&mut self, syscall_id: usize, args: [usize; 6]) -> (usize, usize) {
-        let syscall_id = num::FromPrimitive::from_usize(syscall_id).unwrap();
+    pub fn do_syscall(&mut self, syscall_id: usize, args: [usize; 6]) -> isize {
         let ret = match syscall_id {
             // 调试用
-            DebugWrite => sys_debug_write(args[0]),
-            DebugDataTransport => sys_debug_data_transport(args[0], args[1]),
-            DebugOpen => sys_debug_open(args[0]),
-            SerialRead => sys_serial_read(args[0]),
-            GetTime => (*pic::TICKS as _, 0),
-            TestCstr => sys_test_cstr(args[0] as _),
+            // DebugWrite => sys_debug_write(args[0]),
+            // DebugDataTransport => sys_debug_data_transport(args[0], args[1]),
+            // DebugOpen => sys_debug_open(args[0]),
+            // SerialRead => sys_serial_read(args[0]),
+            // GetTime => (*pic::TICKS as _, 0),
+            // TestCstr => sys_test_cstr(args[0] as _),
 
             // 任务相关
-            ProcExit => sys_proc_exit(args[0]),
-            ProcCreate => sys_proc_create(args[0], args[1], args[2]),
-            ProcWait => sys_proc_wait(args[0]),
-            Yield => sys_yield(),
-            ThreadCreate => sys_thread_create(args[0], args[1], args[2]),
-            ThreadExit => sys_thread_exit(),
-            ThreadJoin => sys_thread_join(args[0]),
-            GetPid => sys_get_pid(),
-            GetTid => sys_get_tid(),
-            Fork => sys_fork(),
-            Exec => sys_exec(args[0], args[1]),
+            SYS_EXIT => sys_exit(args[0]),
+            SYS_WAIT4 => sys_proc_wait(args[0]),
+            // ?
+            SYS_SCHED_YIELD => sys_yield(),
+            // Thread?
+            SYS_GETPID => sys_get_pid(),
+            SYS_GETTID => sys_get_tid(),
+            SYS_FORK => sys_fork(),
+            SYS_VFORK => sys_fork(),
+            SYS_EXECVE => sys_exec(args[0], args[1]),
 
             // 文件相关
-            Open => sys_open(args[0], args[1], args[2]),
-            Close => sys_close(args[0]),
-            Read => sys_read(args[0], args[1], args[2], args[3]),
-            Write => sys_write(args[0], args[1], args[2], args[3]),
-            Pipe => sys_pipe(),
-            Dup => sys_dup(args[0]),
-            Ls => sys_ls(),
+            SYS_OPEN => sys_open(args[0], args[1], args[2]),
+            SYS_CLOSE => sys_close(args[0]),
+            SYS_READ => sys_read(args[0], args[1], args[2], args[3]),
+            SYS_WRITE => sys_write(args[0], args[1], args[2], args[3]),
+            SYS_PIPE => sys_pipe(),
+            SYS_DUP => sys_dup(args[0]),
 
-            // 同步互斥
-            MutexCreate => sys_mutex_create(),
-            MutexLock => sys_mutex_lock(args[0]),
-            MutexUnlock => sys_mutex_unlock(args[0]),
-            SemCreate => sys_sem_create(args[0]),
-            SemUp => sys_sem_up(args[0]),
-            SemDown => sys_sem_down(args[0]),
-            CondvarCreate => sys_condvar_create(),
-            CondvarWait => sys_condvar_wait(args[0], args[1]),
-            CondvarSignal => sys_condvar_signal(args[0]),
+            _ => unimplemented!("Not implemented yet!"),
         };
-        ret
+        match ret {
+            Ok(code) => code as _,
+            Err(err) => -(err as isize),
+        }
     }
 }

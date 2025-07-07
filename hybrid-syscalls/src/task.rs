@@ -2,24 +2,23 @@
 use super::*;
 use future::executor;
 use future::futures::{ThreadYield, WaitForProc, WaitForThread};
+use log::info;
 use mm::{MemoryArea, USER_STACK_BASE, USER_STACK_SIZE};
 use trap::CURRENT_THREAD;
 
 use alloc::string::ToString;
 use alloc::sync::Arc;
+use user_syscall::SysResult;
 use x86_64::structures::paging::PageTableFlags;
 
-/// 退出当前进程
-pub fn sys_proc_exit(exit_code: usize) -> (usize, usize) {
+/// Exit the current thread.
+pub fn sys_exit(exit_code: usize) -> SysResult {
     // 退出当前进程
-    let cur = CURRENT_THREAD.get().as_ref().unwrap().clone();
-    cur.proc().unwrap().exit();
-    // println!(
-    //     "[Kernel] proc `{}` exited with exit code `{}`",
-    //     cur.proc().unwrap().name(),
-    //     exit_code,
-    // );
-    (exit_code, 0)
+    let cur = current_thread();
+    let tid = cur.tid();
+    info!("Thread exit, tid: {}, code: {}", tid, exit_code);
+    cur.exit();
+    Ok(0)
 }
 
 /// 创建新进程
@@ -81,12 +80,14 @@ pub fn sys_exec(path_ptr: usize, args_ptr: usize) -> (usize, usize) {
     (current_proc.exec(&path, args), 0)
 }
 
-/// 当前线程等待一个进程结束
+/// Wait 4 the process exit.
+/// Return the PID. Currently no option argument yet so just wait for the process to exit.(FIXME, read zcore)
 ///
-/// 若等待的进程不存在则返回255
-pub fn sys_proc_wait(pid: usize) -> (usize, usize) {
+/// FIXME: Refactor to simplify this function.
+/// See [wait(2)](https://man7.org/linux/man-pages/man2/waitpid.2.html)
+pub fn sys_wait4(pid: usize) -> SysResult {
     // 获取当前线程
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+    let current_thread = current_thread();
 
     let waited_process = match PROCESS_MAP.get().get(&pid) {
         Some(process) => process.clone(),

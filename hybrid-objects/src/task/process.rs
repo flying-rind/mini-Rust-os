@@ -6,7 +6,7 @@ use alloc::sync::Weak;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::usize;
 use fs::OpenFlags;
-use fs::{open_file, File, Stdin, Stdout};
+use fs::{File, Stdin, Stdout, open_file};
 use hashbrown::HashMap;
 use spin::Lazy;
 use spin::RwLock;
@@ -210,11 +210,8 @@ impl Process {
         if let Some(parent_proc) = self.parent() {
             parent_proc.remove_child(self.pid);
         }
-        // 是否需要手动drop？
-        // drop(self.memory_set);
+        // 删除所有对子进程的引用
         self.children.get_mut().drain(..);
-        // 无需清理自己的线程队列，线程被调度器清理的时候会清除进程对自己的引用
-        // self.threads.get_mut().drain();
     }
 
     /// 为当前进程添加一个子进程

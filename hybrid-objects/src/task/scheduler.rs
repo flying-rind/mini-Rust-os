@@ -28,7 +28,7 @@ impl Scheduler {
     ///
     /// 若没有则返回None
     pub fn get_first_uthread() -> Option<Arc<Thread>> {
-        let thread_deque = THREAD_DEQUE.get_mut();
+        let thread_deque = THREADS_DEQUE.get_mut();
         for _ in 0..thread_deque.len() {
             let thread = thread_deque.pop_front().unwrap();
             if thread.state() == ThreadState::Runnable {
@@ -58,4 +58,3 @@ impl Scheduler {
         }
     }
 }
-

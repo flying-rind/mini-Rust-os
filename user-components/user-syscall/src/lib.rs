@@ -7,6 +7,7 @@ pub mod hybrid;
 #[cfg(feature = "monolithic")]
 pub mod monolithic;
 
+pub mod num;
 extern crate alloc;
 pub use alloc::string::String;
 
@@ -14,3 +15,5 @@ pub use alloc::string::String;
 pub use hybrid::*;
 #[cfg(feature = "monolithic")]
 pub use monolithic::*;
+
+pub type SysResult = Result<usize, SysError>;
