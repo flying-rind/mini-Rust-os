@@ -88,24 +88,24 @@ pub fn sys_exec(path_ptr: usize, args_ptr: usize) -> (usize, usize) {
 pub fn sys_wait4(pid: usize) -> SysResult {
     // 获取当前线程
     let current_thread = current_thread();
-
     let waited_process = match PROCESS_MAP.get().get(&pid) {
         Some(process) => process.clone(),
         None => {
-            // println!("[Kernel] waited proc does not existed or already dropped");
-            return (255, 0);
+            info!("Wait complete, pid: {}", pid);
+            return Ok(pid);
         }
     };
     current_thread.set_state(ThreadState::Waiting);
     executor::spawn(WaitForProc::new(current_thread, waited_process));
-    (0, 0)
+    Ok(pid)
 }
 
 /// 当前线程放弃CPU
-pub fn sys_yield() -> (usize, usize) {
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+pub fn sys_yield() -> SysResult {
+    let current_thread = current_thread();
+    current_thread.set_state(ThreadState::Waiting);
     executor::spawn(ThreadYield::new(current_thread));
-    return (0, 0);
+    Ok(0)
 }
 
 /// 创建线程，返回tid
@@ -178,19 +178,19 @@ pub fn sys_thread_join(tid: usize) -> (usize, usize) {
 }
 
 /// 获取当前进程PID
-pub fn sys_get_pid() -> (usize, usize) {
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-    (current_thread.proc().unwrap().pid(), 0)
+pub fn sys_get_pid() -> SysResult {
+    let current_thread = current_thread();
+    Ok(current_thread.proc().unwrap().pid())
 }
 
 /// 获取当前线程tid
-pub fn sys_get_tid() -> (usize, usize) {
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-    (current_thread.tid(), 0)
+pub fn sys_get_tid() -> SysResult {
+    let current_thread = current_thread();
+    Ok(current_thread.tid())
 }
 
 /// 复制当前进程
-pub fn sys_fork() -> (usize, usize) {
+pub fn sys_fork() -> SysResult {
     let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
     let current_proc = current_thread.proc().unwrap();
     let child_proc = current_proc.fork();
