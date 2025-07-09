@@ -10,9 +10,11 @@ use hybrid_objects::fs;
 use hybrid_objects::print;
 use hybrid_objects::println;
 use hybrid_objects::task;
+use log::error;
 use requests_info::CastBytes;
 use requests_info::fsreqinfo::FsReqDescription;
 use task::CURRENT_THREAD;
+use user_syscall::SysResult;
 
 /// 当前进程打开文件
 ///
@@ -21,7 +23,7 @@ use task::CURRENT_THREAD;
 /// 给内核线程，服务完成后线程将fd写入用户态
 ///
 /// 若fs线程不存在或发生其他错误，则返回(usize::MAX)
-pub fn sys_open(path_ptr: usize, flags: usize, fd_ptr: usize) -> (usize, usize) {
+pub fn sys_open(path_ptr: usize, flags: usize, fd_ptr: usize) -> SysResult {
     let fs_kthread = KTHREAD_MAP.get().get(&KthreadType::FS);
     match fs_kthread {
         Some(fs_kthread) => {
@@ -41,7 +43,7 @@ pub fn sys_open(path_ptr: usize, flags: usize, fd_ptr: usize) -> (usize, usize) 
             return (0, 0);
         }
         None => {
-            println!("[Kernel] Error when sys_open, FS kthread not exist!");
+            error!("[Kernel] Error when sys_open, FS kthread not exist!");
             return (usize::MAX, 0);
         }
     }

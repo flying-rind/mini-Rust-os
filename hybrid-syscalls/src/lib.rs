@@ -35,7 +35,6 @@ impl Syscall<'_> {
             // 任务相关
             SYS_EXIT => sys_exit(args[0]),
             SYS_WAIT4 => sys_wait4(args[0]),
-            // ?
             SYS_SCHED_YIELD => sys_yield(),
             // Thread?
             SYS_GETPID => sys_get_pid(),
