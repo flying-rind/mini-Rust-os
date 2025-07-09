@@ -6,6 +6,5 @@ pub use process::*;
 pub use spin::Mutex;
 pub use thread::*;
 
-mod abi;
 mod process;
 pub mod thread;

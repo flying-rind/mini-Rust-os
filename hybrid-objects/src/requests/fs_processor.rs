@@ -41,13 +41,7 @@ impl Processor for FsProcessor {
                 assert!(proc.is_some());
                 let proc = proc.unwrap();
                 // sys_read中已保证file存在文件表中
-                let file = proc
-                    .file_table()
-                    .get(*fd)
-                    .unwrap()
-                    .as_ref()
-                    .unwrap()
-                    .clone();
+                let file = proc.file_table().get(fd).unwrap();
                 let read_size = if !file.readable() {
                     println!("[Fs server] Error reading file, not readable!");
                     usize::MAX
@@ -78,13 +72,7 @@ impl Processor for FsProcessor {
                 assert!(proc.is_some());
                 let proc = proc.unwrap();
                 // sys_read中已保证file存在文件表中
-                let file = proc
-                    .file_table()
-                    .get(*fd)
-                    .unwrap()
-                    .as_ref()
-                    .unwrap()
-                    .clone();
+                let file = proc.file_table().get(fd).unwrap();
                 let write_size = if !file.writable() {
                     println!("[Fs server] Error writing file, not readable!");
                     usize::MAX

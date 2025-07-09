@@ -228,6 +228,8 @@ dependencies = [
  "num-traits",
  "numeric-enum-macro",
  "raw-cpuid 11.5.0",
+ "rcore-fs",
+ "rcore-fs-sfs",
  "spin 0.10.0",
  "x86_64",
 ]
@@ -373,6 +375,7 @@ version = "0.1.0"
 dependencies = [
  "bitflags 2.9.1",
  "executor",
+ "hal",
  "hybrid-objects",
  "lazy_static",
  "log",

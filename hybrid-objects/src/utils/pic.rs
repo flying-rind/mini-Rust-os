@@ -1,3 +1,4 @@
+use crate::my_x86_64::out8;
 use crate::*;
 
 const MASTER_CMD: u16 = 0x20;

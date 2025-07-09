@@ -128,7 +128,7 @@ impl Thread {
         vm.insert_area(stack_area);
         // 参数压栈
         vm.activate();
-        use crate::task::abi::ProcInfo;
+        use hal::abi::ProcInfo;
         use hybrid_objects::mm::{USER_STACK_BASE, USER_STACK_SIZE};
         let init_info = ProcInfo { args, envs };
         unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) }

@@ -2,11 +2,14 @@
 
 use core::task::Waker;
 
+use crate::mm::MemAreaType;
+use crate::mm::MemorySet;
 use crate::*;
 use alloc::sync::{Arc, Weak};
 use mm::MemoryArea;
 use trapframe::UserContext;
 use x86_64::instructions::tlb;
+use x86_64::structures::paging::PageTableFlags;
 
 /// 全局变量：当前线程
 pub static CURRENT_THREAD: Cell<Option<Arc<Thread>>> = Cell::new(None);
@@ -83,6 +86,26 @@ impl Thread {
         let thread_deque = THREADS_DEQUE.get_mut();
         thread_deque.push_back(thread.clone());
         thread
+    }
+
+    /// Construct a new user stack memory area, insert to vm.
+    /// And push args and envs to stack, return new sp.
+    pub fn new_user_stack(vm: Arc<MemorySet>, args: Vec<String>, envs: Vec<String>) -> usize {
+        let flags =
+            PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
+        let stack_area = MemoryArea::new(
+            USER_STACK_BASE,
+            USER_STACK_SIZE,
+            flags,
+            MemAreaType::USERSTACK,
+        );
+        vm.insert_area(stack_area);
+        // 参数压栈
+        vm.activate();
+        use hal::abi::ProcInfo;
+        use mm::{USER_STACK_BASE, USER_STACK_SIZE};
+        let init_info = ProcInfo { args, envs };
+        unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) }
     }
 
     /// 运行当前线程，当用户态发生中断或系统调用时控制流返回Rust

@@ -13,5 +13,7 @@ spin = "*"
 log = "0.4"
 raw-cpuid = "11.5.0"
 x86_64 = "0.15.2"
-num-derive = "0.4.2"
-num-traits = "0.2.19"
+num-derive = {version = "0.4.2", default-features = false}
+num-traits = {version = "0.2.19", default-features = false}
+rcore-fs = { git = "https://github.com/rcore-os/rcore-fs" }
+rcore-fs-sfs = { git = "https://github.com/rcore-os/rcore-fs" }

@@ -5,13 +5,9 @@ use hashbrown::{HashMap, hash_map::Entry};
 use x86_64::structures::paging::PageTableFlags;
 
 use super::physframe::PhysFrame;
-use super::*;
 use crate::Cell;
 use crate::mm::{PAGE_SIZE, align_down, is_aligned, phys_to_virt};
-use alloc::string::String;
-use alloc::vec::Vec;
 use core::fmt::Debug;
-use core::mem::size_of;
 
 /// 虚存区域的类型
 #[derive(PartialEq, Eq, Clone)]
@@ -142,39 +138,4 @@ impl Debug for MemoryArea {
             self.start_vaddr, self.size, self.flags
         )
     }
-}
-
-/// 将命令行参数压入线程的用户栈中，返回（top, argc，argv）
-///
-/// 栈的情况：
-///
-/// ----high
-///
-/// \0
-///
-/// ptr2
-///
-/// ptr1    <--argv
-///
-/// str1
-///
-/// str2
-///
-/// ----low
-pub fn push_to_stack(_stack: Arc<MemoryArea>, args: Option<Vec<String>>) -> (usize, usize, usize) {
-    let args = args.unwrap();
-    let mut top =
-        (USER_STACK_BASE + USER_STACK_SIZE - (args.len() + 1) * size_of::<usize>()) as *mut u8;
-    let argv = top as *mut usize;
-    unsafe {
-        for (i, arg) in args.iter().enumerate() {
-            top = top.sub(arg.len() + 1);
-            core::ptr::copy_nonoverlapping(arg.as_ptr(), top, arg.len());
-            *(top.add(arg.len())) = 0; // '\0'
-            *argv.add(i) = top as _;
-        }
-        // argv[argc] = NULL
-        *argv.add(args.len()) = 0;
-    }
-    return (top as usize & !0xF, args.len(), argv as usize);
 }

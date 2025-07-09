@@ -1,5 +1,5 @@
 //! 任务管理类系统调用
-use crate::monolithic::error::SysResult;
+use crate::SysResult;
 // use crate::monolithic::print::print;
 use alloc::vec::Vec;
 use core::ptr;

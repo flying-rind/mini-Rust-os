@@ -2,10 +2,8 @@
 #![no_std]
 
 use alloc::boxed::Box;
-use alloc::{string::String, sync::Arc, vec::Vec};
-use core::fmt::Debug;
+use alloc::{sync::Arc, vec::Vec};
 use hal::user::UserInOutPtr;
-use hybrid_objects::mm::PHYS_OFFSET;
 pub use log::error;
 use log::info;
 use monolithic_objects::Thread;
@@ -13,7 +11,6 @@ use monolithic_objects::ThreadFn;
 use num::*;
 use spin::MutexGuard;
 use trapframe::UserContext;
-use user_syscall::monolithic::error::SysError;
 
 extern crate alloc;
 extern crate num_traits;
@@ -22,8 +19,6 @@ mod custom;
 mod fs;
 mod num;
 mod proc;
-
-pub type SysResult = Result<usize, SysError>;
 
 /// 系统调用
 pub struct Syscall<'a> {

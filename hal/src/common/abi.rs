@@ -2,8 +2,8 @@
 
 use crate::alloc::string::String;
 use alloc::slice;
+use alloc::vec::Vec;
 use core::ptr::null;
-use hybrid_objects::vec::Vec;
 
 /// 进程初始化时压入用户栈的信息
 pub struct ProcInfo {

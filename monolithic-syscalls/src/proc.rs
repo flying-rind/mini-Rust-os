@@ -1,13 +1,15 @@
 //! 任务管理类系统调用
 use crate::*;
+use hal::SysError;
 use hal::user::UserInOutPtr;
-use hal::{access_ok, check_n_clone_cstr, check_n_clone_cstr_array};
+use hal::{check_n_clone_cstr, check_n_clone_cstr_array};
 use log::info;
 use monolithic_objects::{
     PROCESSES, THREADS,
     sync::{Event, wait_for_event},
     task::ThreadState,
 };
+use user_syscall::SysResult;
 
 impl Syscall<'_> {
     /// Fork current process, return child's PID.

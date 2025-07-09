@@ -19,9 +19,8 @@ pub fn current_thread() -> Arc<Thread> {
 /// 获取当前进程
 #[inline]
 pub fn current_proc() -> Arc<Process> {
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-    let current_proc = current_thread.proc().unwrap();
-    current_proc
+    let current_thread = current_thread();
+    current_thread.proc().unwrap()
 }
 
 /// 切换到pid所在进程的地址空间

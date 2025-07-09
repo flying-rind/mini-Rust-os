@@ -2,6 +2,10 @@
 use core::fmt;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
+use rcore_fs::vfs::FsError;
+
+use crate::user::UserPtrError;
+
 #[repr(isize)]
 #[derive(Debug, FromPrimitive)]
 /// 系统调用错误
@@ -69,6 +73,12 @@ impl From<usize> for SysError {
     }
 }
 
+impl From<UserPtrError> for SysError {
+    fn from(_value: UserPtrError) -> Self {
+        SysError::EFAULT
+    }
+}
+
 #[allow(non_snake_case)]
 impl fmt::Display for SysError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -128,5 +138,31 @@ impl fmt::Display for SysError {
                 _ => "Unknown error",
             },
         )
+    }
+}
+
+impl From<FsError> for SysError {
+    fn from(value: FsError) -> Self {
+        match value {
+            FsError::NotSupported => SysError::ENOSYS,
+            FsError::NotFile => SysError::EISDIR,
+            FsError::IsDir => SysError::EISDIR,
+            FsError::NotDir => SysError::ENOTDIR,
+            FsError::EntryNotFound => SysError::ENOENT,
+            FsError::EntryExist => SysError::EEXIST,
+            FsError::NotSameFs => SysError::EXDEV,
+            FsError::InvalidParam => SysError::EINVAL,
+            FsError::NoDeviceSpace => SysError::ENOMEM,
+            FsError::DirRemoved => SysError::ENOENT,
+            FsError::DirNotEmpty => SysError::ENOTEMPTY,
+            FsError::WrongFs => SysError::EINVAL,
+            FsError::DeviceError => SysError::EIO,
+            FsError::IOCTLError => SysError::EINVAL,
+            FsError::NoDevice => SysError::EINVAL,
+            FsError::Again => SysError::EAGAIN,
+            FsError::SymLoop => SysError::ELOOP,
+            FsError::Busy => SysError::EBUSY,
+            FsError::Interrupted => SysError::EINTR,
+        }
     }
 }

@@ -1,17 +1,18 @@
 //! 进程抽象
+use crate::fs::ROOT_INODE;
 use crate::{mm::*, *};
 
 use alloc::sync::Arc;
 use alloc::sync::Weak;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::usize;
-use fs::OpenFlags;
-use fs::{File, Stdin, Stdout, open_file};
+use fs::File;
 use hashbrown::HashMap;
+use rcore_fs::vfs::FsError;
+use rcore_fs::vfs::INode;
 use spin::Lazy;
 use spin::RwLock;
 use sync::{Condvar, MutexBlocking, Sem};
-use x86_64::structures::paging::PageTableFlags;
 use xmas_elf::ElfFile;
 
 /// 全局变量，PID到进程对象的映射
@@ -39,7 +40,9 @@ pub struct Process {
     /// 线程ID，创建新线程时分配
     thread_id: AtomicUsize,
     /// 文件表
-    file_table: Cell<Vec<Option<Arc<dyn File>>>>,
+    files: Cell<BTreeMap<usize, Arc<dyn File>>>,
+    /// 当前工作目录
+    cwd: String,
     /// 互斥锁
     mutexes: Cell<Vec<Arc<MutexBlocking>>>,
     /// 信号量
@@ -49,72 +52,7 @@ pub struct Process {
 }
 
 impl Process {
-    /// 创建新进程
-    ///
-    /// 为其创建虚存空间，将elf文件载入虚存空间中，并建立根线程
-    ///
-    /// 若路径有误，则返回None
-    pub fn new(name: String, path: &str, args: Option<Vec<String>>) -> Option<Arc<Self>> {
-        // 从文件系统中读取elf文件，载入到地址空间
-        let file = match open_file(path, OpenFlags::RDONLY) {
-            Some(file) => file,
-            // 路径有误，直接返回None
-            None => return None,
-        };
-        // 新建进程虚存空间
-        let memory_set = MemorySet::new();
-        let elf_data = file.read_all();
-        let elf = ElfFile::new(&elf_data).unwrap();
-        load_app(memory_set.clone(), &elf);
-        let entry = elf.header.pt2.entry_point() as usize;
-
-        // 为根线程创建用户栈内存区域
-        let stack_area = MemoryArea::new(
-            USER_STACK_BASE,
-            USER_STACK_SIZE,
-            PageTableFlags::USER_ACCESSIBLE | PageTableFlags::WRITABLE | PageTableFlags::PRESENT,
-            MemAreaType::USERSTACK,
-        );
-        memory_set.insert_area(stack_area.clone());
-        // 切换到新进程地址空间以访问其用户栈
-        memory_set.activate();
-        // 参数压栈
-        let (stack_top, argc, argv) = if args.is_none() {
-            (USER_STACK_BASE + USER_STACK_SIZE, 0, 0)
-        } else {
-            push_to_stack(stack_area.clone(), args)
-        };
-        // 构造新进程，默认打开标准输入输出
-        let pid = PROCESS_ID.fetch_add(1, Ordering::Relaxed);
-        let new_proc = Arc::new(Process {
-            pid,
-            name,
-            memory_set,
-            file_table: Cell::new(vec![
-                Some(Arc::new(Stdin)),
-                Some(Arc::new(Stdout)),
-                Some(Arc::new(Stdout)),
-            ]),
-            ..Process::default()
-        });
-
-        // 加入全局进程映射表
-        PROCESS_MAP.get_mut().insert(pid, new_proc.clone());
-
-        // 创建根线程
-        let tid = new_proc.thread_id.fetch_add(1, Ordering::Relaxed);
-        let root_thread = Thread::new(
-            Arc::downgrade(&new_proc),
-            tid,
-            entry,
-            stack_top,
-            argc,
-            argv,
-            stack_area,
-        );
-        new_proc.add_thread(root_thread);
-        Some(new_proc)
-    }
+    const AT_FDCWD: usize = -100isize as usize;
 
     /// 复制当前进程
     ///
@@ -128,7 +66,7 @@ impl Process {
             pid,
             name: self.name.clone(),
             memory_set: memory_set.clone(),
-            file_table: Cell::new(self.file_table.get().clone()),
+            files: Cell::new(self.file_table().clone()),
             ..Process::default()
         });
         // 加入全局进程映射表
@@ -161,41 +99,75 @@ impl Process {
         child_proc
     }
 
-    /// 替换当前进程的elf文件
-    pub fn exec(&self, path: &str, args: Option<Vec<String>>) -> usize {
-        if let Some(file) = open_file(path, OpenFlags::RDONLY) {
-            let elf_data = file.read_all();
-            let elf = ElfFile::new(&elf_data).unwrap();
-            // 清理除了exec之外的所有子线程
-            let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-            for (_, thread) in self.threads.get() {
-                if current_thread.tid() != thread.tid() {
-                    thread.set_state(ThreadState::Exited);
-                }
-            }
-            let threads = self.threads.get_mut();
-            threads.clear();
-            threads.insert(current_thread.tid(), current_thread.clone());
-            // 清理地址空间之前的elf虚存区域
-            self.memory_set.clear_elf();
-            // 重新加载elf
-            load_app(self.memory_set.clone(), &elf);
-            let entry = elf.header.pt2.entry_point() as usize;
-            // 参数压栈
-            self.memory_set.activate();
-            let (stack_top, argc, argv) = if args.is_none() {
-                (USER_STACK_BASE + USER_STACK_SIZE, 0, 0)
-            } else {
-                push_to_stack(current_thread.stack_area(), args)
-            };
-            // 准备根线程现场
-            // println!("entry: {:x}", entry);
-            current_thread.set_ip(entry);
-            current_thread.set_sp(stack_top);
-            current_thread.set_args(argc, argv);
-            return 1;
+    /// Lookup Inode from the process.
+    ///
+    /// - If `path` is relative, then it is interpreted relative to the directory
+    ///   referred to by the file descriptor `dirfd`.
+    ///
+    /// - If the `dirfd` is the special value `AT_FDCWD`, then the directory is
+    ///   current working directory of the process.
+    ///
+    /// - If `path` is absolute, then `dirfd` is ignored.
+    ///
+    /// - If `follow` is true, then dereference `path` if it is a symbolic link.
+    pub fn lookup_inode_at(
+        &self,
+        dirfd: usize,
+        path: &str,
+        follow: bool,
+    ) -> Result<Arc<dyn INode>, FsError> {
+        /// Pathname is interpreted relative to the current working directory(CWD)
+        pub const FOLLOW_MAX_DEPTH: usize = 3;
+        debug!(
+            "lookup_inode_at: dirfd: {:?}, cwd: {:?}, path: {:?}, follow: {:?}",
+            dirfd as isize, self.cwd, path, follow
+        );
+        let follow_max_depth = if follow { FOLLOW_MAX_DEPTH } else { 0 };
+        // Look from cwd
+        if dirfd == Self::AT_FDCWD {
+            Ok(ROOT_INODE
+                .lookup(&self.cwd)?
+                .lookup_follow(path, follow_max_depth)?)
+        // Look from dirfd
+        } else {
+            let file = self.get_file(dirfd).ok_or(FsError::EntryNotFound)?;
+            Ok(file.lookup_follow(path, follow_max_depth)?)
         }
-        usize::MAX
+    }
+
+    /// 在进程当前目录查找INode
+    pub fn lookup_inode(&self, path: &str) -> Result<Arc<dyn INode>, FsError> {
+        self.lookup_inode_at(Self::AT_FDCWD, path, true)
+    }
+
+    /// 替换当前进程的elf文件
+    pub fn exec(
+        &self,
+        inode: &Arc<dyn INode>,
+        args: Vec<String>,
+        envs: Vec<String>,
+    ) -> Result<usize, FsError> {
+        let mut data = [0u8; 16 * 1024 * 10];
+        inode.read_at(0, &mut data)?;
+        let elf = ElfFile::new(&data).unwrap();
+        // 清理除了exec之外的所有子线程
+        let current_thread = current_thread();
+        for (_, thread) in self.threads.get() {
+            if current_thread.tid() != thread.tid() {
+                thread.set_state(ThreadState::Exited);
+            }
+        }
+        let threads = self.threads.get_mut();
+        threads.clear();
+        threads.insert(current_thread.tid(), current_thread.clone());
+        let new_vm = MemorySet::new();
+        // 加载elf
+        load_app(new_vm.clone(), &elf);
+        let entry = elf.header.pt2.entry_point() as usize;
+        let sp = Thread::new_user_stack(new_vm, args, envs);
+        current_thread.set_ip(entry);
+        current_thread.set_sp(sp);
+        Ok(0)
     }
 
     /// 退出进程
@@ -229,21 +201,20 @@ impl Process {
         self.threads.get_mut().insert(thread.tid(), thread);
     }
 
+    /// Get lowest free fd
+    fn get_free_fd(&self) -> usize {
+        (0..).find(|i| !self.files.contains_key(i)).unwrap()
+    }
+
     /// 增加一个文件，返回新增文件的fd
     ///
     /// 若有已经关闭的文件，则使用当前文件替换
     ///
     /// 以此实现dup和管道
-    pub fn add_file(&self, new_file: Arc<dyn File>) -> usize {
-        let file_table = self.file_table.get_mut();
-        for (i, file) in file_table.iter_mut().enumerate() {
-            if file.is_none() {
-                *file = Some(new_file);
-                return i;
-            }
-        }
-        file_table.push(Some(new_file));
-        file_table.len() - 1
+    pub fn add_file(&self, file: Arc<dyn File>) -> usize {
+        let fd = self.get_free_fd();
+        self.files.get_mut().insert(fd, file);
+        fd
     }
 
     /// 增加一个互斥锁，返回ID
@@ -327,8 +298,13 @@ impl Process {
     }
 
     /// 获取文件表
-    pub fn file_table(&self) -> &mut Vec<Option<Arc<dyn File>>> {
-        self.file_table.get_mut()
+    pub fn file_table(&self) -> &mut BTreeMap<usize, Arc<dyn File>> {
+        self.files.get_mut()
+    }
+
+    /// 获取文件
+    pub fn get_file(&self, fd: usize) -> Option<Arc<dyn File>> {
+        self.file_table().get(&fd).cloned()
     }
 
     /// 获取互斥锁列表

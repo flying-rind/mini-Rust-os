@@ -1,7 +1,11 @@
 //! C语言字符串操作
 
+use crate::PHYS_OFFSET;
+use crate::SysError;
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::fmt::Debug;
+
 /// 检查并复制C语言字符串
 pub fn check_n_clone_cstr(user: *const u8) -> Result<String, SysError> {
     if user.is_null() {

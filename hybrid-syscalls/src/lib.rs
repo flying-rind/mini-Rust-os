@@ -42,7 +42,7 @@ impl Syscall<'_> {
             SYS_GETTID => sys_get_tid(),
             SYS_FORK => sys_fork(),
             SYS_VFORK => sys_fork(),
-            SYS_EXECVE => sys_exec(args[0], args[1]),
+            SYS_EXECVE => sys_exec(args[0] as _, args[1] as _, args[2] as _),
 
             // 文件相关
             SYS_OPEN => sys_open(args[0], args[1], args[2]),

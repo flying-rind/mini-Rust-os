@@ -1,13 +1,13 @@
 //! 宏内核系统调用
 pub mod custom;
-pub mod error;
 pub mod fs;
 pub mod print;
 pub mod task;
 
+use crate::SysResult;
 pub use custom::*;
-pub use error::*;
 pub use fs::*;
+use hal::SysError;
 use num_traits::FromPrimitive;
 pub use task::*;
 

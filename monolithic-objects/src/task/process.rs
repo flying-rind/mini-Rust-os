@@ -168,8 +168,6 @@ impl Process {
         **context = UserContext::default();
         context.set_ip(entry);
         context.set_sp(sp);
-        // info!("Exec set ip: 0x{:x}, sp: 0x{:x}", entry, sp);
-        // info!("After exec, vm:\n {:#?}", self.vm);
         Ok(0)
     }
 

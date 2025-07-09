@@ -14,3 +14,4 @@ log = "0.4.27"
 xmas-elf = "0.10.0"
 x86_64 = "0.15.2"
 bitflags = "2.9.1"
+hal ={ path = "../hal"}

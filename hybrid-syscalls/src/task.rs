@@ -1,13 +1,12 @@
 //! 任务管理相关的系统调用
 use super::*;
+use alloc::sync::Arc;
 use future::executor;
 use future::futures::{ThreadYield, WaitForProc, WaitForThread};
+use hal::{check_n_clone_cstr, check_n_clone_cstr_array};
 use log::info;
 use mm::{MemoryArea, USER_STACK_BASE, USER_STACK_SIZE};
 use trap::CURRENT_THREAD;
-
-use alloc::string::ToString;
-use alloc::sync::Arc;
 use user_syscall::SysResult;
 use x86_64::structures::paging::PageTableFlags;
 
@@ -21,66 +20,20 @@ pub fn sys_exit(exit_code: usize) -> SysResult {
     Ok(0)
 }
 
-/// 创建新进程
-///
-/// 并设置其主线程为就绪态
-///
-/// 若创建失败返回usize::MAX
-pub fn sys_proc_create(name_ptr: usize, path_ptr: usize, args_ptr: usize) -> (usize, usize) {
-    let name = unsafe { (*(name_ptr as *const &str)).to_string() };
-    let path = unsafe { (*(path_ptr as *const &str)).to_string() };
-    // 获取命令行参数从用户堆拷贝到内核堆
-    let args: Option<Vec<String>> = if args_ptr != 0 {
-        let args_ref: &Vec<String> = unsafe { &(*(args_ptr as *const Vec<String>)) };
-        // [Debug]
-        println!(
-            "path_ptr = {:x}, args_ptr = {:x}, args[0] = {}",
-            path_ptr, args_ptr, args_ref[0]
-        );
-        Some(args_ref.clone())
-    } else {
-        None
-    };
-    let new_process = Process::new(name, &path, args);
-    if new_process.is_none() {
-        return (usize::MAX, 0);
-    }
-    let new_process = new_process.unwrap();
-    let new_process_id = new_process.pid();
-    // 获取当前进程
-    let current_process = CURRENT_THREAD.get().as_ref().unwrap().proc().unwrap();
-    // 加入到父进程的子进程列表中
-    current_process.add_child(new_process.clone());
-    new_process.set_parent(Arc::downgrade(&current_process));
-    // 设置进程就绪
-    new_process.root_thread().resume();
-    (new_process_id, 0)
-}
-
 /// 替换当前进程elf
 ///
 /// 若失败返回usize::MAX
-pub fn sys_exec(
-    pathp: *const u8,
-    argvp: *const *const u8,
-    envp: *const *const u8,
-) -> (usize, usize) {
+pub fn sys_exec(pathp: *const u8, argvp: *const *const u8, envp: *const *const u8) -> SysResult {
     info!(
         "exec: pathp: {:?}, argvp: {:?}, envp: {:?}",
         pathp, argvp, envp
     );
-    let path = unsafe { *(path_ptr as *const &str) };
-    let path = path.to_string();
-    // 获取命令行参数从用户堆拷贝到内核堆
-    let args: Option<Vec<String>> = if args_ptr != 0 {
-        let args_ref: &Vec<String> = unsafe { &(*(args_ptr as *const Vec<String>)) };
-        Some(args_ref.clone())
-    } else {
-        None
-    };
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-    let current_proc = current_thread.proc().unwrap();
-    (current_proc.exec(&path, args), 0)
+    let cur_proc = current_proc();
+    let path = check_n_clone_cstr(pathp)?;
+    let args = check_n_clone_cstr_array(argvp)?;
+    let envs = check_n_clone_cstr_array(envp)?;
+    let inode = cur_proc.lookup_inode(&path)?;
+    Ok(cur_proc.exec(&inode, args, envs)?)
 }
 
 /// Wait 4 the process exit.
