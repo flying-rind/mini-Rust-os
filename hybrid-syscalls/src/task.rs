@@ -60,14 +60,17 @@ pub fn sys_proc_create(name_ptr: usize, path_ptr: usize, args_ptr: usize) -> (us
 /// 替换当前进程elf
 ///
 /// 若失败返回usize::MAX
-pub fn sys_exec(path_ptr: usize, args_ptr: usize) -> (usize, usize) {
+pub fn sys_exec(
+    pathp: *const u8,
+    argvp: *const *const u8,
+    envp: *const *const u8,
+) -> (usize, usize) {
+    info!(
+        "exec: pathp: {:?}, argvp: {:?}, envp: {:?}",
+        pathp, argvp, envp
+    );
     let path = unsafe { *(path_ptr as *const &str) };
     let path = path.to_string();
-    // println!(
-    //     "in kernel sys_exec, path: {}, path_len:{}",
-    //     path,
-    //     path.len()
-    // );
     // 获取命令行参数从用户堆拷贝到内核堆
     let args: Option<Vec<String>> = if args_ptr != 0 {
         let args_ref: &Vec<String> = unsafe { &(*(args_ptr as *const Vec<String>)) };
@@ -191,8 +194,8 @@ pub fn sys_get_tid() -> SysResult {
 
 /// 复制当前进程
 pub fn sys_fork() -> SysResult {
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+    let current_thread = current_thread();
     let current_proc = current_thread.proc().unwrap();
     let child_proc = current_proc.fork();
-    (child_proc.pid(), 0)
+    Ok(child_proc.pid())
 }

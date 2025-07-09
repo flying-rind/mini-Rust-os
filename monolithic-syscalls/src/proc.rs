@@ -1,6 +1,7 @@
 //! 任务管理类系统调用
 use crate::*;
 use hal::user::UserInOutPtr;
+use hal::{access_ok, check_n_clone_cstr, check_n_clone_cstr_array};
 use log::info;
 use monolithic_objects::{
     PROCESSES, THREADS,

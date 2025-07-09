@@ -40,3 +40,6 @@ numeric_enum! {
 
 /// The smallest size of a page (4K).
 pub const PAGE_SIZE: usize = super::mem::PageSize::Size4K as usize;
+
+/// 内核映射物理内存偏移
+pub const PHYS_OFFSET: usize = 0xFFFF_8000_0000_0000;
