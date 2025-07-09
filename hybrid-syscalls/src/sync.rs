@@ -1,8 +1,8 @@
 //! 同步互斥相关系统调用
 use trap::CURRENT_THREAD;
 
-use hybrid_objects::{sync::*, *};
 use alloc::sync::Arc;
+use hybrid_objects::{sync::*, *};
 
 /// 为当前进程创建一个互斥锁，返回互斥锁的编号
 pub fn sys_mutex_create() -> (usize, usize) {
@@ -35,13 +35,7 @@ pub fn sys_mutex_lock(mutex_id: usize) -> (usize, usize) {
 ///
 /// 成功返回0，失败返回usize::MAX
 pub fn sys_mutex_unlock(mutex_id: usize) -> (usize, usize) {
-    let current_proc = CURRENT_THREAD
-        .get()
-        .as_ref()
-        .unwrap()
-        .clone()
-        .proc()
-        .unwrap();
+    let current_proc = current_proc();
     if let Some(mutex) = current_proc.mutexes().get(mutex_id) {
         mutex.unlock();
     } else {
@@ -52,13 +46,7 @@ pub fn sys_mutex_unlock(mutex_id: usize) -> (usize, usize) {
 
 /// 创建信号量，返回id
 pub fn sys_sem_create(n: usize) -> (usize, usize) {
-    let current_proc = CURRENT_THREAD
-        .get()
-        .as_ref()
-        .unwrap()
-        .clone()
-        .proc()
-        .unwrap();
+    let current_proc = current_proc();
     let sem = Sem::new(n);
     (current_proc.add_sem(sem), 0)
 }
@@ -89,13 +77,7 @@ pub fn sys_sem_down(sem_id: usize) -> (usize, usize) {
 
 /// 创建条件变量，返回ID
 pub fn sys_condvar_create() -> (usize, usize) {
-    let current_proc = CURRENT_THREAD
-        .get()
-        .as_ref()
-        .unwrap()
-        .clone()
-        .proc()
-        .unwrap();
+    let current_proc = current_proc();
     let condvar = Condvar::new();
     (current_proc.add_condvar(condvar), 0)
 }

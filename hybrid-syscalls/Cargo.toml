@@ -8,11 +8,10 @@ hybrid-objects = { path = "../hybrid-objects" }
 user-syscall = { path = "../user-components/user-syscall", features = ["hybrid"]}
 hal ={ path = "../hal"}
 requests-info = {path = "../user-components/requests-info"}
-
-
 num = { version = "0.4", default-features = false }
 num-derive = { version = "0.4", default-features = false }
 num-traits = { version = "0.2.19", default-features = false }
 spin = "0.10"
 x86_64 = "0.15.2"
 log = "0.4.27"
+rcore-fs ={ git = "https://github.com/rcore-os/rcore-fs" }

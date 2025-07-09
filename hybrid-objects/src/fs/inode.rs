@@ -16,13 +16,23 @@ use spin::Mutex;
 
 bitflags::bitflags! {
     /// 打开文件时的读写权限
-    pub struct OpenFlags: u32 {
+    pub struct OpenFlags: usize {
+        /// read only
         const RDONLY = 0;
+        /// write only
         const WRONLY = 1 << 0;
+        /// read write
         const RDWR = 1 << 1;
-        const CREATE = 1 << 9;
-        /// 创建时清空
-        const TRUNC = 1 << 10;
+        /// create file if it does not exist
+        const CREATE = 1 << 6;
+        /// error if create and the file exists
+        const EXCLUSIVE = 1 << 7;
+        /// truncate file upon open
+        const TRUNCATE = 1 << 9;
+        /// append on each write
+        const APPEND = 1<<10;
+        /// close on exec
+        const CLOEXEC = 1 << 19;
     }
 }
 
@@ -156,7 +166,7 @@ pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
         ROOT_INODE
             .find(name)
             .map(|inode| {
-                if flags.contains(OpenFlags::TRUNC) {
+                if flags.contains(OpenFlags::TRUNCATE) {
                     let _ = inode.resize(0);
                 }
                 Arc::new(OSInode::new(readable, writable, inode))

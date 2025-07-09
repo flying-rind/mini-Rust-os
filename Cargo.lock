@@ -294,6 +294,7 @@ dependencies = [
  "num",
  "num-derive",
  "num-traits",
+ "rcore-fs",
  "requests-info",
  "spin 0.10.0",
  "user-syscall",

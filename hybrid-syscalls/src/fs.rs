@@ -2,8 +2,11 @@
 
 use crate::future::{executor, futures::WaitForKthread};
 use crate::trap::{KTHREAD_MAP, KthreadType};
+use alloc::sync::Arc;
 use fs::OSInode;
 use fs::*;
+use hal::SysError;
+use hal::check_n_clone_cstr;
 use hybrid_objects::ThreadState;
 use hybrid_objects::current_proc;
 use hybrid_objects::fs;
@@ -11,42 +14,67 @@ use hybrid_objects::print;
 use hybrid_objects::println;
 use hybrid_objects::task;
 use log::error;
+use log::info;
+use rcore_fs::vfs::FsError;
 use requests_info::CastBytes;
 use requests_info::fsreqinfo::FsReqDescription;
 use task::CURRENT_THREAD;
 use user_syscall::SysResult;
 
-/// 当前进程打开文件
-///
-/// 异步系统调用，发送请求给fs内核线程并异步等待被唤醒
-/// 所以不能直接使用寄存器传递返回fd，需要将fd指针传递
-/// 给内核线程，服务完成后线程将fd写入用户态
-///
-/// 若fs线程不存在或发生其他错误，则返回(usize::MAX)
-pub fn sys_open(path_ptr: usize, flags: usize, fd_ptr: usize) -> SysResult {
-    let fs_kthread = KTHREAD_MAP.get().get(&KthreadType::FS);
-    match fs_kthread {
-        Some(fs_kthread) => {
-            let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-            let pid = current_thread.proc().unwrap().pid();
-            // 构造fsreq
-            let fsreq = FsReqDescription::Open(pid, path_ptr, flags as _, fd_ptr)
-                .as_bytes()
-                .to_vec();
-            // 发送请求给fskthread
-            let fs_kthread = fs_kthread.clone();
-            let req_id = fs_kthread.add_request(fsreq);
-            // 当前线程进入异步等待
-            current_thread.set_state(ThreadState::Waiting);
-            // 生成等待协程
-            executor::spawn(WaitForKthread::new(current_thread, fs_kthread, req_id));
-            return (0, 0);
-        }
-        None => {
-            error!("[Kernel] Error when sys_open, FS kthread not exist!");
-            return (usize::MAX, 0);
-        }
+/// Split a `path` str to `(base_path, file_name)`
+fn split_path(path: &str) -> (&str, &str) {
+    let mut split = path.trim_end_matches('/').rsplitn(2, '/');
+    let file_name = split.next().unwrap();
+    let mut dir_path = split.next().unwrap_or(".");
+    if dir_path == "" {
+        dir_path = "/";
     }
+    (dir_path, file_name)
+}
+
+/// Open and possibly create a file at the cwd.
+pub fn sys_open(path: *const u8, flags: usize, mode: usize) -> SysResult {
+    const AT_FDCWD: usize = -100isize as usize;
+    sys_openat(AT_FDCWD, path, flags, mode)
+}
+
+/// Open and possibly create a file.
+pub fn sys_openat(dir_fd: usize, path: *const u8, flags: usize, mode: usize) -> SysResult {
+    let proc = current_proc();
+    let path = check_n_clone_cstr(path)?;
+    let flags = OpenFlags::from_bits_truncate(flags);
+    info!(
+        "openat: dir_fd: {}, path: {:?}, flags: {:?}, mode: {:#o}",
+        dir_fd as isize, path, flags, mode
+    );
+    let inode = if flags.contains(OpenFlags::CREATE) {
+        let (dir_path, file_name) = split_path(&path);
+        let dir_inode = proc.lookup_inode_at(dir_fd, dir_path, true)?;
+        match dir_inode.find(file_name) {
+            Ok(file_inode) => {
+                if flags.contains(OpenFlags::EXCLUSIVE) {
+                    return Err(SysError::EEXIST);
+                }
+                if flags.contains(OpenFlags::TRUNCATE) {
+                    if let Err(e) = file_inode.resize(0) {
+                        error!("Resize error!");
+                    }
+                }
+                file_inode
+            }
+            Err(FsError::EntryNotFound) => {
+                let inode =
+                    dir_inode.create(file_name, rcore_fs::vfs::FileType::File, mode as _)?;
+                inode
+            }
+            Err(e) => return Err(SysError::from(e)),
+        }
+    } else {
+        proc.lookup_inode_at(dir_fd, &path, true)?
+    };
+    let (readable, writable) = flags.read_write();
+    let file = Arc::new(OSInode::new(readable, writable, inode));
+    Ok(proc.add_file(file))
 }
 
 /// 读取当前进程的fd对应的文件

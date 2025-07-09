@@ -44,7 +44,7 @@ impl Syscall<'_> {
             SYS_EXECVE => sys_exec(args[0] as _, args[1] as _, args[2] as _),
 
             // 文件相关
-            SYS_OPEN => sys_open(args[0], args[1], args[2]),
+            SYS_OPEN => sys_open(args[0] as _, args[1], args[2]),
             SYS_CLOSE => sys_close(args[0]),
             SYS_READ => sys_read(args[0], args[1], args[2], args[3]),
             SYS_WRITE => sys_write(args[0], args[1], args[2], args[3]),
