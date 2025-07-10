@@ -1,18 +1,22 @@
 //! 定义内核使用的Inode结构，为其实现文件访问接口
 use super::File;
 use crate::drivers::BlockDriverWrapper;
+use crate::future::futures::WaitForKthread;
 use crate::println;
 use crate::*;
 use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
+use hal::SysError;
 use lazy_static::lazy_static;
 use rcore_fs::dev::block_cache::BlockCache;
 use rcore_fs::vfs::FileSystem;
 use rcore_fs::vfs::FileType;
 use rcore_fs::vfs::INode;
 use rcore_fs_sfs::SimpleFileSystem;
+use requests_info::fsreqinfo::FsReqDescription;
 use spin::Mutex;
+use user_syscall::SysResult;
 
 bitflags::bitflags! {
     /// 打开文件时的读写权限
@@ -92,12 +96,40 @@ impl File for OSInode {
         self.writable
     }
 
-    fn read(&self, buf: &mut [u8]) -> usize {
-        let (mut offset, inode) = (self.offset.lock(), self.inode.lock());
-        let n = inode.read_at(*offset, buf);
-        let n = n.unwrap();
-        *offset += n;
-        n
+    /// Send request to kthread and wait for service.
+    async fn read(&self, buf: &mut [u8]) -> SysResult {
+        let fs_kthread = KTHREAD_MAP.get().get(&KthreadType::FS);
+        match fs_kthread {
+            Some(fs_kthread) => {
+                let current_thread = current_thread();
+                let pid = current_thread.proc().unwrap().pid();
+                // 构造fsreq
+                let mut res: usize = 0;
+                let fsreq = FsReqDescription::Read(
+                    pid,
+                    fd,
+                    buf.as_mut_ptr() as _,
+                    buf.len(),
+                    &mut res as *mut usize as _,
+                )
+                .as_bytes()
+                .to_vec();
+                // 发送请求给fskthread
+                let fs_kthread = fs_kthread.clone();
+                let req_id = fs_kthread.add_request(fsreq);
+                // 当前线程进入异步等待
+                current_thread.set_state(ThreadState::Waiting);
+                // 生成等待协程
+                let waitforkthread = WaitForKthread::new(current_thread, fs_kthread, req_id);
+                waitforkthread.await;
+                return Ok(res);
+            }
+            // fs-server线程不存在，返回usize::MAX
+            None => {
+                error!("[Kernel] Error when sys_open, FS kthread not exist!");
+                return Err(SysError::ENOKTH);
+            }
+        }
     }
 
     fn write(&self, buf: &[u8]) -> usize {

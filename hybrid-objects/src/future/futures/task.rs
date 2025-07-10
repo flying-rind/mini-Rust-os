@@ -1,15 +1,13 @@
 //! 任务相关的协程结构体
 
+use super::trap::Kthread;
+use super::trap::ThreadState;
+use super::trap::{Process, Thread};
 use alloc::sync::Arc;
 use core::future::Future;
 use core::pin::Pin;
 use core::task::Context;
 use core::task::Poll;
-
-use super::println;
-use super::trap::Kthread;
-use super::trap::ThreadState;
-use super::trap::{Process, Thread};
 
 /// 用户线程等待一个进程结束
 ///
@@ -79,8 +77,8 @@ impl Future for WaitForKthread {
             self.thread.set_state(ThreadState::Runnable);
             return Poll::Ready(());
         } else {
-            println!(
-                "\x1b[33m[Executor] WaitForKthread poll pending, response_id: {}, req_id: {}\x1b[0m",
+            info!(
+                "[Executor] WaitForKthread poll pending, response_id: {}, req_id: {}",
                 self.kthread.response_id(),
                 self.req_id
             );

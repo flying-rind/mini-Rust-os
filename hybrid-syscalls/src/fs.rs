@@ -85,18 +85,12 @@ pub fn sys_openat(dir_fd: usize, path: *const u8, flags: usize, mode: usize) -> 
 /// 不存在此文件则返回usize::MAX
 /// (0, 0)表示异步，返回值还未写入;
 /// (read_size, 0)表示同步，可以直接使用返回值
-pub fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) -> (usize, usize) {
+pub fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize) -> SysResult {
     let current_proc = current_proc();
     let file_table = current_proc.file_table();
     // [Debug]
     // println!("{}", file_table.len());
-    let file_wrapper = file_table.get(fd);
-    let file = if let Some(Some(f)) = file_wrapper {
-        f.clone()
-    // 不存在这个文件，直接返回不进行任何处理
-    } else {
-        return (usize::MAX, 0);
-    };
+    let file = current_proc.file_table().get(&fd).ok_or(SysError::ENOENT)?;
     // 磁盘文件OSInode，则发送请求给fs内核线程
     if let Ok(_osinode) = file.clone().downcast_arc::<OSInode>() {
         let fs_kthread = KTHREAD_MAP.get().get(&KthreadType::FS);
@@ -119,8 +113,8 @@ pub fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) ->
             }
             // fs-server线程不存在，返回usize::MAX
             None => {
-                println!("[Kernel] Error when sys_open, FS kthread not exist!");
-                return (usize::MAX, 0);
+                error!("[Kernel] Error when sys_open, FS kthread not exist!");
+                return SysError::ENOKTH;
             }
         }
     // 管道，需要异步读取
@@ -132,7 +126,7 @@ pub fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) ->
         let buf_ptr = buf_ptr as *mut u8;
         let buf = unsafe { core::slice::from_raw_parts_mut(buf_ptr, buf_len) };
         let read_size = file.read(buf);
-        (read_size, 0)
+        Ok(read_size)
     }
 }
 
@@ -192,15 +186,11 @@ pub fn sys_write(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) -
 /// 当前进程关闭描述符为fd的文件
 ///
 /// 成功返回0，否则返回usize::MAX
-pub fn sys_close(fd: usize) -> (usize, usize) {
+pub fn sys_close(fd: usize) -> SysResult {
     let current_proc = current_proc();
     let file_table = current_proc.file_table();
-    if let Some(file) = file_table.get_mut(fd) {
-        if core::mem::replace(file, None).is_some() {
-            return (0, 0);
-        }
-    }
-    (usize::MAX, 0)
+    file_table.remove(&fd).ok_or(SysError::EBADF)?;
+    Ok(0)
 }
 
 /// 创建管道，返回读端和写端的fd
@@ -229,7 +219,7 @@ pub fn sys_dup(fd: usize) -> (usize, usize) {
 }
 
 /// 列出可用用户app
-pub fn sys_ls() -> (usize, usize) {
+pub fn sys_ls() -> SysResult {
     let step = 7;
     let apps = ROOT_INODE.list().unwrap();
     for i in (0..apps.len()).step_by(step) {
@@ -242,5 +232,5 @@ pub fn sys_ls() -> (usize, usize) {
         }
         println!("");
     }
-    (0, 0)
+    Ok(0)
 }

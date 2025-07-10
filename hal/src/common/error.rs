@@ -65,6 +65,10 @@ pub enum SysError {
     ENOTCONN = 107,
     ETIMEDOUT = 110,
     ECONNREFUSED = 111,
+
+    // Custom
+    /// Kthread not found
+    ENOKTH = 999,
 }
 
 impl From<usize> for SysError {
@@ -135,6 +139,9 @@ impl fmt::Display for SysError {
                 EISCONN => "Transport endpoint is already connected",
                 ENOTCONN => "Transport endpoint is not connected",
                 ECONNREFUSED => "Connection refused",
+
+                // Custom
+                ENOKTH => "No Kthread",
                 _ => "Unknown error",
             },
         )
