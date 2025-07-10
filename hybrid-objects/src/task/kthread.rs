@@ -1,7 +1,6 @@
 //! 内核线程
 use super::*;
 use crate::alloc::string::ToString;
-use crate::future::*;
 use crate::kthread::processor_entry;
 use crate::mm::*;
 use crate::println;
@@ -239,10 +238,6 @@ impl Kthread {
         // 主线程，总是需要运行
         if self.ktid == 0 {
             return true;
-        }
-        // 执行器线程
-        if self.name.contains("Executor") {
-            return executor::need_schedule();
         }
 
         // 服务线程

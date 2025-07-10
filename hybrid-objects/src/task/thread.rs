@@ -44,32 +44,19 @@ pub struct Thread {
     state: Cell<ThreadState>,
     /// 线程执行的用户态上下文
     user_context: Cell<Box<UserContext>>,
-    /// 栈内存区域
-    #[allow(unused)]
-    stack_area: Arc<MemoryArea>,
     /// 状态改变时的唤醒器
     state_wakers: Cell<Vec<(Waker, ThreadState)>>,
 }
 
 impl Thread {
     /// 创建一个新的线程
-    pub fn new(
-        proc: Weak<Process>,
-        tid: usize,
-        entry: usize,
-        sp: usize,
-        arg1: usize,
-        arg2: usize,
-        stack_area: Arc<MemoryArea>,
-    ) -> Arc<Self> {
+    pub fn new(proc: Weak<Process>, tid: usize, entry: usize, sp: usize) -> Arc<Self> {
         // 定义线程用户运行上下文
         let mut context = Box::new(UserContext::default());
         // 设置sp寄存器
         context.general.rsp = sp;
         // 设置ip寄存器
         context.general.rip = entry;
-        context.general.rdi = arg1;
-        context.general.rsi = arg2;
         context.general.rflags = 0x3000 | 0x200 | 0x2;
 
         // 创建线程
@@ -78,7 +65,6 @@ impl Thread {
             tid,
             state: Cell::new(ThreadState::Stop),
             user_context: Cell::new(context),
-            stack_area,
             state_wakers: Cell::new(Vec::new()),
         });
 
@@ -171,11 +157,6 @@ impl Thread {
     /// 设置rax
     pub fn set_rax(&self, rax: usize) {
         self.user_context.get_mut().general.rax = rax;
-    }
-
-    /// 获取用户栈
-    pub fn stack_area(&self) -> Arc<MemoryArea> {
-        self.stack_area.clone()
     }
 
     /// 添加一个状态唤醒器

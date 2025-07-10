@@ -3,13 +3,34 @@
 
 use alloc::sync::Arc;
 use core::pin::Pin;
+use hybrid_objects::fs::ROOT_INODE;
 use hybrid_objects::task::Thread;
 use hybrid_objects::*;
 use log::error;
+use log::info;
 use trapframe::{TrapFrame, UserContext};
 
 const PAGE_FAULT: usize = 14;
 const TIMER: usize = 32;
+
+/// 加载运行第一个用户程序Shell
+pub fn run_shell() {
+    let shell = "shell";
+    info!("Trying to enter user shell now!");
+    if let Ok(inode) = ROOT_INODE.lookup(shell) {
+        // Construct new user process here.
+        // let thread = Thread::new_user(
+        //     &inode,
+        //     shell,
+        //     vec![String::from_str("shell").unwrap()],
+        //     Vec::new(),
+        // );
+        let future = thread_fn(thread.clone());
+        executor::spawn(future);
+    } else {
+        panic!("Failed to load shell");
+    }
+}
 
 /// 用户线程入口
 ///
@@ -102,26 +123,6 @@ pub fn main_loop() {
         } else {
             executor::run_util_idle();
             Scheduler::yield_current_kthread();
-        }
-    }
-}
-
-/// 清理当前线程
-pub fn clear_current_thread() {
-    let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-    // 根据线程状态进行清理
-    match current_thread.state() {
-        ThreadState::Suspended => {
-            current_thread.set_state(ThreadState::Runnable);
-            THREAD_DEQUE.get_mut().push_back(current_thread.clone());
-        }
-        ThreadState::Runnable | ThreadState::Waiting | ThreadState::Stop => {
-            THREAD_DEQUE.get_mut().push_back(current_thread.clone());
-        }
-        ThreadState::Exited => {
-            // 已退出时清理当前线程全局变量以drop线程
-            current_thread.exit();
-            *CURRENT_THREAD.get_mut() = None;
         }
     }
 }

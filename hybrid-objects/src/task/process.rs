@@ -2,11 +2,11 @@
 use crate::fs::ROOT_INODE;
 use crate::{mm::*, *};
 
+use crate::fs::{File, Stdin, Stdout};
 use alloc::sync::Arc;
 use alloc::sync::Weak;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::usize;
-use fs::File;
 use hashbrown::HashMap;
 use rcore_fs::vfs::FsError;
 use rcore_fs::vfs::INode;
@@ -30,7 +30,7 @@ pub struct Process {
     /// 进程名称，可重复
     name: String,
     /// 进程地址空间
-    memory_set: Arc<MemorySet>,
+    vm: Arc<MemorySet>,
     /// 父进程
     parent: RwLock<Weak<Process>>,
     /// 子进程队列
@@ -54,6 +54,53 @@ pub struct Process {
 impl Process {
     const AT_FDCWD: usize = -100isize as usize;
 
+    /// Construct a new process.
+    /// 创建新进程
+    ///
+    /// 为其创建虚存空间，将elf文件载入虚存空间中，并建立根线程
+    ///
+    /// 若路径有误，则返回None
+    pub fn new(
+        name: String,
+        inode: &Arc<dyn INode>,
+        args: Vec<String>,
+        envs: Vec<String>,
+    ) -> Option<Arc<Self>> {
+        // 创建虚存空间并加载app
+        // 0x3c0: magic number from ld-musl.so
+        let mut data = [0u8; 16 * 1024 * 10];
+        inode
+            .read_at(0, &mut data)
+            .expect("Failed to read elf data!");
+        let elf = ElfFile::new(&data).expect("Failed to construct elf file");
+        let entry = elf.header.pt2.entry_point() as usize;
+        let vm = MemorySet::new();
+        load_app(vm.clone(), &elf);
+        // 创建用户栈并压栈
+        let sp = Thread::new_user_stack(vm.clone(), args, envs);
+        // 构造新进程，默认打开标准输入输出
+        let pid = PROCESS_ID.fetch_add(1, Ordering::Relaxed);
+        let mut files: BTreeMap<usize, Arc<File>> = BTreeMap::new();
+        files.insert(0, Arc::new(File::Stdin(Stdin)));
+        files.insert(1, Arc::new(File::Stdout(Stdout)));
+        files.insert(2, Arc::new(File::Stdout(Stdout)));
+        let new_proc = Arc::new(Process {
+            pid,
+            name,
+            vm,
+            cwd: String::from("/"),
+            files: Cell::new(files),
+            ..Process::default()
+        });
+        // 加入全局进程映射表
+        PROCESS_MAP.get_mut().insert(pid, new_proc.clone());
+        // 创建根线程
+        let tid = new_proc.thread_id.fetch_add(1, Ordering::Relaxed);
+        let root_thread = Thread::new(Arc::downgrade(&new_proc), tid, entry, sp);
+        new_proc.add_thread(root_thread);
+        Some(new_proc)
+    }
+
     /// 复制当前进程
     ///
     /// 若但前进程有多个线程则只复制当前线程
@@ -61,11 +108,11 @@ impl Process {
         assert_eq!(self.threads.len(), 1);
         let pid = PROCESS_ID.fetch_add(1, Ordering::Relaxed);
         // 创建子进程复制父进程的文件表和地址空间（不包括用户栈）
-        let memory_set = self.memory_set.clone_myself();
+        let memory_set = self.vm.clone_myself();
         let child_proc = Arc::new(Process {
             pid,
             name: self.name.clone(),
-            memory_set: memory_set.clone(),
+            vm: memory_set.clone(),
             files: Cell::new(self.file_table().clone()),
             ..Process::default()
         });
@@ -79,15 +126,7 @@ impl Process {
         let current_ctx = current_thread.user_context();
         // 创建根线程
         let tid = child_proc.alloc_tid();
-        let root_thread = Thread::new(
-            Arc::downgrade(&child_proc.clone()),
-            tid,
-            0,
-            0,
-            0,
-            0,
-            new_stack_area,
-        );
+        let root_thread = Thread::new(Arc::downgrade(&child_proc.clone()), tid, en, 0);
         // 复制上下文
         root_thread.set_user_context(current_ctx);
         // 子线程返回值为0

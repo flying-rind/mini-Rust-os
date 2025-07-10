@@ -39,6 +39,8 @@ pub static BOOTLOADER_CONFIG: BootloaderConfig = {
 #[cfg(all(feature = "hybrid", not(feature = "monolithic")))]
 pub fn kernel_main_hybrid(boot_info: &'static mut BootInfo) -> ! {
     // 初始化串口
+
+    use loader::hybrid::run_shell;
     hal::hal_fn::boot::primary_init();
     // 初始化日志
     logging::init();
@@ -60,16 +62,7 @@ pub fn kernel_main_hybrid(boot_info: &'static mut BootInfo) -> ! {
     // 初始化内核服务线程
     hybrid_objects::kthread::init();
     // 创建并启动shell进程
-    let test_args = vec![
-        "testarg1".to_string(),
-        "testarg2".to_string(),
-        "testarg3".to_string(),
-    ];
-    let shell_str = "app1";
-    // let shell_str = "shell";
-    let shell_process = Process::new(String::from(shell_str), &shell_str, Some(test_args)).unwrap();
-    shell_process.root_thread().resume();
-
+    run_shell();
     // 跳转到用户态
     main_loop();
     unreachable!("Should never reach here");
