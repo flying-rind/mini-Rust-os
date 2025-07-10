@@ -61,7 +61,7 @@ pub struct Process {
     /// 当前工作目录
     pub cwd: String,
     /// 文件表
-    pub files: BTreeMap<usize, Arc<dyn File>>,
+    pub files: BTreeMap<usize, Arc<File>>,
     /// Parent process
     pub parent: (Pid, Weak<Mutex<Process>>),
     /// Children process
@@ -134,7 +134,7 @@ impl Process {
     }
 
     /// Get file
-    pub fn get_file(&mut self, fd: usize) -> Result<Arc<dyn File>, usize> {
+    pub fn get_file(&mut self, fd: usize) -> Result<Arc<File>, usize> {
         const EBADF: usize = 9;
         self.files.get_mut(&fd).ok_or(EBADF).cloned()
     }

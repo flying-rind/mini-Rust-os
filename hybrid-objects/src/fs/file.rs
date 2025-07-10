@@ -41,7 +41,7 @@ impl File {
         use File::*;
         match self {
             OSInode(osinode) => osinode.read(buf, fd).await,
-            Pipe(pipe) => pipe.read(buf),
+            Pipe(pipe) => pipe.read(buf).await,
             Stdin(stdin) => stdin.read(buf),
             Stdout(stdout) => stdout.read(buf),
         }

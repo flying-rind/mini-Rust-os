@@ -48,7 +48,6 @@ impl FsProcessor {
         } else {
             file.read(buf, fd).await?
         };
-        // 将read_size写入到用户态中
         let result_ptr = res_ptr as *mut usize;
         unsafe {
             *result_ptr = read_size;
@@ -78,12 +77,11 @@ impl FsProcessor {
         let proc = proc.unwrap();
         let file = proc.file_table().get(&fd).unwrap();
         let write_size = if !file.writable() {
-            error!("[Fs server] Error writing file, not readable!");
+            error!("[Fs server] Error writing file, not writable!");
             return Err(SysError::EPERM);
         } else {
             file.write(buf, fd).await?
         };
-        // 将read_size写入到用户态中
         let res_ptr = res_ptr as *mut usize;
         unsafe {
             *res_ptr = write_size;

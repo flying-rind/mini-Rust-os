@@ -22,7 +22,7 @@ pub struct Syscall<'a> {
 
 impl Syscall<'_> {
     /// 系统调用总控函数
-    pub fn do_syscall(&mut self, syscall_id: usize, args: [usize; 6]) -> isize {
+    pub async fn do_syscall(&mut self, syscall_id: usize, args: [usize; 6]) -> isize {
         let ret = match syscall_id {
             // 调试用
             // DebugWrite => sys_debug_write(args[0]),
@@ -46,11 +46,10 @@ impl Syscall<'_> {
             // 文件相关
             SYS_OPEN => sys_open(args[0] as _, args[1], args[2]),
             SYS_CLOSE => sys_close(args[0]),
-            SYS_READ => sys_read(args[0], args[1], args[2], args[3]),
-            SYS_WRITE => sys_write(args[0], args[1], args[2], args[3]),
-            SYS_PIPE => sys_pipe(),
-            SYS_DUP => sys_dup(args[0]),
-
+            SYS_READ => sys_read(args[0], args[1], args[2]).await,
+            SYS_WRITE => sys_write(args[0], args[1], args[2]).await,
+            SYS_PIPE => sys_pipe(args[0] as _),
+            // SYS_DUP => sys_dup(args[0]),
             _ => unimplemented!("Not implemented yet!"),
         };
         match ret {

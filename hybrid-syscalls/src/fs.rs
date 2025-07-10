@@ -1,23 +1,16 @@
 //! 文件相关系统调用
 
-use crate::future::{executor, futures::WaitForKthread};
-use crate::trap::{KTHREAD_MAP, KthreadType};
 use alloc::sync::Arc;
 use fs::OSInode;
 use fs::*;
 use hal::SysError;
 use hal::check_n_clone_cstr;
-use hybrid_objects::ThreadState;
 use hybrid_objects::current_proc;
 use hybrid_objects::fs;
-use hybrid_objects::print;
-use hybrid_objects::println;
 use hybrid_objects::task;
 use log::error;
 use log::info;
 use rcore_fs::vfs::FsError;
-use requests_info::CastBytes;
-use requests_info::fsreqinfo::FsReqDescription;
 use task::CURRENT_THREAD;
 use user_syscall::SysResult;
 
@@ -56,7 +49,7 @@ pub fn sys_openat(dir_fd: usize, path: *const u8, flags: usize, mode: usize) -> 
                     return Err(SysError::EEXIST);
                 }
                 if flags.contains(OpenFlags::TRUNCATE) {
-                    if let Err(e) = file_inode.resize(0) {
+                    if let Err(_e) = file_inode.resize(0) {
                         error!("Resize error!");
                     }
                 }
@@ -73,14 +66,13 @@ pub fn sys_openat(dir_fd: usize, path: *const u8, flags: usize, mode: usize) -> 
         proc.lookup_inode_at(dir_fd, &path, true)?
     };
     let (readable, writable) = flags.read_write();
-    let file = Arc::new(OSInode::new(readable, writable, inode));
+    let file = Arc::new(File::OSInode(OSInode::new(readable, writable, inode)));
     Ok(proc.add_file(file))
 }
 
 /// 读取当前进程的fd对应的文件
 pub async fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize) -> SysResult {
     let current_proc = current_proc();
-    let file_table = current_proc.file_table();
     let file = current_proc.file_table().get(&fd).ok_or(SysError::ENOENT)?;
     let buf_ptr = buf_ptr as *mut u8;
     let buf = unsafe { core::slice::from_raw_parts_mut(buf_ptr, buf_len) };
@@ -89,7 +81,7 @@ pub async fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize) -> SysResult {
 }
 
 /// 写入当前进程的fd对应的文件
-pub async fn sys_write(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) -> SysResult {
+pub async fn sys_write(fd: usize, buf_ptr: usize, buf_len: usize) -> SysResult {
     let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
     let current_proc = current_thread.proc().unwrap();
     let file_table = current_proc.file_table();
@@ -111,43 +103,46 @@ pub fn sys_close(fd: usize) -> SysResult {
 }
 
 /// 创建管道，返回读端和写端的fd
-pub fn sys_pipe() -> (usize, usize) {
+pub fn sys_pipe(fds: *mut u32) -> SysResult {
     let current_proc = current_proc();
+    let fds = unsafe { core::slice::from_raw_parts_mut(fds, 2) };
     let (read_end, write_end) = make_pipe();
     let (read_fd, write_fd) = (
         current_proc.add_file(read_end),
         current_proc.add_file(write_end),
     );
-    (read_fd, write_fd)
-}
-
-/// 复制一份文件，一般与close一起使用
-///
-/// 若文件不存在则返回usize::MAX
-pub fn sys_dup(fd: usize) -> (usize, usize) {
-    let current_proc = current_proc();
-    let file_table = current_proc.file_table();
-    let file = if let Some(Some(f)) = file_table.get(fd) {
-        f.clone()
-    } else {
-        return (usize::MAX, 0);
-    };
-    (current_proc.add_file(file), 0)
-}
-
-/// 列出可用用户app
-pub fn sys_ls() -> SysResult {
-    let step = 7;
-    let apps = ROOT_INODE.list().unwrap();
-    for i in (0..apps.len()).step_by(step) {
-        for j in i..i + step {
-            if j < apps.len() {
-                print!("{:<20}", apps[j]);
-            } else {
-                break;
-            }
-        }
-        println!("");
-    }
+    fds[0] = read_fd as _;
+    fds[1] = write_fd as _;
     Ok(0)
 }
+
+// /// 复制一份文件，一般与close一起使用
+// ///
+// /// 若文件不存在则返回usize::MAX
+// pub fn sys_dup(fd: usize) -> (usize, usize) {
+//     let current_proc = current_proc();
+//     let file_table = current_proc.file_table();
+//     let file = if let Some(Some(f)) = file_table.get(fd) {
+//         f.clone()
+//     } else {
+//         return (usize::MAX, 0);
+//     };
+//     (current_proc.add_file(file), 0)
+// }
+
+// /// 列出可用用户app
+// pub fn sys_ls() -> SysResult {
+//     let step = 7;
+//     let apps = ROOT_INODE.list().unwrap();
+//     for i in (0..apps.len()).step_by(step) {
+//         for j in i..i + step {
+//             if j < apps.len() {
+//                 print!("{:<20}", apps[j]);
+//             } else {
+//                 break;
+//             }
+//         }
+//         println!("");
+//     }
+//     Ok(0)
+// }

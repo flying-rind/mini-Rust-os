@@ -10,8 +10,6 @@ use crate::fs::*;
 
 use alloc::sync::Arc;
 
-use super::println;
-
 /// 管道的读端等待管道写端关闭
 pub struct WaitForPipeBuffer {
     /// 管道的缓冲区
@@ -30,16 +28,18 @@ impl Future for WaitForPipeBuffer {
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if self.pipe_buffer.write_end().is_none() {
             // [Debug]
-            println!("[Executor] WaitForPipeBuffer poll ready");
+            info!("[Executor] WaitForPipeBuffer poll ready");
             // 写端已经被drop了，返回Ready
             Poll::Ready(())
         } else {
             // [Debug]
-            println!("[Executor] WaitForPipeBuffer poll pending");
+            info!("[Executor] WaitForPipeBuffer poll pending");
             // 写端还没退出，将唤醒器注册到写端中去
-            let write_end = self.pipe_buffer.get().write_end();
-            assert!(write_end.is_some());
-            write_end.unwrap().add_waker(cx.waker().clone());
+            let write_end = self.pipe_buffer.get().write_end().unwrap();
+            match &*write_end {
+                File::Pipe(pipe) => pipe.add_waker(cx.waker().clone()),
+                _ => {}
+            }
             Poll::Pending
         }
     }
