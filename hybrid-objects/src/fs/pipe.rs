@@ -1,13 +1,13 @@
 //! 管道抽象
 
-use super::File;
 use crate::future::executor;
 use crate::*;
 use alloc::sync::Arc;
 use alloc::sync::Weak;
-use rcore_fs::vfs::FsError;
 use core::task::Waker;
 use future::futures::fs::WaitForPipeBuffer;
+use rcore_fs::vfs::FsError;
+use user_syscall::SysResult;
 
 /// 管道的一端
 pub struct Pipe {
@@ -46,6 +46,44 @@ impl Pipe {
             buf_len,
             result_ptr,
         ));
+    }
+
+    /// Readable
+    pub fn readable(&self) -> bool {
+        !self.writable
+    }
+
+    /// Writable
+    pub fn writable(&self) -> bool {
+        self.writable
+    }
+
+    /// 从管道的缓冲区读取到buf中
+    ///
+    /// 此时假设写端已经关闭，同步读取
+    pub fn read(&self, buf: &mut [u8]) -> SysResult {
+        assert!(self.readable());
+        let pipe_buf = self.buf.buf.as_slice();
+        let copy_len = buf.len().min(pipe_buf.len());
+        let dst = &mut buf[..copy_len];
+        dst.copy_from_slice(pipe_buf);
+        // println!("dst len: {}", dst.len());
+        copy_len
+    }
+
+    /// 拓展管道的缓冲区
+    pub fn write(&self, buf: &[u8]) -> SysResult {
+        assert!(self.writable());
+        self.buf.get_mut().buf.extend(buf.iter().copied());
+        buf.len()
+    }
+
+    pub fn lookup_follow(
+        &self,
+        _path: &str,
+        _max_follow: usize,
+    ) -> rcore_fs::vfs::Result<Arc<dyn rcore_fs::vfs::INode>> {
+        Err(FsError::NotFile)
     }
 }
 
@@ -121,44 +159,4 @@ pub fn make_pipe() -> (Arc<Pipe>, Arc<Pipe>) {
         waker: Cell::new(None),
     });
     (read_end, write_end)
-}
-
-impl File for Pipe {
-    fn readable(&self) -> bool {
-        !self.writable
-    }
-
-    fn writable(&self) -> bool {
-        self.writable
-    }
-
-    /// 从管道的缓冲区读取到buf中
-    ///
-    /// 此时假设写端已经关闭，同步读取
-    fn read(&self, buf: &mut [u8]) -> usize {
-        assert!(self.readable());
-        let pipe_buf = self.buf.buf.as_slice();
-        let copy_len = buf.len().min(pipe_buf.len());
-        // println!(
-        //     "pipe_buf len: {}; buf len: {}, copy_len: {}",
-        //     pipe_buf.len(),
-        //     buf.len(),
-        //     copy_len
-        // );
-        let dst = &mut buf[..copy_len];
-        dst.copy_from_slice(pipe_buf);
-        // println!("dst len: {}", dst.len());
-        copy_len
-    }
-
-    /// 拓展管道的缓冲区
-    fn write(&self, buf: &[u8]) -> usize {
-        assert!(self.writable());
-        self.buf.get_mut().buf.extend(buf.iter().copied());
-        buf.len()
-    }
-
-    fn lookup_follow(&self, _path: &str, _max_follow: usize) -> rcore_fs::vfs::Result<Arc<dyn rcore_fs::vfs::INode>> {
-        Err(FsError::NotFile)
-    }
 }

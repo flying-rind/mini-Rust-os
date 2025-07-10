@@ -17,9 +17,6 @@ pub enum FsReqDescription {
     Read(Pid, Fd, BufPtr, BufLen, ResultPtr),
     /// 写磁盘文件，在sys_write中被构造
     Write(Pid, Fd, BufPtr, BufLen, ResultPtr),
-    /// 打开一个磁盘文件，将句柄写入FdPtr中，
-    /// 在sys_open中构造
-    Open(Pid, PathPtr, FLAGS, FdPtr),
 }
 
 impl CastBytes for FsReqDescription {}

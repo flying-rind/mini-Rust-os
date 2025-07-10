@@ -78,109 +78,26 @@ pub fn sys_openat(dir_fd: usize, path: *const u8, flags: usize, mode: usize) -> 
 }
 
 /// 读取当前进程的fd对应的文件
-///
-/// 若是标准输入输出则直接读取，
-/// 磁盘文件则发送请求给内核线程
-///
-/// 不存在此文件则返回usize::MAX
-/// (0, 0)表示异步，返回值还未写入;
-/// (read_size, 0)表示同步，可以直接使用返回值
-pub fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize) -> SysResult {
+pub async fn sys_read(fd: usize, buf_ptr: usize, buf_len: usize) -> SysResult {
     let current_proc = current_proc();
     let file_table = current_proc.file_table();
-    // [Debug]
-    // println!("{}", file_table.len());
     let file = current_proc.file_table().get(&fd).ok_or(SysError::ENOENT)?;
-    // 磁盘文件OSInode，则发送请求给fs内核线程
-    if let Ok(_osinode) = file.clone().downcast_arc::<OSInode>() {
-        let fs_kthread = KTHREAD_MAP.get().get(&KthreadType::FS);
-        match fs_kthread {
-            Some(fs_kthread) => {
-                let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-                let pid = current_thread.proc().unwrap().pid();
-                // 构造fsreq
-                let fsreq = FsReqDescription::Read(pid, fd, buf_ptr, buf_len, result_ptr)
-                    .as_bytes()
-                    .to_vec();
-                // 发送请求给fskthread
-                let fs_kthread = fs_kthread.clone();
-                let req_id = fs_kthread.add_request(fsreq);
-                // 当前线程进入异步等待
-                current_thread.set_state(ThreadState::Waiting);
-                // 生成等待协程
-                executor::spawn(WaitForKthread::new(current_thread, fs_kthread, req_id));
-                return (0, 0);
-            }
-            // fs-server线程不存在，返回usize::MAX
-            None => {
-                error!("[Kernel] Error when sys_open, FS kthread not exist!");
-                return SysError::ENOKTH;
-            }
-        }
-    // 管道，需要异步读取
-    } else if let Ok(pipe) = file.clone().downcast_arc::<Pipe>() {
-        pipe.async_read(pipe.clone(), buf_ptr, buf_len, result_ptr);
-        return (0, 0);
-    // 若是标准输入输出则直接读取不发送请求
-    } else {
-        let buf_ptr = buf_ptr as *mut u8;
-        let buf = unsafe { core::slice::from_raw_parts_mut(buf_ptr, buf_len) };
-        let read_size = file.read(buf);
-        Ok(read_size)
-    }
+    let buf_ptr = buf_ptr as *mut u8;
+    let buf = unsafe { core::slice::from_raw_parts_mut(buf_ptr, buf_len) };
+    let read_size = file.read(buf, fd).await?;
+    Ok(read_size)
 }
 
 /// 写入当前进程的fd对应的文件
-///
-/// 若是标准输入输出则直接写入
-/// 磁盘文件则发送请求给内核线程
-///
-/// 出错则返回usize::MAX
-/// (0, 0)表示异步，返回值还未写入;
-/// (read_size, 0)表示同步，可以直接使用返回值
-pub fn sys_write(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) -> (usize, usize) {
+pub async fn sys_write(fd: usize, buf_ptr: usize, buf_len: usize, result_ptr: usize) -> SysResult {
     let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
     let current_proc = current_thread.proc().unwrap();
     let file_table = current_proc.file_table();
-    let file = if let Some(Some(file)) = file_table.get(fd) {
-        file.clone()
-    // 不存在这个文件，直接返回不进行任何处理
-    } else {
-        return (usize::MAX, 0);
-    };
-    // 磁盘文件OSInode，则发送请求给fs内核线程
-    if let Ok(_osinode) = file.clone().downcast_arc::<OSInode>() {
-        let fs_kthread = KTHREAD_MAP.get().get(&KthreadType::FS);
-        match fs_kthread {
-            Some(fs_kthread) => {
-                let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-                let pid = current_thread.proc().unwrap().pid();
-                // 构造fsreq
-                let fsreq = FsReqDescription::Write(pid, fd, buf_ptr, buf_len, result_ptr)
-                    .as_bytes()
-                    .to_vec();
-                // 发送请求给fskthread
-                let fs_kthread = fs_kthread.clone();
-                let req_id = fs_kthread.add_request(fsreq);
-                // 当前线程进入异步等待
-                current_thread.set_state(ThreadState::Waiting);
-                // 生成等待协程
-                executor::spawn(WaitForKthread::new(current_thread, fs_kthread, req_id));
-                return (0, 0);
-            }
-            // fs-server线程不存在，返回usize::MAX
-            None => {
-                println!("[Kernel] Error when sys_open, FS kthread not exist!");
-                return (usize::MAX, 0);
-            }
-        }
-    // 若是标准输入输出或管道则直接写入（同步）不发送请求
-    } else {
-        let buf_ptr = buf_ptr as *const u8;
-        let buf = unsafe { core::slice::from_raw_parts(buf_ptr, buf_len) };
-        let read_size = file.write(buf);
-        (read_size, 0)
-    }
+    let file = file_table.get(&fd).ok_or(SysError::ENOENT)?;
+    let buf_ptr = buf_ptr as *const u8;
+    let buf = unsafe { core::slice::from_raw_parts(buf_ptr, buf_len) };
+    let write_size = file.write(buf, fd).await?;
+    Ok(write_size)
 }
 
 /// 当前进程关闭描述符为fd的文件

@@ -24,6 +24,7 @@ pub fn current_proc() -> Arc<Process> {
 }
 
 /// 切换到pid所在进程的地址空间
+#[inline]
 pub fn activate_proc_ms(pid: usize) {
     let proc = PROCESS_MAP.get().get(&pid);
     proc.unwrap().memory_set().activate();

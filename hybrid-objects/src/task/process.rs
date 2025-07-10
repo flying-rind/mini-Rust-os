@@ -40,7 +40,7 @@ pub struct Process {
     /// 线程ID，创建新线程时分配
     thread_id: AtomicUsize,
     /// 文件表
-    files: Cell<BTreeMap<usize, Arc<dyn File>>>,
+    files: Cell<BTreeMap<usize, Arc<File>>>,
     /// 当前工作目录
     cwd: String,
     /// 互斥锁
@@ -211,7 +211,7 @@ impl Process {
     /// 若有已经关闭的文件，则使用当前文件替换
     ///
     /// 以此实现dup和管道
-    pub fn add_file(&self, file: Arc<dyn File>) -> usize {
+    pub fn add_file(&self, file: Arc<File>) -> usize {
         let fd = self.get_free_fd();
         self.files.get_mut().insert(fd, file);
         fd
@@ -298,12 +298,12 @@ impl Process {
     }
 
     /// 获取文件表
-    pub fn file_table(&self) -> &mut BTreeMap<usize, Arc<dyn File>> {
+    pub fn file_table(&self) -> &mut BTreeMap<usize, Arc<File>> {
         self.files.get_mut()
     }
 
     /// 获取文件
-    pub fn get_file(&self, fd: usize) -> Option<Arc<dyn File>> {
+    pub fn get_file(&self, fd: usize) -> Option<Arc<File>> {
         self.file_table().get(&fd).cloned()
     }
 

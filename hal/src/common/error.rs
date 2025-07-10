@@ -13,6 +13,7 @@ use crate::user::UserPtrError;
 /// See [linux man errno(3)](https://man7.org/linux/man-pages/man3/errno.3.html)
 pub enum SysError {
     EUNDEF = 0,
+    /// Operation not permitted.
     EPERM = 1,
     ENOENT = 2,
     ESRCH = 3,
@@ -22,12 +23,12 @@ pub enum SysError {
     E2BIG = 7,
     ENOEXEC = 8,
     EBADF = 9,
-    /// No children process
+    /// No children process.
     ECHILD = 10,
     EAGAIN = 11,
     ENOMEM = 12,
     EACCES = 13,
-    /// Bad address
+    /// Bad address.
     EFAULT = 14,
     ENOTBLK = 15,
     EBUSY = 16,
@@ -36,6 +37,7 @@ pub enum SysError {
     ENODEV = 19,
     ENOTDIR = 20,
     EISDIR = 21,
+    /// Invalid argument.
     EINVAL = 22,
     ENFILE = 23,
     EMFILE = 24,
