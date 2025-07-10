@@ -42,19 +42,10 @@ impl Scheduler {
 
     /// 当前内核线程放弃CPU，调度下一个就绪内核线程
     pub fn yield_current_kthread() {
-        let current_kthread = CURRENT_KTHREAD.get().as_ref().unwrap().clone();
         let kthread = Scheduler::get_first_kthread();
         if let Some(kthread) = kthread {
-            // [Debug]
-            // println!(
-            //     "[Debugger] `{}` switch to `{}`",
-            //     current_kthread.name(),
-            //     kthread.name()
-            // );
-            KTHREAD_DEQUE.get_mut().push_back(current_kthread.clone());
-            // 修改全局变量
-            *CURRENT_KTHREAD.get_mut() = Some(kthread.clone());
-            current_kthread.switch_to(kthread);
+            let current_kthread = current_kthread();
+            current_kthread.switch_to(current_kthread.clone(), kthread);
         }
     }
 }

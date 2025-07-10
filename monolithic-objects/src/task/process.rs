@@ -3,6 +3,7 @@ use core::fmt::Display;
 
 use super::*;
 use crate::debug;
+use crate::fs::file::File;
 use crate::sync::{Event, EventBus};
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
@@ -10,8 +11,8 @@ use alloc::string::String;
 use alloc::sync::Weak;
 use alloc::vec::Vec;
 use hybrid_objects::fs::ROOT_INODE;
+use hybrid_objects::mm::MemorySet;
 use hybrid_objects::mm::load_app;
-use hybrid_objects::{fs::File, mm::MemorySet};
 use lazy_static::lazy_static;
 use log::info;
 use rcore_fs::vfs::{FsError, INode};

@@ -2,81 +2,90 @@
 //! 中断和用户态系统调用的处理入口
 
 use alloc::sync::Arc;
+use core::pin::Pin;
 use hybrid_objects::task::Thread;
 use hybrid_objects::*;
+use log::error;
 use trapframe::{TrapFrame, UserContext};
 
 const PAGE_FAULT: usize = 14;
 const TIMER: usize = 32;
 
+/// 用户线程入口
+///
+/// loop:
+/// - Get UserContext
+/// - 进入用户态
+/// - 处理中断/系统调用
+/// - Put back UserContext
+async fn run_user(thread: Arc<Thread>) {
+    set_current_thread(Some(thread.clone()));
+    loop {
+        if thread.state() == ThreadState::Exited {
+            break;
+        }
+        // FIXME: Should not change user-space here(in loop)
+        // Enter userspace until trap.
+        thread.run_until_trap();
+        // 返回内核，处理中断/系统调用
+        handle_user_trap(thread.clone(), &thread.user_context()).await;
+    }
+    set_current_thread(None);
+}
+
+/// 用户线程统一线程函数
+fn thread_fn(thread: Arc<Thread>) -> Pin<Box<dyn Future<Output = ()> + Send + 'static>> {
+    Box::pin(run_user(thread))
+}
+
 #[unsafe(no_mangle)]
 /// 内核态中断处理入口，由汇编直接调用无需手动调用
 pub extern "C" fn trap_handler(tf: &mut TrapFrame) {
-    handle_trap(Some(tf), None, None);
+    match tf.trap_num {
+        PAGE_FAULT => {
+            error!("[Trap Handler]: PAGEFAULT",);
+            panic!("page fault");
+        }
+        TIMER => {
+            // 当前内核线程主动调度
+            Scheduler::yield_current_kthread();
+        }
+        _ => {
+            unimplemented!();
+        }
+    }
 }
 
 /// 处理用户态的中断或系统调用
 /// 若是系统调用则context中的trap_num一定为100
 /// 若是中断则trap_num从context中获取
-pub fn handle_user_trap(thread: Arc<Thread>, context: &UserContext) {
-    handle_trap(None, Some(thread), Some(context));
-}
-
-/// 中断/系统调用处理函数
-pub fn handle_trap(
-    tf: Option<&mut TrapFrame>,
-    thread: Option<Arc<Thread>>,
-    context: Option<&UserContext>,
-) {
-    // 用户态的中断或系统调用
-    if let Some(context) = context {
-        // 用户态系统调用
-        if context.trap_num == 0x100 {
-            let thread = thread.unwrap();
-            let sys_num = context.get_syscall_num();
-            let sys_args = context.get_syscall_args();
-            let mut syscall = hybrid_syscalls::Syscall { thread: &thread };
-            let (ret0, ret1) = syscall.do_syscall(sys_num, sys_args);
-            thread.set_syscall_ret(ret0, ret1);
-            return;
-        }
+pub async fn handle_user_trap(thread: Arc<Thread>, context: &UserContext) {
+    // 用户态系统调用
+    if context.trap_num == 0x100 {
+        let sys_num = context.get_syscall_num();
+        let sys_args = context.get_syscall_args();
+        let mut syscall = hybrid_syscalls::Syscall { thread: &thread };
+        let ret = syscall.do_syscall(sys_num, sys_args).await;
+        thread.set_syscall_ret(ret as _, 0);
+        return;
     }
-
-    // 处理用户态或内核态中断
-    let trap_num = if tf.is_some() {
-        // 内核中断
-        tf.as_ref().unwrap().trap_num
-    } else {
-        // 用户中断
-        context.unwrap().trap_num
-    };
-    match trap_num {
+    // 用户态中断
+    match context.trap_num {
         // 页错误，目前直接panic
         PAGE_FAULT => {
-            println!(
+            error!(
                 "[Trap Handler]: PAGEFAULT, memory_set root_pa: {:x}",
                 current_proc().memory_set().page_table().get().paddr()
             );
             panic!("page fault");
         }
-        // 时钟中断，轮转用户线程或内核线程
+        // 用户时钟中断
         TIMER => {
             pic::ack();
             *pic::TICKS.get_mut() += 1;
-            // 用户时钟
-            if let Some(_thread) = thread {
-                // 时间片轮转
-                // thread.set_state(ThreadState::Suspended);
-            // 内核时钟
-            } else if let Some(_tf) = tf {
-                // 当前内核线程主动调度
-                Scheduler::yield_current_kthread();
-            } else {
-                panic!("Should never happen!");
-            }
         }
         _ => {
-            println!("[Trap Handler]: Unknown trap!");
+            error!("[Trap Handler]: Unknown trap!");
             panic!("Unknown trap!");
         }
     }
@@ -87,35 +96,12 @@ pub fn main_loop() {
     println!("[Kernel] Starting main loop...");
     loop {
         // 优先运行内核线程
-        let kthread = Scheduler::get_first_kthread();
-        if kthread.is_some() {
-            // [Debug]
-            // println!("`Root` switch to `{}`", kthread.as_ref().unwrap().name());
-            // 将CPU交给服务线程或执行器
-            let kthread = kthread.unwrap();
-            let current_kthread = CURRENT_KTHREAD.get().as_ref().unwrap().clone();
-            // 修改当前内核线程
-            *CURRENT_KTHREAD.get_mut() = Some(kthread.clone());
-            // 主线程入队
-            KTHREAD_DEQUE.get_mut().push_back(current_kthread.clone());
-            current_kthread.switch_to(kthread);
+        if let Some(kthread) = Scheduler::get_first_kthread() {
+            let current_kthread = current_kthread();
+            current_kthread.switch_to(current_kthread.clone(), kthread);
         } else {
-            let uthread = Scheduler::get_first_uthread();
-            // 运行用户线程
-            if uthread.is_some() {
-                let uthread = uthread.unwrap();
-                // 修改当前线程
-                *CURRENT_THREAD.get_mut() = Some(uthread.clone());
-                // 持续运行用户线程直到其被挂起
-                // [Debug]
-                // println!("uthread running, pid {}", uthread.proc().unwrap().pid());
-                while uthread.state() == ThreadState::Runnable {
-                    uthread.run_until_trap();
-                    handle_user_trap(uthread.clone(), &uthread.user_context());
-                }
-                // 此时线程已被挂起
-                clear_current_thread();
-            }
+            executor::run_util_idle();
+            Scheduler::yield_current_kthread();
         }
     }
 }
@@ -139,5 +125,3 @@ pub fn clear_current_thread() {
         }
     }
 }
-
-

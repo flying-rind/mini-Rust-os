@@ -16,6 +16,17 @@ pub fn current_thread() -> Arc<Thread> {
     CURRENT_THREAD.get().as_ref().unwrap().clone()
 }
 
+/// Set current thread.
+pub fn set_current_thread(thread: Option<Arc<Thread>>) {
+    *CURRENT_THREAD.get_mut() = thread;
+}
+
+/// 获取当前内核线程
+#[inline]
+pub fn current_kthread() -> Arc<Kthread> {
+    CURRENT_KTHREAD.get().as_ref().unwrap().clone()
+}
+
 /// 获取当前进程
 #[inline]
 pub fn current_proc() -> Arc<Process> {

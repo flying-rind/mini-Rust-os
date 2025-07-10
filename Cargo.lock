@@ -383,6 +383,7 @@ dependencies = [
  "rcore-fs",
  "spin 0.10.0",
  "trapframe",
+ "user-syscall",
  "x86_64",
  "xmas-elf",
 ]

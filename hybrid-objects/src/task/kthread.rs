@@ -30,7 +30,7 @@ pub static KTHREAD_ID: AtomicUsize = AtomicUsize::new(1);
 /// 当前内核线程
 pub static CURRENT_KTHREAD: Cell<Option<Arc<Kthread>>> = Cell::new(None);
 
-/// 内核线程队列
+/// 全局内核线程队列，其不包含当前内核线程
 pub static KTHREAD_DEQUE: Cell<VecDeque<Arc<Kthread>>> = Cell::new(VecDeque::new());
 
 /// 内核线程服务类型到内核线程的映射
@@ -137,8 +137,10 @@ impl Kthread {
         kthread
     }
 
-    /// 切换到下一个内核线程
-    pub fn switch_to(&self, next: Arc<Kthread>) {
+    /// Modify global varients, then switch to another kthread.
+    pub fn switch_to(&self, cur: Arc<Kthread>, next: Arc<Kthread>) {
+        KTHREAD_DEQUE.get_mut().push_back(cur);
+        *CURRENT_KTHREAD.get_mut() = Some(next.clone());
         unsafe {
             context_switch(&(*(self.context.get())), &(*(next.context.get())));
         }

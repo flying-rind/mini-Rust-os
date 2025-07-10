@@ -14,7 +14,7 @@ impl Syscall<'_> {
         // FIXME: Should check first.
         let slice = unsafe { core::slice::from_raw_parts(buf, size) };
         let file = proc.get_file(fd)?;
-        let len = file.write(slice);
+        let len = file.write(slice)?;
         Ok(len as _)
     }
 
@@ -25,7 +25,7 @@ impl Syscall<'_> {
         let mut proc = self.process();
         let file = proc.get_file(fd)?;
         let mut buf = vec![0u8; len];
-        let len = file.read(&mut buf);
+        let len = file.read(&mut buf).await?;
         let _ = base.write_array(&buf);
         Ok(len as _)
     }

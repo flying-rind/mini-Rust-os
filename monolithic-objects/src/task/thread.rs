@@ -2,6 +2,7 @@
 use crate::sync::EventBus;
 
 use super::*;
+use crate::fs::file::File;
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
@@ -9,7 +10,6 @@ use alloc::sync::Arc;
 use alloc::sync::Weak;
 use alloc::vec::Vec;
 use core::pin::Pin;
-use hybrid_objects::fs::File;
 use hybrid_objects::fs::Stdin;
 use hybrid_objects::fs::Stdout;
 use hybrid_objects::mm::MemoryArea;
