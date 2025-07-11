@@ -1,6 +1,6 @@
 //! 定义内核使用的Inode结构，为其实现文件访问接口
 use crate::drivers::BlockDriverWrapper;
-use crate::future::futures::WaitForKthread;
+use crate::future::WaitForKthread;
 use crate::println;
 use crate::*;
 use alloc::sync::Arc;

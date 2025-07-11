@@ -2,7 +2,7 @@
 use crate::*;
 use alloc::sync::Arc;
 use core::task::Waker;
-use future::futures::sync::WaitForMutex;
+use future::sync::WaitForMutex;
 
 /// 基于阻塞和唤醒机制的互斥锁
 #[derive(Default)]

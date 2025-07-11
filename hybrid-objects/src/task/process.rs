@@ -33,7 +33,7 @@ pub struct Process {
     /// Exit code.
     exit_code: Mutex<usize>,
     /// 进程地址空间
-    vm: Arc<MemorySet>,
+    vm: Mutex<Arc<MemorySet>>,
     /// 父进程
     parent: RwLock<Weak<Process>>,
     /// 子进程队列
@@ -85,7 +85,7 @@ impl Process {
         let new_proc = Arc::new(Process {
             pid,
             exec_path: path,
-            vm,
+            vm: Mutex::new(vm),
             cwd: String::from("/"),
             files: Cell::new(files),
             ..Process::default()
@@ -106,11 +106,11 @@ impl Process {
         assert_eq!(self.threads.len(), 1);
         let pid = PROCESS_ID.fetch_add(1, Ordering::Relaxed);
         // 创建子进程复制父进程的文件表和地址空间（不包括用户栈）
-        let memory_set = self.vm.clone_myself();
+        let memory_set = self.vm.lock().clone_myself();
         let child_proc = Arc::new(Process {
             pid,
             exec_path: self.exec_path.clone(),
-            vm: memory_set.clone(),
+            vm: Mutex::new(memory_set.clone()),
             files: Cell::new(self.file_table().clone()),
             ..Process::default()
         });
@@ -199,7 +199,8 @@ impl Process {
         // 加载elf
         load_app(new_vm.clone(), &elf);
         let entry = elf.header.pt2.entry_point() as usize;
-        let sp = Thread::new_user_stack(new_vm, args, envs);
+        let sp = Thread::new_user_stack(new_vm.clone(), args, envs);
+        *self.vm.lock() = new_vm;
         current_thread.set_ip(entry);
         current_thread.set_sp(sp);
         Ok(0)
@@ -291,12 +292,12 @@ impl Process {
 
     /// 获取进程地址空间
     pub fn memory_set(&self) -> Arc<MemorySet> {
-        self.vm.clone()
+        self.vm.lock().clone()
     }
 
     /// 获取根线程
-    pub fn root_thread(&self) -> Arc<Thread> {
-        self.threads.get().get(&0).unwrap().clone()
+    pub fn root_thread(&self) -> Option<Arc<Thread>> {
+        self.threads.get().get(&0).cloned()
     }
 
     /// 删除子进程

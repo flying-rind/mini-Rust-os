@@ -206,9 +206,3 @@ impl Thread {
         self.state.get().clone()
     }
 }
-
-// impl Drop for Thread {
-//     fn drop(&mut self) {
-//         println!("[Rust] Thread dropped now: tid: {}", self.tid);
-//     }
-// }

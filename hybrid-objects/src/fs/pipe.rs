@@ -5,7 +5,7 @@ use crate::*;
 use alloc::sync::Arc;
 use alloc::sync::Weak;
 use core::task::Waker;
-use future::futures::fs::WaitForPipeBuffer;
+use future::fs::WaitForPipeBuffer;
 use hal::SysError;
 use rcore_fs::vfs::FsError;
 use user_syscall::SysResult;

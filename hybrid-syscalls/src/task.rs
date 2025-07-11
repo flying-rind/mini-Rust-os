@@ -1,6 +1,6 @@
 //! 任务管理相关的系统调用
 use super::*;
-use future::futures::{ThreadYield, WaitForProc};
+use future::{ThreadYield, WaitForProc};
 use hal::user::UserInOutPtr;
 use hal::{check_n_clone_cstr, check_n_clone_cstr_array};
 use log::info;
@@ -35,15 +35,12 @@ impl Syscall<'_> {
         argvp: *const *const u8,
         envp: *const *const u8,
     ) -> SysResult {
-        info!(
-            "exec: pathp: {:?}, argvp: {:?}, envp: {:?}",
-            pathp, argvp, envp
-        );
         let cur_proc = current_proc();
         let path = check_n_clone_cstr(pathp)?;
         let args = check_n_clone_cstr_array(argvp)?;
         let envs = check_n_clone_cstr_array(envp)?;
         let inode = cur_proc.lookup_inode(&path)?;
+        info!("exec: path: {:?}, argv: {:?}, env: {:?}", path, args, envs);
         Ok(cur_proc.exec(&inode, args, envs)?)
     }
 

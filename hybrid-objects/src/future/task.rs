@@ -33,7 +33,10 @@ impl Future for WaitForProc {
     type Output = ();
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         // 等待其根线程结束
-        let waited_root_thread = self.waited_process.root_thread();
+        let waited_root_thread = match self.waited_process.root_thread() {
+            Some(thread) => thread,
+            None => return Poll::Ready(()),
+        };
         if waited_root_thread.state() == ThreadState::Exited {
             // 已经退出，将等待的线程设置为就绪态
             self.thread.set_state(ThreadState::Runnable);

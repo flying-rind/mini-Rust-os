@@ -1,6 +1,6 @@
 //! 条件变量
 
-use crate::{Cell, future::futures::sync::WaitForCondvar, task::*};
+use crate::{Cell, future::sync::WaitForCondvar, task::*};
 use alloc::{collections::vec_deque::VecDeque, sync::Arc};
 use core::task::Waker;
 
@@ -37,7 +37,7 @@ impl Condvar {
 
     /// 当前线程阻塞直到被条件变量唤醒并重新获得锁
     pub async fn wait(&self, mutex: Arc<MutexBlocking>, arc_self: Arc<Condvar>) {
-        let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+        let current_thread = current_thread();
         // 释放锁
         mutex.unlock();
         let future = wait_for_condvar_then_lock(current_thread, arc_self, mutex);
@@ -76,5 +76,5 @@ async fn wait_for_condvar_then_lock(
     // 确保首先被信号量唤醒
     wait_condvar.await;
     // 再获得锁
-    mutex.lock(mutex.clone(), thread);
+    mutex.lock(mutex.clone(), thread).await;
 }

@@ -3,12 +3,6 @@
 
 //! 内核主函数
 extern crate alloc;
-#[allow(unused)]
-use alloc::string::String;
-#[allow(unused)]
-use alloc::string::ToString;
-#[allow(unused)]
-use alloc::vec;
 use bootloader_api::BootInfo;
 use bootloader_api::{BootloaderConfig, config::Mapping};
 #[allow(unused)]
@@ -19,6 +13,7 @@ use hybrid_objects::mm::PHYS_OFFSET;
 use hybrid_objects::task::Kthread;
 #[cfg(feature = "hybrid")]
 use loader::hybrid::main_loop;
+use loader::hybrid::run_shell;
 #[allow(unused)]
 use log::{info, warn};
 
@@ -39,8 +34,6 @@ pub static BOOTLOADER_CONFIG: BootloaderConfig = {
 #[cfg(all(feature = "hybrid", not(feature = "monolithic")))]
 pub fn kernel_main_hybrid(boot_info: &'static mut BootInfo) -> ! {
     // 初始化串口
-
-    use loader::hybrid::run_shell;
     hal::hal_fn::boot::primary_init();
     // 初始化日志
     logging::init();
