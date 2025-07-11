@@ -1,11 +1,10 @@
 #![no_std]
 #![no_main]
 
-use user_syscall::monolithic::exec;
-use user_syscall::println;
-
 extern crate alloc;
 extern crate user_lib;
+
+use user_lib::*;
 
 #[no_mangle]
 fn main() -> isize {

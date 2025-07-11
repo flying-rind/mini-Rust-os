@@ -9,7 +9,6 @@ use lazy_static::lazy_static;
 use num::FromPrimitive;
 use rcore_fs::dev::block_cache::BlockCache;
 use rcore_fs::vfs::FileSystem;
-use rcore_fs::vfs::FileType;
 use rcore_fs::vfs::INode;
 use rcore_fs_sfs::SimpleFileSystem;
 use requests_info::CastBytes;
@@ -210,34 +209,4 @@ pub fn init() {
         println!("{}", app);
     }
     println!("**************/");
-}
-
-/// 从全局ROOT_INODE打开文件
-pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
-    let (readable, writable) = flags.read_write();
-    if flags.contains(OpenFlags::CREATE) {
-        match ROOT_INODE.find(name) {
-            Ok(inode) => {
-                let _ = inode.resize(0);
-                Some(Arc::new(OSInode::new(readable, writable, inode)))
-            }
-            Err(_) => {
-                // TODO: MODE如何设置？
-                ROOT_INODE
-                    .create(name, FileType::File, 0o666)
-                    .map(|inode| Arc::new(OSInode::new(readable, writable, inode)))
-                    .ok()
-            }
-        }
-    } else {
-        ROOT_INODE
-            .find(name)
-            .map(|inode| {
-                if flags.contains(OpenFlags::TRUNCATE) {
-                    let _ = inode.resize(0);
-                }
-                Arc::new(OSInode::new(readable, writable, inode))
-            })
-            .ok()
-    }
 }

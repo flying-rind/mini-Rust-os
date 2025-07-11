@@ -1,7 +1,7 @@
 //! 内核中的文件抽象
 
 pub use file::*;
-pub use inode::{OSInode, OpenFlags, ROOT_INODE, init, open_file};
+pub use inode::{OSInode, OpenFlags, ROOT_INODE, init};
 pub use pipe::*;
 pub use stdio::*;
 /// 文件

@@ -8,9 +8,7 @@ const CR: u8 = b'\r';
 const DL: u8 = b'\x7f';
 const BS: u8 = b'\x08';
 
-use user_syscall::monolithic::print::getchar;
-use user_syscall::monolithic::{exec, fork, wait4};
-use user_syscall::{print, println};
+use user_lib::*;
 
 const MAX_CMD_LEN: usize = 256;
 

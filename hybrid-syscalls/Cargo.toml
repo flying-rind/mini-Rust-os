@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 hybrid-objects = { path = "../hybrid-objects" }
-user-syscall = { path = "../user-components/user-syscall", features = ["hybrid"]}
+user-syscall = { path = "../user-components/user-syscall"}
 hal ={ path = "../hal"}
 requests-info = {path = "../user-components/requests-info"}
 num = { version = "0.4", default-features = false }

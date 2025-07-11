@@ -8,7 +8,6 @@ APPS := $(wildcard $(APP_DIR)/*.rs)
 ELFS := $(patsubst $(APP_DIR)/%.rs, $(TARGET_DIR)/%, $(APPS))
 ASMS := $(patsubst %, %.asm, $(ELFS))
 
-feature ?= monolithic
 
 BUILD_ARGS := --target $(ARCH).json -Zbuild-std=core,alloc
 ifeq ($(MODE), release)
@@ -21,7 +20,7 @@ OBJCOPY := rust-objcopy --binary-architecture=$(ARCH)
 all: build
 
 elf:
-	cargo build $(BUILD_ARGS) --no-default-features --features $(feature)
+	cargo build $(BUILD_ARGS)
 
 $(ELFS): elf
 

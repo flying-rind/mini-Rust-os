@@ -13,8 +13,3 @@ spin = "0.9"
 bitflags = "*"
 rcore-fs ={ git = "https://github.com/rcore-os/rcore-fs" }
 hal = {path = "../../hal"}
-
-[features]
-default = ["monolithic"]
-hybrid = []
-monolithic = []

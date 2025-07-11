@@ -8,7 +8,7 @@ monolithic-objects = {path = "../monolithic-objects"}
 trapframe = {path ="../crates/trapframe-rs"}
 hybrid-objects ={ path = "../hybrid-objects"}
 executor ={ path = "../executor"}
-user-syscall ={path = "../user-components/user-syscall", features = ["monolithic"]}
+user-syscall ={path = "../user-components/user-syscall"}
 
 num-derive = "0.4.2"
 rcore-fs ={ git = "https://github.com/rcore-os/rcore-fs" }

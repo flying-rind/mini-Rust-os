@@ -28,5 +28,5 @@ rcore-fs = { git = "https://github.com/rcore-os/rcore-fs" }
 rcore-fs-sfs = { git = "https://github.com/rcore-os/rcore-fs" }
 lazy_static = { version = "1.5.0", features = ["spin_no_std"] }
 
-user-syscall = { path = "../user-components/user-syscall", features = ["hybrid"]}
+user-syscall = { path = "../user-components/user-syscall"}
 requests-info = { path = "../user-components/requests-info" }

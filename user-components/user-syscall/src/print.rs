@@ -1,5 +1,5 @@
 use super::write;
-use crate::monolithic::read;
+use crate::read;
 use core::fmt::{self, Write};
 
 // const STDIN: usize = 0;
@@ -19,19 +19,17 @@ pub fn print(args: fmt::Arguments) {
     Stdout.write_fmt(args).unwrap();
 }
 
-#[cfg(feature = "monolithic")]
 #[macro_export]
 macro_rules! print {
     ($fmt: literal $(, $($arg: tt)+)?) => {
-        user_syscall::monolithic::print::print(format_args!($fmt $(, $($arg)+)?));
+        user_syscall::print::print(format_args!($fmt $(, $($arg)+)?));
     }
 }
 
-#[cfg(feature = "monolithic")]
 #[macro_export]
 macro_rules! println {
     ($fmt: literal $(, $($arg: tt)+)?) => {
-        user_syscall::monolithic::print::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
+        user_syscall::print::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
     }
 }
 

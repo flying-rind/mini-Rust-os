@@ -13,10 +13,7 @@ extern crate bitflags;
 #[allow(unused)]
 use alloc::vec::Vec;
 use buddy_system_allocator::LockedHeap;
-#[cfg(feature = "hybrid")]
-pub use user_syscall::hybrid::*;
-#[cfg(feature = "monolithic")]
-pub use user_syscall::monolithic::*;
+pub use user_syscall::*;
 
 const USER_HEAP_SIZE: usize = 0x40000;
 static mut HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];
@@ -29,66 +26,56 @@ pub fn handle_alloc_error(layout: core::alloc::Layout) -> ! {
     panic!("Heap allocation error, layout = {:?}", layout);
 }
 
-#[linkage = "weak"]
-#[no_mangle]
-#[cfg(feature = "hybrid")]
-fn main(_argc: usize, _argv: &[&str]) -> isize {
-    panic!("Cannot find main!");
-}
-
-#[no_mangle]
-#[link_section = ".text.entry"]
-#[cfg(feature = "hybrid")]
-/// 用户态程序入口
-///
-/// 栈的情况：
-///
-/// ----high
-///
-/// \0
-///
-/// ptr2
-///
-/// ptr1    <--argv
-///
-/// str1
-///
-/// str2
-///
-/// ----low
-pub extern "C" fn _start(argc: usize, argv: usize) -> ! {
-    init_heap();
-    // 从用户栈栈顶中读取argc和argv指针
-    let mut v: Vec<&'static str> = Vec::new();
-    for i in 0..argc {
-        let str_start =
-            unsafe { ((argv + i * core::mem::size_of::<usize>()) as *const usize).read_volatile() };
-        let len = (0usize..)
-            .find(|i| unsafe { ((str_start + *i) as *const u8).read_volatile() == 0 })
-            .unwrap();
-        v.push(
-            core::str::from_utf8(unsafe {
-                core::slice::from_raw_parts(str_start as *const u8, len)
-            })
-            .unwrap(),
-        );
-    }
-    // 调用应用主函数
-    let exit_code = main(argc, v.as_slice());
-    proc_exit(exit_code as _);
-    panic!("Should never reach after proc_exit");
-}
+// #[no_mangle]
+// #[link_section = ".text.entry"]
+// /// 用户态程序入口
+// ///
+// /// 栈的情况：
+// ///
+// /// ----high
+// ///
+// /// \0
+// ///
+// /// ptr2
+// ///
+// /// ptr1    <--argv
+// ///
+// /// str1
+// ///
+// /// str2
+// ///
+// /// ----low
+// pub extern "C" fn _start(argc: usize, argv: usize) -> ! {
+//     init_heap();
+//     // 从用户栈栈顶中读取argc和argv指针
+//     let mut v: Vec<&'static str> = Vec::new();
+//     for i in 0..argc {
+//         let str_start =
+//             unsafe { ((argv + i * core::mem::size_of::<usize>()) as *const usize).read_volatile() };
+//         let len = (0usize..)
+//             .find(|i| unsafe { ((str_start + *i) as *const u8).read_volatile() == 0 })
+//             .unwrap();
+//         v.push(
+//             core::str::from_utf8(unsafe {
+//                 core::slice::from_raw_parts(str_start as *const u8, len)
+//             })
+//             .unwrap(),
+//         );
+//     }
+//     // 调用应用主函数
+//     let exit_code = main(argc, v.as_slice());
+//     proc_exit(exit_code as _);
+//     panic!("Should never reach after proc_exit");
+// }
 
 #[linkage = "weak"]
 #[no_mangle]
-#[cfg(feature = "monolithic")]
 fn main() -> isize {
     panic!("Cannot find main!");
 }
 
 #[no_mangle]
 #[link_section = ".text.entry"]
-#[cfg(feature = "monolithic")]
 /// 用户态程序入口
 ///
 /// 栈的情况：
