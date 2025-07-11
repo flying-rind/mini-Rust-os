@@ -82,7 +82,10 @@ pub async fn handle_user_trap(thread: Arc<Thread>, context: &UserContext) {
     if context.trap_num == 0x100 {
         let sys_num = context.get_syscall_num();
         let sys_args = context.get_syscall_args();
-        let mut syscall = hybrid_syscalls::Syscall { thread: &thread };
+        let mut syscall = hybrid_syscalls::Syscall {
+            thread: &thread,
+            thread_fn,
+        };
         let ret = syscall.do_syscall(sys_num, sys_args).await;
         thread.set_syscall_ret(ret as _, 0);
         return;

@@ -3,7 +3,7 @@ use crate::*;
 
 use alloc::sync::Arc;
 use core::task::Waker;
-use future::{executor, futures::sync::WaitForSem};
+use future::futures::sync::WaitForSem;
 
 /// 信号量
 pub struct Sem {
@@ -33,13 +33,14 @@ impl Sem {
     }
 
     // 消耗一个资源
-    pub fn down(&self, arc_self: Arc<Sem>) {
+    pub async fn down(&self, arc_self: Arc<Sem>) {
         if *self.n.get() >= 1 {
             *self.n.get_mut() -= 1;
         // 当前没有资源，阻塞当前线程，并生成协程
         } else {
             let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
-            executor::spawn(WaitForSem::new(current_thread, arc_self))
+            let wait4sem = WaitForSem::new(current_thread, arc_self);
+            wait4sem.await;
         }
     }
 

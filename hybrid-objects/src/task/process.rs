@@ -11,8 +11,9 @@ use hashbrown::HashMap;
 use rcore_fs::vfs::FsError;
 use rcore_fs::vfs::INode;
 use spin::Lazy;
+use spin::Mutex;
 use spin::RwLock;
-use sync::{Condvar, MutexBlocking, Sem};
+use sync::*;
 use xmas_elf::ElfFile;
 
 /// 全局变量，PID到进程对象的映射
@@ -25,10 +26,12 @@ pub static PROCESS_ID: AtomicUsize = AtomicUsize::new(0);
 /// 进程抽象
 #[derive(Default)]
 pub struct Process {
-    /// 进程id
+    /// Pid.
     pid: usize,
-    /// 进程名称，可重复
+    /// executable path.
     exec_path: String,
+    /// Exit code.
+    exit_code: Mutex<usize>,
     /// 进程地址空间
     vm: Arc<MemorySet>,
     /// 父进程
@@ -99,7 +102,7 @@ impl Process {
     /// 复制当前进程
     ///
     /// 若但前进程有多个线程则只复制当前线程
-    pub fn fork(&self) -> Arc<Process> {
+    pub fn fork(&self) -> Arc<Thread> {
         assert_eq!(self.threads.len(), 1);
         let pid = PROCESS_ID.fetch_add(1, Ordering::Relaxed);
         // 创建子进程复制父进程的文件表和地址空间（不包括用户栈）
@@ -124,10 +127,10 @@ impl Process {
         // 子线程返回值为0
         root_thread.set_rax(0);
         root_thread.set_state(ThreadState::Runnable);
-        child_proc.add_thread(root_thread);
+        child_proc.add_thread(root_thread.clone());
         child_proc.set_parent(Arc::downgrade(&current_proc));
         self.add_child(child_proc.clone());
-        child_proc
+        root_thread
     }
 
     /// Lookup Inode from the process.
@@ -181,11 +184,12 @@ impl Process {
         let mut data = [0u8; 16 * 1024 * 10];
         inode.read_at(0, &mut data)?;
         let elf = ElfFile::new(&data).unwrap();
-        // 清理除了exec之外的所有子线程
+        // Kill all other threads.
         let current_thread = current_thread();
         for (_, thread) in self.threads.get() {
             if current_thread.tid() != thread.tid() {
                 thread.set_state(ThreadState::Exited);
+                thread.exit(0);
             }
         }
         let threads = self.threads.get_mut();
@@ -202,7 +206,7 @@ impl Process {
     }
 
     /// 退出进程
-    pub fn exit(&self) {
+    pub fn exit(&self, exit_code: usize) {
         // 退出所有线程
         for (_tid, thread) in self.threads.clone().into_iter() {
             // 线程应该是被调度器exit()的
@@ -215,6 +219,7 @@ impl Process {
         }
         // 删除所有对子进程的引用
         self.children.get_mut().drain(..);
+        *self.exit_code.lock() = exit_code
     }
 
     /// 为当前进程添加一个子进程

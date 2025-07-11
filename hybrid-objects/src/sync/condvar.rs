@@ -1,10 +1,6 @@
 //! 条件变量
 
-use crate::{
-    future::{executor, futures::sync::WaitForCondvar},
-    task::*,
-    Cell,
-};
+use crate::{Cell, future::futures::sync::WaitForCondvar, task::*};
 use alloc::{collections::vec_deque::VecDeque, sync::Arc};
 use core::task::Waker;
 
@@ -40,14 +36,12 @@ impl Condvar {
     }
 
     /// 当前线程阻塞直到被条件变量唤醒并重新获得锁
-    pub fn wait(&self, mutex: Arc<MutexBlocking>, arc_self: Arc<Condvar>) {
+    pub async fn wait(&self, mutex: Arc<MutexBlocking>, arc_self: Arc<Condvar>) {
         let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
         // 释放锁
         mutex.unlock();
-        // 阻塞当前线程并异步等待
-        current_thread.set_state(ThreadState::Waiting);
-        // 创建等待协程
-        executor::spawn(wait_for_condvar_then_lock(current_thread, arc_self, mutex));
+        let future = wait_for_condvar_then_lock(current_thread, arc_self, mutex);
+        future.await;
     }
 
     /// 查讯自己的第一个阻塞线程睡眠标记

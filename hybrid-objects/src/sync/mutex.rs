@@ -2,7 +2,7 @@
 use crate::*;
 use alloc::sync::Arc;
 use core::task::Waker;
-use future::{executor, futures::sync::WaitForMutex};
+use future::futures::sync::WaitForMutex;
 
 /// 基于阻塞和唤醒机制的互斥锁
 #[derive(Default)]
@@ -15,14 +15,14 @@ pub struct MutexBlocking {
 
 impl MutexBlocking {
     /// 指定线程获得锁
-    pub fn lock(&self, arc_self: Arc<MutexBlocking>, thread: Arc<Thread>) {
+    pub async fn lock(&self, arc_self: Arc<MutexBlocking>, thread: Arc<Thread>) {
         if *self.locked {
             // 当前线程加入等待队列，并进入等待状态
             thread.set_state(ThreadState::Waiting);
-            executor::spawn(WaitForMutex::new(thread, arc_self));
+            let wait4mutext = WaitForMutex::new(thread, arc_self);
+            wait4mutext.await;
         } else {
             *self.locked.get_mut() = true;
-            // println!("Thread {} get mutex now!", current_thread.tid());
         }
     }
 

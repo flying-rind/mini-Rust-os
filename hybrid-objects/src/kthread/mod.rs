@@ -7,11 +7,9 @@ use crate::task::KthreadType;
 
 use alloc::string::ToString;
 
-pub use executor::*;
 pub use for_test::*;
 pub use processor::*;
 
-pub mod executor;
 pub mod for_test;
 pub mod processor;
 

@@ -50,15 +50,10 @@ impl MemorySet {
     }
 
     /// 克隆一个地址空间时，克隆其中所有的虚存区域
-    ///
-    /// 用户栈不复制而是在进程复制时手动复制(因为一个地址空间有多个)
     pub fn clone_myself(&self) -> Arc<Self> {
         let ms = Self::new();
         for area in self.areas.get() {
-            // 不复制用户栈，fork时手动复制
-            // if area.mtype() != MemAreaType::USERSTACK {
             ms.insert_area(area.clone_myself());
-            // }
         }
         ms
     }

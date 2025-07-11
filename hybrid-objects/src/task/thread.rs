@@ -5,10 +5,14 @@ use core::task::Waker;
 use crate::mm::MemorySet;
 use crate::*;
 use alloc::sync::{Arc, Weak};
+use core::pin::Pin;
 use mm::MemoryArea;
 use trapframe::UserContext;
 use x86_64::instructions::tlb;
 use x86_64::structures::paging::PageTableFlags;
+
+/// 用户线程的线程异步函数
+pub type ThreadFn = fn(thread: Arc<Thread>) -> Pin<Box<dyn Future<Output = ()> + Send + 'static>>;
 
 /// 全局变量：当前线程
 pub static CURRENT_THREAD: Cell<Option<Arc<Thread>>> = Cell::new(None);
@@ -110,15 +114,16 @@ impl Thread {
     /// 线程退出，删除其所属进程中对其的引用
     ///
     /// 若为根线程，则退出相应的进程
-    pub fn exit(&self) {
+    pub fn exit(&self, exit_code: usize) {
         let process = self.proc.upgrade().unwrap();
         // 删除进程对自己的引用
         process.remove_thread(self.tid);
         // 删除全局线程表的引用
         THREADS_DEQUE.get_mut().remove(self.tid);
+        self.set_state(ThreadState::Exited);
         if self.tid == 0 {
             // 退出进程
-            process.exit();
+            process.exit(exit_code);
         }
     }
 

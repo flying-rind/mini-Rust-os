@@ -9,39 +9,35 @@ extern crate alloc;
 
 use alloc::sync::Arc;
 use fs::*;
+use hal::user::UserInOutPtr;
 use hybrid_objects::task::Thread;
 use hybrid_objects::*;
-use task::*;
 use user_syscall::num::*;
 
 /// 系统调用结构体，包含了用于执行一个系统调用的信息
 pub struct Syscall<'a> {
     /// 执行系统调用的线程
     pub thread: &'a Arc<Thread>,
+    /// Thread Function
+    pub thread_fn: ThreadFn,
 }
 
 impl Syscall<'_> {
     /// 系统调用总控函数
     pub async fn do_syscall(&mut self, syscall_id: usize, args: [usize; 6]) -> isize {
+        #[allow(unused)]
+        let [a0, a1, a2, a3, a4, a5] = args;
         let ret = match syscall_id {
-            // 调试用
-            // DebugWrite => sys_debug_write(args[0]),
-            // DebugDataTransport => sys_debug_data_transport(args[0], args[1]),
-            // DebugOpen => sys_debug_open(args[0]),
-            // SerialRead => sys_serial_read(args[0]),
-            // GetTime => (*pic::TICKS as _, 0),
-            // TestCstr => sys_test_cstr(args[0] as _),
-
             // 任务相关
-            SYS_EXIT => sys_exit(args[0]),
-            SYS_WAIT4 => sys_wait4(args[0]),
-            SYS_SCHED_YIELD => sys_yield(),
+            SYS_EXIT => self.sys_exit(a0),
+            SYS_WAIT4 => self.sys_wait4(a0 as _, UserInOutPtr::from(a1)).await,
+            SYS_SCHED_YIELD => self.sys_yield(),
             // Thread?
-            SYS_GETPID => sys_get_pid(),
-            SYS_GETTID => sys_get_tid(),
-            SYS_FORK => sys_fork(),
-            SYS_VFORK => sys_fork(),
-            SYS_EXECVE => sys_exec(args[0] as _, args[1] as _, args[2] as _),
+            SYS_GETPID => self.sys_get_pid(),
+            SYS_GETTID => self.sys_get_tid(),
+            SYS_FORK => self.sys_fork(),
+            SYS_VFORK => self.sys_fork(),
+            SYS_EXECVE => self.sys_exec(args[0] as _, args[1] as _, args[2] as _),
 
             // 文件相关
             SYS_OPEN => sys_open(args[0] as _, args[1], args[2]),

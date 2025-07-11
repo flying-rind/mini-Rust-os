@@ -288,6 +288,7 @@ dependencies = [
 name = "hybrid-syscalls"
 version = "0.1.0"
 dependencies = [
+ "executor",
  "hal",
  "hybrid-objects",
  "log",
@@ -297,6 +298,7 @@ dependencies = [
  "rcore-fs",
  "requests-info",
  "spin 0.10.0",
+ "trapframe",
  "user-syscall",
  "x86_64",
 ]
