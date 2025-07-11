@@ -10,6 +10,8 @@ use alloc::sync::Arc;
 use alloc::sync::Weak;
 use alloc::vec::Vec;
 use core::pin::Pin;
+use core::task::Context;
+use core::task::Poll;
 use hybrid_objects::fs::Stdin;
 use hybrid_objects::fs::Stdout;
 use hybrid_objects::mm::MemoryArea;
@@ -78,10 +80,6 @@ pub struct Thread {
 impl Thread {
     /// Take away the context, then begin running.
     pub fn begin_running(&self) -> Box<UserContext> {
-        let proc = self.proc.lock();
-        let inner = self.inner.lock();
-        drop(inner);
-        drop(proc);
         self.inner.lock().context.take().unwrap()
     }
 
@@ -215,5 +213,46 @@ impl Thread {
             .children
             .push((child_pid, Arc::downgrade(&new_proc)));
         new_thread
+    }
+
+    /// Start execution on the thread. Add to executor.
+    pub fn start(self: Arc<Self>, thread_fn: ThreadFn) {
+        let future = thread_fn(self.clone());
+        let switch = ThreadSwitchFuture::new(self, future);
+        executor::spawn(switch);
+    }
+}
+
+type ThreadFuture = dyn Future<Output = ()> + Send;
+type ThreadFuturePinned = Pin<Box<ThreadFuture>>;
+
+/// Top level future, directly polled by the executor.
+///
+/// Make sure every time poll this future, modify the CURRENT_THREAD.
+pub struct ThreadSwitchFuture {
+    thread: Arc<Thread>,
+    future: Mutex<ThreadFuturePinned>,
+}
+
+impl ThreadSwitchFuture {
+    /// Spawn a new thread that can be polled by executor.
+    pub fn new(thread: Arc<Thread>, future: ThreadFuturePinned) -> Self {
+        Self {
+            thread,
+            future: Mutex::new(future),
+        }
+    }
+}
+
+impl Future for ThreadSwitchFuture {
+    type Output = ();
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        // Switch vm.
+        self.thread.proc.lock().vm.activate();
+        set_current_thread(Some(self.thread.clone()));
+        // Poll thread fn.
+        let ret = self.future.lock().as_mut().poll(cx);
+        set_current_thread(None);
+        ret
     }
 }

@@ -17,8 +17,7 @@ impl Syscall<'_> {
         let new_thread = self.thread.fork(self.context);
         let pid = new_thread.proc.lock().pid.0;
         info!("fork: {} -> {}", self.process().pid, pid);
-        let future = (self.thread_fn)(new_thread);
-        executor::spawn(future);
+        new_thread.start(self.thread_fn);
         Ok(pid)
     }
 

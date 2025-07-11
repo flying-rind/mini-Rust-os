@@ -49,7 +49,7 @@ impl Syscall<'_> {
     ///
     /// FIXME: Refactor to simplify this function.
     /// See [wait(2)](https://man7.org/linux/man-pages/man2/waitpid.2.html)
-    pub async fn sys_wait4(&mut self, pid: isize, mut wstatus: UserInOutPtr<i32>) -> SysResult {
+    pub async fn sys_wait4(&mut self, pid: isize, mut _wstatus: UserInOutPtr<i32>) -> SysResult {
         if pid == 0 || pid == -1 {
             unimplemented!("Not suportted yet!")
         }

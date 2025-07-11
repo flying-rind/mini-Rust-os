@@ -30,8 +30,7 @@ pub fn run_shell() {
             vec![String::from_str("shell").unwrap()],
             Vec::new(),
         );
-        let future = thread_fn(thread.clone());
-        executor::spawn(future);
+        thread.start(thread_fn);
     } else {
         panic!("Failed to load shell");
     }
@@ -51,9 +50,6 @@ async fn run_user(thread: Arc<Thread>) {
             break;
         }
         // TODO: Handle Signal
-        // FIXME: Should not change user-space here(in loop)
-        // 切换地址空间
-        thread.proc.lock().vm.activate();
         // 进入用户态
         let mut context = thread.begin_running();
         context.run();

@@ -7,6 +7,6 @@ use user_lib::dup;
 #[no_mangle]
 // fn main(_argc: usize, _argv: &[&str]) -> usize {
 fn main() -> isize {
-    dup(1);
+    let _ = dup(1);
     1
 }

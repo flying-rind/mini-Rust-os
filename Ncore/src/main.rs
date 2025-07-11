@@ -13,6 +13,7 @@ use hybrid_objects::mm::PHYS_OFFSET;
 use hybrid_objects::task::Kthread;
 #[cfg(feature = "hybrid")]
 use loader::hybrid::main_loop;
+#[cfg(feature = "hybrid")]
 use loader::hybrid::run_shell;
 #[allow(unused)]
 use log::{info, warn};
