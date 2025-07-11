@@ -22,8 +22,7 @@ pub fn run_shell() {
         let args = vec!["arg1".to_string(), "arg2".to_string()];
         let envs = vec!["env1".to_string(), "env2".to_string()];
         let thread = Process::new_user(shell.to_string(), &inode, args, envs);
-        let future = thread_fn(thread.clone());
-        executor::spawn(future);
+        thread.start(thread_fn);
     } else {
         panic!("Failed to load shell");
     }
@@ -42,7 +41,6 @@ async fn run_user(thread: Arc<Thread>) {
         if thread.state() == ThreadState::Exited {
             break;
         }
-        // FIXME: Should not change user-space here(in loop)
         // Enter userspace until trap.
         thread.run_until_trap();
         // 返回内核，处理中断/系统调用

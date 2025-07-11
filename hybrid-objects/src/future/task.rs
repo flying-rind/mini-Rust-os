@@ -1,13 +1,17 @@
 //! 任务相关的协程结构体
 
+use crate::set_current_thread;
+
 use super::trap::Kthread;
 use super::trap::ThreadState;
 use super::trap::{Process, Thread};
+use alloc::boxed::Box;
 use alloc::sync::Arc;
 use core::future::Future;
 use core::pin::Pin;
 use core::task::Context;
 use core::task::Poll;
+use spin::Mutex;
 
 /// 用户线程等待一个进程结束
 ///
@@ -156,5 +160,39 @@ impl Future for WaitForThread {
                 .add_state_waker(cx.waker().clone(), ThreadState::Exited);
             Poll::Pending
         }
+    }
+}
+
+type ThreadFuture = dyn Future<Output = ()> + Send;
+type ThreadFuturePinned = Pin<Box<ThreadFuture>>;
+
+/// Top level future, directly polled by the executor.
+///
+/// Make sure every time poll this future, modify the CURRENT_THREAD.
+pub struct ThreadSwitchFuture {
+    thread: Arc<Thread>,
+    future: Mutex<ThreadFuturePinned>,
+}
+
+impl ThreadSwitchFuture {
+    /// Spawn a new thread that can be polled by executor.
+    pub fn new(thread: Arc<Thread>, future: ThreadFuturePinned) -> Self {
+        Self {
+            thread,
+            future: Mutex::new(future),
+        }
+    }
+}
+
+impl Future for ThreadSwitchFuture {
+    type Output = ();
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        // Switch vm.
+        self.thread.proc().unwrap().memory_set().activate();
+        set_current_thread(Some(self.thread.clone()));
+        // Poll thread fn.
+        let ret = self.future.lock().as_mut().poll(cx);
+        set_current_thread(None);
+        ret
     }
 }

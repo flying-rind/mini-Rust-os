@@ -2,13 +2,13 @@
 
 use core::task::Waker;
 
+use crate::future::ThreadSwitchFuture;
 use crate::mm::MemorySet;
 use crate::*;
 use alloc::sync::{Arc, Weak};
 use core::pin::Pin;
 use mm::MemoryArea;
 use trapframe::UserContext;
-use x86_64::instructions::tlb;
 use x86_64::structures::paging::PageTableFlags;
 
 /// 用户线程的线程异步函数
@@ -94,16 +94,14 @@ impl Thread {
 
     /// 运行当前线程，当用户态发生中断或系统调用时控制流返回Rust
     pub fn run_until_trap(&self) {
-        // 切换当前线程所属进程的地址空间
-        if let Some(proc) = self.proc.upgrade() {
-            proc.memory_set().activate();
-            // 刷新TLB
-            tlb::flush_all();
-        } else {
-            panic!("[Kernel] Process already dropped");
-        }
-
         self.user_context.get_mut().run()
+    }
+
+    /// Start execution on the thread. Add to executor
+    pub fn start(self: Arc<Self>, thread_fn: ThreadFn) {
+        let future = thread_fn(self.clone());
+        let switch = ThreadSwitchFuture::new(self, future);
+        executor::spawn(switch);
     }
 
     /// 设置用户态上下文的返回值

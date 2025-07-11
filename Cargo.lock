@@ -262,6 +262,7 @@ dependencies = [
  "bootloader_api",
  "buddy_system_allocator 0.10.0",
  "downcast-rs",
+ "executor",
  "futures-util",
  "hal",
  "hashbrown",

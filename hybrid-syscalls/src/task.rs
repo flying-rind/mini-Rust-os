@@ -68,6 +68,8 @@ impl Syscall<'_> {
     }
 
     /// 当前线程放弃CPU
+    ///
+    /// FIXME: Modify
     pub fn sys_yield(&mut self) -> SysResult {
         let current_thread = current_thread();
         current_thread.set_state(ThreadState::Waiting);
@@ -151,8 +153,7 @@ impl Syscall<'_> {
         let current_thread = current_thread();
         let current_proc = current_thread.proc().unwrap();
         let thread = current_proc.fork();
-        let future = ((self.thread_fn)(thread.clone()));
-        executor::spawn(future);
+        thread.clone().start(self.thread_fn);
         Ok(thread.proc().unwrap().pid())
     }
 }
