@@ -49,32 +49,6 @@ impl MemorySet {
         }
     }
 
-    /// 清理地址空间中ELF类型的区域，取消映射
-    pub fn clear_elf(&self) {
-        let areas = self.areas.get_mut();
-        areas.retain(|area| {
-            if area.mtype() == MemAreaType::ELF {
-                // 取消页表映射
-                self.page_table.get_mut().unmap_area(area.clone());
-                return false;
-            }
-            true
-        });
-    }
-
-    /// Clear UserStack areas
-    pub fn clear_ustack(&self) {
-        let areas = self.areas.get_mut();
-        areas.retain(|area| {
-            if area.mtype() == MemAreaType::USERSTACK {
-                // 取消页表映射
-                self.page_table.get_mut().unmap_area(area.clone());
-                return false;
-            }
-            true
-        });
-    }
-
     /// 克隆一个地址空间时，克隆其中所有的虚存区域
     ///
     /// 用户栈不复制而是在进程复制时手动复制(因为一个地址空间有多个)
@@ -150,12 +124,7 @@ pub fn load_app(ms: Arc<MemorySet>, elf: &ElfFile) {
             SegmentData::Undefined(data) => data,
             _ => panic!("failed to get ELF segment data"),
         };
-        let memory_area = MemoryArea::new(
-            vaddr_start,
-            vaddr_end - vaddr_start,
-            flags,
-            MemAreaType::ELF,
-        );
+        let memory_area = MemoryArea::new(vaddr_start, vaddr_end - vaddr_start, flags);
 
         // 数据写入虚存区域中
         memory_area.write_data(offset, data);

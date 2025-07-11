@@ -28,7 +28,7 @@ pub struct Process {
     /// 进程id
     pid: usize,
     /// 进程名称，可重复
-    name: String,
+    exec_path: String,
     /// 进程地址空间
     vm: Arc<MemorySet>,
     /// 父进程
@@ -54,18 +54,13 @@ pub struct Process {
 impl Process {
     const AT_FDCWD: usize = -100isize as usize;
 
-    /// Construct a new process.
-    /// 创建新进程
-    ///
-    /// 为其创建虚存空间，将elf文件载入虚存空间中，并建立根线程
-    ///
-    /// 若路径有误，则返回None
-    pub fn new(
-        name: String,
+    /// Construct a new process. Return the root thread.
+    pub fn new_user(
+        path: String,
         inode: &Arc<dyn INode>,
         args: Vec<String>,
         envs: Vec<String>,
-    ) -> Option<Arc<Self>> {
+    ) -> Arc<Thread> {
         // 创建虚存空间并加载app
         // 0x3c0: magic number from ld-musl.so
         let mut data = [0u8; 16 * 1024 * 10];
@@ -86,7 +81,7 @@ impl Process {
         files.insert(2, Arc::new(File::Stdout(Stdout)));
         let new_proc = Arc::new(Process {
             pid,
-            name,
+            exec_path: path,
             vm,
             cwd: String::from("/"),
             files: Cell::new(files),
@@ -97,8 +92,8 @@ impl Process {
         // 创建根线程
         let tid = new_proc.thread_id.fetch_add(1, Ordering::Relaxed);
         let root_thread = Thread::new(Arc::downgrade(&new_proc), tid, entry, sp);
-        new_proc.add_thread(root_thread);
-        Some(new_proc)
+        new_proc.add_thread(root_thread.clone());
+        root_thread
     }
 
     /// 复制当前进程
@@ -111,22 +106,19 @@ impl Process {
         let memory_set = self.vm.clone_myself();
         let child_proc = Arc::new(Process {
             pid,
-            name: self.name.clone(),
+            exec_path: self.exec_path.clone(),
             vm: memory_set.clone(),
             files: Cell::new(self.file_table().clone()),
             ..Process::default()
         });
         // 加入全局进程映射表
         PROCESS_MAP.get_mut().insert(pid, child_proc.clone());
-        // 复制用户栈
-        let current_thread = CURRENT_THREAD.get().as_ref().unwrap().clone();
+        let current_thread = current_thread();
         let current_proc = current_thread.proc().unwrap();
-        let new_stack_area = current_thread.stack_area().clone_myself();
-        memory_set.insert_area(new_stack_area.clone());
         let current_ctx = current_thread.user_context();
         // 创建根线程
         let tid = child_proc.alloc_tid();
-        let root_thread = Thread::new(Arc::downgrade(&child_proc.clone()), tid, en, 0);
+        let root_thread = Thread::new(Arc::downgrade(&child_proc.clone()), tid, 0, 0);
         // 复制上下文
         root_thread.set_user_context(current_ctx);
         // 子线程返回值为0
@@ -283,8 +275,8 @@ impl Process {
     }
 
     /// 获取进程名称
-    pub fn name(&self) -> &str {
-        self.name.as_str()
+    pub fn path(&self) -> &str {
+        &self.exec_path.as_str()
     }
 
     /// 获取进程id
@@ -294,7 +286,7 @@ impl Process {
 
     /// 获取进程地址空间
     pub fn memory_set(&self) -> Arc<MemorySet> {
-        self.memory_set.clone()
+        self.vm.clone()
     }
 
     /// 获取根线程

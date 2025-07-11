@@ -2,7 +2,6 @@
 
 use core::task::Waker;
 
-use crate::mm::MemAreaType;
 use crate::mm::MemorySet;
 use crate::*;
 use alloc::sync::{Arc, Weak};
@@ -79,12 +78,7 @@ impl Thread {
     pub fn new_user_stack(vm: Arc<MemorySet>, args: Vec<String>, envs: Vec<String>) -> usize {
         let flags =
             PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
-        let stack_area = MemoryArea::new(
-            USER_STACK_BASE,
-            USER_STACK_SIZE,
-            flags,
-            MemAreaType::USERSTACK,
-        );
+        let stack_area = MemoryArea::new(USER_STACK_BASE, USER_STACK_SIZE, flags);
         vm.insert_area(stack_area);
         // 参数压栈
         vm.activate();

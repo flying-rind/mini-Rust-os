@@ -40,7 +40,7 @@ impl File {
     pub async fn read(&self, buf: &mut [u8], fd: usize) -> SysResult {
         use File::*;
         match self {
-            OSInode(osinode) => osinode.read(buf, fd).await,
+            OSInode(osinode) => osinode.send_read_req(buf, fd).await,
             Pipe(pipe) => pipe.read(buf).await,
             Stdin(stdin) => stdin.read(buf),
             Stdout(stdout) => stdout.read(buf),
@@ -51,7 +51,7 @@ impl File {
     pub async fn write(&self, buf: &[u8], fd: usize) -> SysResult {
         use File::*;
         match self {
-            OSInode(osinode) => osinode.write(buf, fd).await,
+            OSInode(osinode) => osinode.send_write_req(buf, fd).await,
             Pipe(pipe) => pipe.write(buf),
             Stdin(stdin) => stdin.write(buf),
             Stdout(stdout) => stdout.write(buf),

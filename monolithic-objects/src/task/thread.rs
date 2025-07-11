@@ -111,15 +111,9 @@ impl Thread {
     /// Construct a new user stack memory area, insert to vm.
     /// And push args and envs to stack, return new sp.
     pub fn new_user_stack(vm: Arc<MemorySet>, args: Vec<String>, envs: Vec<String>) -> usize {
-        use hybrid_objects::mm::MemAreaType;
         let flags =
             PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
-        let stack_area = MemoryArea::new(
-            USER_STACK_BASE,
-            USER_STACK_SIZE,
-            flags,
-            MemAreaType::USERSTACK,
-        );
+        let stack_area = MemoryArea::new(USER_STACK_BASE, USER_STACK_SIZE, flags);
         vm.insert_area(stack_area);
         // 参数压栈
         vm.activate();

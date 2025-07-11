@@ -5,10 +5,9 @@ use future::executor;
 use future::futures::{ThreadYield, WaitForProc, WaitForThread};
 use hal::{check_n_clone_cstr, check_n_clone_cstr_array};
 use log::info;
-use mm::{MemoryArea, USER_STACK_BASE, USER_STACK_SIZE};
+use mm::{USER_STACK_BASE, USER_STACK_SIZE};
 use trap::CURRENT_THREAD;
 use user_syscall::SysResult;
-use x86_64::structures::paging::PageTableFlags;
 
 /// Exit the current thread.
 pub fn sys_exit(exit_code: usize) -> SysResult {
@@ -71,21 +70,11 @@ pub fn sys_thread_create(entry: usize, arg1: usize, arg2: usize) -> (usize, usiz
     let tid = current_proc.alloc_tid();
     // 每两个用户栈之间隔一段空间
     let sp_base = USER_STACK_BASE + tid * 2 * USER_STACK_SIZE;
-    let flags =
-        PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
-    // 分配用户栈
-    let stack_area = MemoryArea::new(sp_base, USER_STACK_SIZE, flags, mm::MemAreaType::USERSTACK);
-    // 插入到当前进程所在的地址空间中
-    let current_memoryset = current_proc.memory_set();
-    current_memoryset.insert_area(stack_area.clone());
     let new_thread = Thread::new(
         Arc::downgrade(&current_proc),
         tid,
         entry,
         sp_base + USER_STACK_SIZE,
-        arg1,
-        arg2,
-        stack_area,
     );
     new_thread.set_state(ThreadState::Runnable);
     current_proc.add_thread(new_thread);

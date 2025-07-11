@@ -1,5 +1,6 @@
 //! OSInode
 use alloc::sync::Arc;
+use hal::SysError;
 use rcore_fs::vfs::INode;
 use spin::Mutex;
 use user_syscall::SysResult;
@@ -40,6 +41,9 @@ impl OSInode {
 
     /// Read file to buf.
     pub fn read(&self, buf: &mut [u8]) -> SysResult {
+        if !self.readable() {
+            return Err(SysError::EPERM);
+        }
         let (mut offset, inode) = (self.offset.lock(), self.inode.lock());
         let n = inode.read_at(*offset, buf)?;
         *offset += n;
@@ -48,6 +52,9 @@ impl OSInode {
 
     /// Write to file with data from buf.
     pub fn write(&self, buf: &[u8]) -> SysResult {
+        if !self.writable() {
+            return Err(SysError::EPERM);
+        }
         let (mut offset, inode) = (self.offset.lock(), self.inode.lock());
         let n = inode.write_at(*offset, buf)?;
         *offset += n;

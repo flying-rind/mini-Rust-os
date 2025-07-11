@@ -5,13 +5,11 @@ use core::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-use crate::{activate_proc_ms, task::PROCESS_MAP};
+use crate::{activate_proc_ms, fs::File, task::PROCESS_MAP};
 
 use super::*;
 use alloc::sync::Arc;
-use hal::SysError;
 use requests_info::{CastBytes, fsreqinfo::FsReqDescription};
-use user_syscall::SysResult;
 
 /// 文件系统请求处理器
 pub struct FsProcessor;
@@ -26,15 +24,15 @@ impl FsProcessor {
 pub static PROCESSED_COUNT: AtomicUsize = AtomicUsize::new(0);
 
 impl FsProcessor {
-    /// Process Read request.
-    pub async fn process_read(
+    /// Process Read request. If the res > 0, it presents the read size, otherwise the error num.
+    pub fn process_read(
         &self,
         pid: usize,
         fd: usize,
         buf_ptr: usize,
         buf_len: usize,
         res_ptr: usize,
-    ) -> SysResult {
+    ) {
         activate_proc_ms(pid.clone());
         let buf_ptr = buf_ptr as *mut u8;
         let buf = unsafe { core::slice::from_raw_parts_mut(buf_ptr, buf_len) };
@@ -42,28 +40,26 @@ impl FsProcessor {
         assert!(proc.is_some());
         let proc = proc.unwrap();
         let file = proc.file_table().get(&fd).unwrap();
-        let read_size = if !file.readable() {
-            error!("[Fs server] Error reading file, not readable!");
-            return Err(SysError::EPERM);
-        } else {
-            file.read(buf, fd).await?
+        let read_size: isize = match file.as_ref() {
+            File::OSInode(osinode) => match osinode.read(buf) {
+                Ok(size) => size as _,
+                Err(err) => -(err as isize),
+            },
+            _ => panic!("File type error!"),
         };
-        let result_ptr = res_ptr as *mut usize;
-        unsafe {
-            *result_ptr = read_size;
-        }
-        Ok(read_size)
+        let result_ptr = res_ptr as *mut isize;
+        unsafe { *result_ptr = read_size };
     }
 
-    /// Process Write request.
-    pub async fn process_write(
+    /// Process Write request. If the res > 0, it presents the read size, otherwise the error num.
+    pub fn process_write(
         &self,
         pid: usize,
         fd: usize,
         buf_ptr: usize,
         buf_len: usize,
         res_ptr: usize,
-    ) -> SysResult {
+    ) {
         activate_proc_ms(pid.clone());
         // [模拟致命错误]
         if PROCESSED_COUNT.load(Ordering::Relaxed) % 5 == 0 {
@@ -76,17 +72,17 @@ impl FsProcessor {
         assert!(proc.is_some());
         let proc = proc.unwrap();
         let file = proc.file_table().get(&fd).unwrap();
-        let write_size = if !file.writable() {
-            error!("[Fs server] Error writing file, not writable!");
-            return Err(SysError::EPERM);
-        } else {
-            file.write(buf, fd).await?
+        let write_size: isize = match file.as_ref() {
+            File::OSInode(osinode) => match osinode.write(buf) {
+                Ok(size) => size as _,
+                Err(err) => -(err as isize),
+            },
+            _ => panic!(""),
         };
-        let res_ptr = res_ptr as *mut usize;
+        let res_ptr = res_ptr as *mut isize;
         unsafe {
             *res_ptr = write_size;
         }
-        Ok(write_size)
     }
 }
 

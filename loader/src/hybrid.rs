@@ -1,6 +1,7 @@
 //! 混合内核中断系统调用处理
 //! 中断和用户态系统调用的处理入口
 
+use alloc::string::ToString;
 use alloc::sync::Arc;
 use core::pin::Pin;
 use hybrid_objects::fs::ROOT_INODE;
@@ -18,13 +19,9 @@ pub fn run_shell() {
     let shell = "shell";
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
-        // Construct new user process here.
-        // let thread = Thread::new_user(
-        //     &inode,
-        //     shell,
-        //     vec![String::from_str("shell").unwrap()],
-        //     Vec::new(),
-        // );
+        let args = vec!["arg1".to_string(), "arg2".to_string()];
+        let envs = vec!["env1".to_string(), "env2".to_string()];
+        let thread = Process::new_user(shell.to_string(), &inode, args, envs);
         let future = thread_fn(thread.clone());
         executor::spawn(future);
     } else {

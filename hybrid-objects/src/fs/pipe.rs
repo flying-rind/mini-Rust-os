@@ -6,6 +6,7 @@ use alloc::sync::Arc;
 use alloc::sync::Weak;
 use core::task::Waker;
 use future::futures::fs::WaitForPipeBuffer;
+use hal::SysError;
 use rcore_fs::vfs::FsError;
 use user_syscall::SysResult;
 
@@ -54,7 +55,9 @@ impl Pipe {
     ///
     /// 此时假设写端已经关闭，同步读取
     pub async fn read(&self, buf: &mut [u8]) -> SysResult {
-        assert!(self.readable());
+        if !self.readable() {
+            return Err(SysError::EPERM);
+        }
         let wait4pipe = WaitForPipeBuffer::new(self.buf.clone());
         // Make sure the write end is cloesd already.
         wait4pipe.await;

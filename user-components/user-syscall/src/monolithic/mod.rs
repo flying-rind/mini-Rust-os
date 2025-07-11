@@ -49,7 +49,7 @@ fn syscall(id: SyscallNum, args: [usize; 6]) -> SysResult {
     }
     match ret0 {
         ret if ret >= 0 => Ok(ret as _),
-        err => Err(SysError::from_isize(err).unwrap()),
+        err => Err(SysError::from_isize(-err).unwrap()),
     }
 }
 

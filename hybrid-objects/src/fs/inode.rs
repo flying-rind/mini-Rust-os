@@ -4,10 +4,9 @@ use crate::future::futures::WaitForKthread;
 use crate::println;
 use crate::*;
 use alloc::sync::Arc;
-use alloc::vec;
-use alloc::vec::Vec;
 use hal::SysError;
 use lazy_static::lazy_static;
+use num::FromPrimitive;
 use rcore_fs::dev::block_cache::BlockCache;
 use rcore_fs::vfs::FileSystem;
 use rcore_fs::vfs::FileType;
@@ -77,15 +76,6 @@ impl OSInode {
         }
     }
 
-    /// 读取一个I结点索引的所有数据
-    pub fn read_all(&self) -> Vec<u8> {
-        let inode = self.inode.lock();
-        let size = inode.metadata().unwrap().size;
-        let mut buffer = vec![0u8; size];
-        let _ = inode.read_at(0, buffer.as_mut_slice());
-        buffer
-    }
-
     /// Readable
     pub fn readable(&self) -> bool {
         self.readable
@@ -97,20 +87,24 @@ impl OSInode {
     }
 
     /// Send read request to kthread and wait for service.
-    pub async fn read(&self, buf: &mut [u8], fd: usize) -> SysResult {
+    /// If the res > 0, it presents the read size, otherwise the error num.
+    pub async fn send_read_req(&self, buf: &mut [u8], fd: usize) -> SysResult {
+        if !self.readable() {
+            return Err(SysError::EPERM);
+        }
         let fs_kthread = KTHREAD_MAP.get().get(&KthreadType::FS);
         match fs_kthread {
             Some(fs_kthread) => {
                 let current_thread = current_thread();
                 let pid = current_thread.proc().unwrap().pid();
                 // 构造fsreq
-                let mut res: usize = 0;
+                let mut res: isize = 0;
                 let fsreq = FsReqDescription::Read(
                     pid,
                     fd,
                     buf.as_mut_ptr() as _,
                     buf.len(),
-                    &mut res as *mut usize as _,
+                    &mut res as *mut isize as _,
                 )
                 .as_bytes()
                 .to_vec();
@@ -119,7 +113,10 @@ impl OSInode {
                 current_thread.set_state(ThreadState::Waiting);
                 let waitforkthread = WaitForKthread::new(current_thread, fs_kthread, req_id);
                 waitforkthread.await;
-                return Ok(res);
+                match res {
+                    size if size >= 0 => return Ok(size as _),
+                    err => Err(SysError::from_isize(-err).unwrap()),
+                }
             }
             None => {
                 error!("[Kernel] Error when sys_open, FS kthread not exist!");
@@ -128,8 +125,17 @@ impl OSInode {
         }
     }
 
+    /// Read from inode to buf.
+    pub fn read(&self, buf: &mut [u8]) -> SysResult {
+        let (mut offset, inode) = (self.offset.lock(), self.inode.lock());
+        let n = inode.read_at(*offset, buf)?;
+        *offset += n;
+        Ok(n)
+    }
+
     /// Send write request to kthread and wait for service.
-    pub async fn write(&self, buf: &[u8], fd: usize) -> SysResult {
+    /// If the res > 0, it presents the read size, otherwise the error num.
+    pub async fn send_write_req(&self, buf: &[u8], fd: usize) -> SysResult {
         let fs_kthread = KTHREAD_MAP.get().get(&KthreadType::FS);
         match fs_kthread {
             Some(fs_kthread) => {
@@ -158,6 +164,14 @@ impl OSInode {
                 return Err(SysError::ENOKTH);
             }
         }
+    }
+
+    /// Write data from buf to inode.
+    pub fn write(&self, buf: &[u8]) -> SysResult {
+        let (mut offset, inode) = (self.offset.lock(), self.inode.lock());
+        let n = inode.write_at(*offset, buf)?;
+        *offset += n;
+        Ok(n)
     }
 
     /// Lookup from myself.
