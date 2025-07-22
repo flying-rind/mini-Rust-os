@@ -11,6 +11,7 @@ use hal::println;
 use log::info;
 use monolithic_objects::ROOT_INODE;
 use monolithic_objects::set_current_thread;
+use monolithic_objects::sync::timer;
 use monolithic_objects::{Arc, Thread, ThreadState};
 use trapframe::TrapFrame;
 use trapframe::UserContext;
@@ -74,7 +75,7 @@ pub extern "C" fn trap_handler(tf: &mut TrapFrame) {
             panic!("page fault");
         }
         TIMER => {
-            // do nothing?
+            timer();
         }
         _ => {
             unimplemented!();
@@ -105,7 +106,7 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
             panic!("page fault");
         }
         TIMER => {
-            // do nothing?
+            timer();
         }
         _ => {
             unimplemented!();

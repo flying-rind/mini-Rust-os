@@ -17,6 +17,7 @@ extern crate num_traits;
 
 mod custom;
 mod fs;
+mod misc;
 mod num;
 mod proc;
 
@@ -57,6 +58,9 @@ impl Syscall<'_> {
             SYS_WRITE => self.sys_write(a0 as _, a1 as _, a2 as _),
             SYS_READ => self.sys_read(a0.into(), a1.into(), a2 as _).await,
             SYS_DUP => self.sys_dup(a0),
+
+            // MISC
+            SYS_ARCH_PRCTL => self.sys_arch_prctl(a0 as _, a1),
 
             // Custom
             SYS_TEST_CSTR => self.sys_test_cstr(a0 as _),

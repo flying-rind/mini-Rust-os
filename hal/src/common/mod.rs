@@ -6,6 +6,7 @@ pub mod abi;
 pub mod console;
 pub mod cstr;
 pub mod error;
+pub mod time;
 pub mod user;
 
 pub use abi::*;
