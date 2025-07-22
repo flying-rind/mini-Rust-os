@@ -4,8 +4,6 @@ use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use rcore_fs::vfs::FsError;
 
-use crate::user::UserPtrError;
-
 #[repr(isize)]
 #[derive(Debug, FromPrimitive)]
 /// 系统调用错误
@@ -54,6 +52,7 @@ pub enum SysError {
     EDEADLK = 35,
     ENAMETOOLONG = 36,
     ENOLCK = 37,
+    /// Function not implemented.
     ENOSYS = 38,
     ENOTEMPTY = 39,
     ELOOP = 40,
@@ -76,12 +75,6 @@ pub enum SysError {
 impl From<usize> for SysError {
     fn from(value: usize) -> Self {
         SysError::from_usize(value).expect("Can not convert to SysError")
-    }
-}
-
-impl From<UserPtrError> for SysError {
-    fn from(_value: UserPtrError) -> Self {
-        SysError::EFAULT
     }
 }
 

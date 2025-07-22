@@ -4,7 +4,7 @@ use core::fmt::Display;
 use super::*;
 use crate::debug;
 use crate::fs::file::File;
-use crate::sync::{Event, EventBus};
+use crate::sync::{Event, EventBus, Futex};
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
@@ -63,6 +63,8 @@ pub struct Process {
     pub cwd: String,
     /// 文件表
     pub files: BTreeMap<usize, Arc<File>>,
+    /// Futex table.
+    pub futexes: BTreeMap<usize, Arc<Futex>>,
     /// Parent process
     pub parent: (Pid, Weak<Mutex<Process>>),
     /// Children process
@@ -138,6 +140,14 @@ impl Process {
     pub fn get_file(&mut self, fd: usize) -> Result<Arc<File>, usize> {
         const EBADF: usize = 9;
         self.files.get_mut(&fd).ok_or(EBADF).cloned()
+    }
+
+    /// Get futex by addr.
+    pub fn get_futex(&mut self, uaddr: usize) -> Arc<Futex> {
+        if !self.futexes.contains_key(&uaddr) {
+            self.futexes.insert(uaddr, Arc::new(Futex::new()));
+        }
+        self.futexes.get(&uaddr).unwrap().clone()
     }
 
     /// 替换当前进程的elf文件

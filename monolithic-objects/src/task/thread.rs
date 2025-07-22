@@ -52,6 +52,9 @@ pub type ThreadFn = fn(thread: Arc<Thread>) -> Pin<Box<dyn Future<Output = ()> +
 pub struct ThreadInner {
     /// 用户态上下文
     pub context: Option<Box<UserContext>>,
+    /// Kernel performs futex wake when thread exits.
+    /// Ref: [http://man7.org/linux/man-pages/man2/set_tid_address.2.html]
+    pub clear_child_tid: usize,
     /// 线程状态
     pub state: ThreadState,
 }
@@ -150,6 +153,7 @@ impl Thread {
         files.insert(2, Arc::new(File::Stdout(Stdout)));
         let thread = Thread {
             inner: Mutex::new(ThreadInner {
+                clear_child_tid: 0,
                 state: ThreadState::Ready,
                 context: Some(Box::new(context)),
             }),
@@ -161,6 +165,7 @@ impl Thread {
                 exec_path: String::from(exec_path),
                 cwd: String::from("/"),
                 files: files,
+                futexes: BTreeMap::new(),
                 parent: (Pid::new(), Weak::new()),
                 children: Vec::new(),
                 threads: Vec::new(),
@@ -196,6 +201,7 @@ impl Thread {
         let new_thread = Thread {
             tid: 0,
             inner: Mutex::new(ThreadInner {
+                clear_child_tid: 0,
                 context: Some(Box::new(new_context)),
                 state: ThreadState::Ready,
             }),

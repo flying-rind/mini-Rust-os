@@ -226,4 +226,14 @@ impl Syscall<'_> {
             }
         }
     }
+
+    /// The system call set_tid_address() sets the clear_child_tid value
+    /// for the calling thread to tidptr.
+    ///
+    /// [set_tid_address(man2)](https://man7.org/linux/man-pages/man2/set_tid_address.2.html)
+    pub fn sys_set_tid_address(&mut self, tidptr: *mut u32) -> SysResult {
+        info!("set_tid_address: {:?}", tidptr);
+        self.thread.inner.lock().clear_child_tid = tidptr as usize;
+        Ok(self.thread.tid)
+    }
 }

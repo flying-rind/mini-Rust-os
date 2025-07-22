@@ -44,7 +44,7 @@ pub fn check_n_clone_cstr_array(user: *const *const u8) -> Result<Vec<String>, S
 }
 
 /// 从用户态复制到内核
-pub fn copy_from_user<T: Debug>(addr: *const T) -> Option<T> {
+pub fn copy_from_user<T>(addr: *const T) -> Option<T> {
     #[inline(never)]
     unsafe extern "C" fn read_user<T>(dst: *mut T, src: *const T) -> usize {
         unsafe {

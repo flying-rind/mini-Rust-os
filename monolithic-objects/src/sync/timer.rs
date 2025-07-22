@@ -52,3 +52,18 @@ pub fn timer() {
     let now = timer_now();
     NAIVE_TIMER.lock().expire(now);
 }
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+/// TimeSpec struct in Linux.
+pub struct TimeSpec {
+    pub sec: usize,
+    pub nsec: usize,
+}
+
+impl TimeSpec {
+    /// Into duration.
+    pub fn to_duration(&self) -> Duration {
+        Duration::new(self.sec as _, self.nsec as _)
+    }
+}

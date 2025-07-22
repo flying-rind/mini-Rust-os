@@ -20,6 +20,7 @@ mod fs;
 mod misc;
 mod num;
 mod proc;
+mod sync;
 
 /// 系统调用
 pub struct Syscall<'a> {

@@ -1,6 +1,8 @@
 //! Raw pointer from user space.
 use core::{fmt::Debug, marker::PhantomData};
 
+use crate::{SysError, copy_from_user};
+
 #[repr(C)]
 /// Raw pointer from uspace.
 pub struct UserPtr<T, P: Policy> {
@@ -48,17 +50,7 @@ pub type UserOutPtr<T> = UserPtr<T, Out>;
 /// 读写用户指针
 pub type UserInOutPtr<T> = UserPtr<T, InOut>;
 
-/// The error type which is returned from user pointer operation.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum UserPtrError {
-    InvalidUtf8,
-    InvalidPointer,
-    BufferTooSmall,
-    InvalidLength,
-    InvalidVectorAddress,
-}
-
-type Result<T> = core::result::Result<T, UserPtrError>;
+type Result<T> = core::result::Result<T, SysError>;
 
 impl<T, P: Policy> UserPtr<T, P> {
     /// Get raw pointer
@@ -86,7 +78,17 @@ impl<T, P: Policy> UserPtr<T, P> {
         if !self.is_null() && (self.ptr as usize) % core::mem::align_of::<T>() == 0 {
             Ok(())
         } else {
-            Err(UserPtrError::InvalidPointer)
+            Err(SysError::EFAULT)
+        }
+    }
+}
+
+impl<T, P: Read> UserPtr<T, P> {
+    pub fn read(&self) -> Result<T> {
+        if let Some(res) = copy_from_user(self.ptr) {
+            Ok(res)
+        } else {
+            Err(SysError::EFAULT)
         }
     }
 }
