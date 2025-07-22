@@ -68,17 +68,48 @@ impl Syscall<'_> {
     pub fn sys_exit(&mut self, exit_code: usize) -> SysResult {
         let tid = self.thread.tid;
         info!("Thread exit, tid: {}, code: {}", tid, exit_code);
+
         // Delete tid ref in process.
         let mut proc = self.process();
         proc.threads.retain(|&id| id != tid);
+
         // Delete arc ref in THREAD table;
         let mut threads_table = THREADS.write();
         threads_table.remove(&tid);
+
         // for last thread, eixt the process
         if proc.threads.len() == 0 {
             proc.exit(exit_code);
         };
+
+        // Perform futex wake 1.
+        // ref: http://man7.org/linux/man-pages/man2/set_tid_address.2.html
+        let mut inner = self.thread.inner.lock();
+        inner.state = ThreadState::Exited;
+        let clear_child_tid = inner.clear_child_tid as *mut u32;
+        if !clear_child_tid.is_null() {
+            let futex = proc.get_futex(clear_child_tid as usize);
+            info!("Perform futex {:#?} wake 1", clear_child_tid);
+            // FIXME: Check first.
+            unsafe {
+                *clear_child_tid = 0;
+                futex.wake(1);
+            }
+        }
+        Ok(0)
+    }
+
+    /// This system call terminates all threads in the calling process's
+    /// thread group.
+    ///
+    /// [exit_group(2)](https://man7.org/linux/man-pages/man2/exit_group.2.html)
+    pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
+        let mut proc = self.process();
+        info!("exit_group: {}, code: {}", proc.pid, exit_code);
+
+        proc.exit(exit_code);
         drop(proc);
+        // FIXME: quit other threads.
         self.thread.inner.lock().state = ThreadState::Exited;
         Ok(0)
     }
@@ -87,7 +118,8 @@ impl Syscall<'_> {
     /// Return the PID. Currently no option argument yet so just wait for the process to exit.(FIXME, read zcore)
     ///
     /// FIXME: Refactor to simplify this function.
-    /// See [wait(2)](https://man7.org/linux/man-pages/man2/waitpid.2.html)
+    ///
+    /// [wait(2)](https://man7.org/linux/man-pages/man2/waitpid.2.html)
     pub async fn sys_wait4(&mut self, pid: isize, mut wstatus: UserInOutPtr<i32>) -> SysResult {
         info!("wait4: pid: {}, code: {:?}", pid, wstatus);
         enum WaitForTarget {
@@ -230,7 +262,7 @@ impl Syscall<'_> {
     /// The system call set_tid_address() sets the clear_child_tid value
     /// for the calling thread to tidptr.
     ///
-    /// [set_tid_address(man2)](https://man7.org/linux/man-pages/man2/set_tid_address.2.html)
+    /// [set_tid_address(2)](https://man7.org/linux/man-pages/man2/set_tid_address.2.html)
     pub fn sys_set_tid_address(&mut self, tidptr: *mut u32) -> SysResult {
         info!("set_tid_address: {:?}", tidptr);
         self.thread.inner.lock().clear_child_tid = tidptr as usize;

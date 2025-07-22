@@ -34,7 +34,7 @@ pub struct Syscall<'a> {
 
 impl Syscall<'_> {
     /// Get current processs
-    pub fn process(&mut self) -> MutexGuard<'_, monolithic_objects::Process> {
+    pub fn process(&self) -> MutexGuard<'_, monolithic_objects::Process> {
         self.thread.proc.lock()
     }
 
