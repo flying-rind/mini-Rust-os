@@ -3,7 +3,7 @@
 
 use alloc::boxed::Box;
 use alloc::{sync::Arc, vec::Vec};
-use hal::user::UserInOutPtr;
+use hal::user::{UserInOutPtr, UserPtr};
 pub use log::error;
 use log::info;
 use monolithic_objects::Thread;
@@ -54,11 +54,21 @@ impl Syscall<'_> {
             SYS_EXECVE => self.sys_exec(a0 as _, a1 as _, a2 as _),
             SYS_EXIT => self.sys_exit(a0 as _),
             SYS_WAIT4 => self.sys_wait4(a0 as _, UserInOutPtr::from(a1)).await,
+            SYS_EXIT_GROUP => self.sys_exit_group(a0),
+            SYS_SET_TID_ADDRESS => self.sys_set_tid_address(a0 as _),
 
             // FS
             SYS_WRITE => self.sys_write(a0 as _, a1 as _, a2 as _),
             SYS_READ => self.sys_read(a0.into(), a1.into(), a2 as _).await,
-            SYS_DUP => self.sys_dup(a0),
+            SYS_DUP2 => self.sys_dup2(a0, a1),
+            SYS_DUP3 => self.sys_dup3(a0, a1, a2),
+            SYS_FCNTL => self.sys_fcntl(a0, a1, a2),
+
+            // Sync
+            SYS_FUTEX => {
+                self.sys_futex(a0, a1 as _, a2 as _, UserPtr::from(a3))
+                    .await
+            }
 
             // MISC
             SYS_ARCH_PRCTL => self.sys_arch_prctl(a0 as _, a1),
@@ -71,5 +81,10 @@ impl Syscall<'_> {
             Ok(code) => code as _,
             Err(err) => -(err as isize),
         }
+    }
+
+    /// Mark unimplemented.
+    fn unimplemented(&self, name: &str) -> ! {
+        unimplemented!("{} is unimplemented!", name);
     }
 }

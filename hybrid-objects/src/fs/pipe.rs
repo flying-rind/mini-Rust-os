@@ -8,16 +8,18 @@ use core::task::Waker;
 use future::fs::WaitForPipeBuffer;
 use hal::SysError;
 use rcore_fs::vfs::FsError;
+use spin::RwLock;
 use user_syscall::SysResult;
 
 /// 管道的一端
+#[derive(Clone)]
 pub struct Pipe {
     /// 是否是写端
     writable: bool,
     /// 缓冲区
     buf: Arc<Cell<PipeBuffer>>,
     /// 写端持有读端的唤醒器，当写端被关闭时唤醒读端
-    waker: Cell<Option<Waker>>,
+    waker: Arc<RwLock<Option<Waker>>>,
 }
 
 /// 管道缓冲区
@@ -38,7 +40,7 @@ impl PipeBuffer {
 impl Pipe {
     /// 注册一个唤醒器，只能是写端
     pub fn add_waker(&self, waker: Waker) {
-        let _ = self.waker.get_mut().insert(waker);
+        let _ = self.waker.write().insert(waker);
     }
 
     /// Readable
@@ -88,7 +90,8 @@ impl Drop for Pipe {
     // 写端析构时唤醒阻塞的读端
     fn drop(&mut self) {
         if self.writable {
-            let waker = self.waker.get().as_ref();
+            let waker = self.waker.read();
+            let waker = waker.as_ref();
             if let Some(waker) = waker {
                 waker.wake_by_ref();
             }
@@ -107,13 +110,13 @@ pub fn make_pipe() -> (Arc<File>, Arc<File>) {
     let write_end = Arc::new(File::Pipe(Pipe {
         writable: true,
         buf: buf.clone(),
-        waker: Cell::new(None),
+        waker: Arc::new(RwLock::new(None)),
     }));
     buf.get_mut().write_end = Arc::downgrade(&write_end);
     let read_end = Arc::new(File::Pipe(Pipe {
         writable: false,
         buf: buf,
-        waker: Cell::new(None),
+        waker: Arc::new(RwLock::new(None)),
     }));
     (read_end, write_end)
 }

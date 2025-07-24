@@ -10,6 +10,8 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::sync::Weak;
 use alloc::vec::Vec;
+use hal::SysError;
+use hal::SysError::EBADF;
 use hybrid_objects::fs::ROOT_INODE;
 use hybrid_objects::mm::MemorySet;
 use hybrid_objects::mm::load_app;
@@ -62,7 +64,7 @@ pub struct Process {
     /// 当前工作目录
     pub cwd: String,
     /// 文件表
-    pub files: BTreeMap<usize, Arc<File>>,
+    pub files: BTreeMap<usize, File>,
     /// Futex table.
     pub futexes: BTreeMap<usize, Arc<Futex>>,
     /// Parent process
@@ -137,9 +139,18 @@ impl Process {
     }
 
     /// Get file
-    pub fn get_file(&mut self, fd: usize) -> Result<Arc<File>, usize> {
-        const EBADF: usize = 9;
-        self.files.get_mut(&fd).ok_or(EBADF).cloned()
+    pub fn get_file(&mut self, fd: usize) -> Result<&mut File, SysError> {
+        self.files.get_mut(&fd).ok_or(EBADF)
+    }
+
+    /// Get lowest free fd.
+    pub fn get_free_fd(&self) -> usize {
+        (0..).find(|i| !self.files.contains_key(i)).unwrap()
+    }
+
+    /// Get the lowest available fd greated or equal to arg.
+    pub fn get_free_fd_from(&self, arg: usize) -> usize {
+        (arg..).find(|i| !self.files.contains_key(i)).unwrap()
     }
 
     /// Get futex by addr.

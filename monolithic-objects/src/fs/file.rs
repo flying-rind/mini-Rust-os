@@ -1,40 +1,27 @@
 //! File Abstract.
 //! 文件抽象
 
-use super::inode::OSInode;
+use crate::fs::filehandle::FileHandle;
 use alloc::sync::Arc;
-use hybrid_objects::fs::{Pipe, Stdin, Stdout};
+use hybrid_objects::fs::{Stdin, Stdout};
 use rcore_fs::vfs::{FsError, INode};
 use user_syscall::SysResult;
 
 /// File
+#[derive(Clone)]
 pub enum File {
-    OSInode(OSInode),
-    Pipe(Pipe),
+    FileHandle(FileHandle),
     Stdin(Stdin),
     Stdout(Stdout),
 }
 
 impl File {
-    /// If can read.
-    pub fn readable(&self) -> bool {
+    /// Dup with fd_cloexec specified.
+    pub fn dup(&self, fd_cloexec: bool) -> File {
         use File::*;
         match self {
-            OSInode(osinode) => osinode.readable(),
-            Pipe(pipe) => pipe.readable(),
-            Stdin(_stdin) => false,
-            Stdout(_stdout) => true,
-        }
-    }
-
-    /// If can write.
-    pub fn writable(&self) -> bool {
-        use File::*;
-        match self {
-            OSInode(osinode) => osinode.writable(),
-            Pipe(pipe) => pipe.writable(),
-            Stdin(_stdin) => true,
-            Stdout(_stdout) => false,
+            FileHandle(file) => FileHandle(file.dup(fd_cloexec)),
+            _ => unimplemented!(),
         }
     }
 
@@ -42,8 +29,7 @@ impl File {
     pub async fn read(&self, buf: &mut [u8]) -> SysResult {
         use File::*;
         match self {
-            OSInode(osinode) => osinode.read(buf),
-            Pipe(pipe) => pipe.read(buf).await,
+            FileHandle(filehandle) => filehandle.read(buf),
             Stdin(stdin) => stdin.read(buf),
             Stdout(stdout) => stdout.read(buf),
         }
@@ -53,8 +39,7 @@ impl File {
     pub fn write(&self, buf: &[u8]) -> SysResult {
         use File::*;
         match self {
-            OSInode(osinode) => osinode.write(buf),
-            Pipe(pipe) => pipe.write(buf),
+            FileHandle(filehandle) => filehandle.write(buf),
             Stdin(stdin) => stdin.write(buf),
             Stdout(stdout) => stdout.write(buf),
         }
@@ -64,8 +49,7 @@ impl File {
     pub fn lookup_follow(&self, path: &str, max_follow: usize) -> Result<Arc<dyn INode>, FsError> {
         use File::*;
         match self {
-            OSInode(osinode) => osinode.lookup_follow(path, max_follow),
-            Pipe(pipe) => pipe.lookup_follow(path, max_follow),
+            FileHandle(filehandle) => filehandle.lookup_follow(path, max_follow),
             Stdin(stdin) => stdin.lookup_follow(path, max_follow),
             Stdout(stdout) => stdout.lookup_follow(path, max_follow),
         }

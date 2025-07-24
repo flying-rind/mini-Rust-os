@@ -6,8 +6,10 @@ use user_syscall::SysResult;
 use crate::*;
 
 /// 标准输入
+#[derive(Clone)]
 pub struct Stdin;
 /// 标准输出
+#[derive(Clone)]
 pub struct Stdout;
 
 impl Stdin {

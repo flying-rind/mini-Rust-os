@@ -147,10 +147,10 @@ impl Thread {
         let mut context = UserContext::default();
         context.set_ip(entry);
         context.set_sp(sp);
-        let mut files: BTreeMap<usize, Arc<File>> = BTreeMap::new();
-        files.insert(0, Arc::new(File::Stdin(Stdin)));
-        files.insert(1, Arc::new(File::Stdout(Stdout)));
-        files.insert(2, Arc::new(File::Stdout(Stdout)));
+        let mut files: BTreeMap<usize, File> = BTreeMap::new();
+        files.insert(0, File::Stdin(Stdin));
+        files.insert(1, File::Stdout(Stdout));
+        files.insert(2, File::Stdout(Stdout));
         let thread = Thread {
             inner: Mutex::new(ThreadInner {
                 clear_child_tid: 0,
