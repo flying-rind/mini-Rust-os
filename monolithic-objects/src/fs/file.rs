@@ -3,6 +3,7 @@
 
 use crate::fs::filehandle::FileHandle;
 use alloc::sync::Arc;
+use hal::SysError;
 use hybrid_objects::fs::{Stdin, Stdout};
 use rcore_fs::vfs::{FsError, INode};
 use user_syscall::SysResult;
@@ -42,6 +43,14 @@ impl File {
             FileHandle(filehandle) => filehandle.write(buf),
             Stdin(stdin) => stdin.write(buf),
             Stdout(stdout) => stdout.write(buf),
+        }
+    }
+
+    /// ioctl
+    pub fn ioctl(&mut self, op: usize, arg1: usize, _arg2: usize, _arg3: usize) -> SysResult {
+        match self {
+            File::FileHandle(filehandle) => filehandle.ioctl(op as _, arg1).map_err(Into::into),
+            _ => Err(SysError::ENOSYS),
         }
     }
 

@@ -1,10 +1,8 @@
 //! FileHandle
 use alloc::sync::Arc;
-use rcore_fs::vfs::INode;
+use rcore_fs::vfs::{INode, Result};
 use spin::RwLock;
 use user_syscall::SysResult;
-
-use crate::fs::O_NONBLOCK;
 
 /// Open file descriptions.
 pub struct OpenFileDescription {
@@ -74,6 +72,11 @@ impl FileHandle {
         Ok(n)
     }
 
+    /// ioctl.
+    pub fn ioctl(&self, op: u32, arg: usize) -> Result<usize> {
+        self.inode.io_control(op, arg)
+    }
+
     /// Lookup from myself.
     pub fn lookup_follow(
         &self,
@@ -85,6 +88,7 @@ impl FileHandle {
 
     /// Set open options.
     pub fn set_options(&self, arg: usize) {
+        const O_NONBLOCK: usize = 0o4000;
         let mut options = self.description.write().options;
         options.nonblock = (arg & O_NONBLOCK) != 0;
     }

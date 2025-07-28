@@ -1,23 +1,41 @@
 //! 文件类系统调用
+//! fcntl和ioctl功能还不完善，后期根据需要添加
+
+mod fcntl;
+mod ioctl;
 
 use crate::Syscall;
 use alloc::vec;
+use fcntl::{F_DUPFD_CLOEXEC, F_GETFD, F_GETFL, F_SETFD, F_SETFL};
 use hal::user::UserOutPtr;
 use log::info;
-use monolithic_objects::fs::{F_DUPFD_CLOEXEC, F_GETFD, F_GETFL, F_SETFD, F_SETFL, file::File};
+use monolithic_objects::fs::file::File;
+use monolithic_objects::fs::iovec::{IoVec, IoVecs};
 use user_syscall::SysResult;
 
 impl Syscall<'_> {
     /// Write to a file descriptor
     pub fn sys_write(&mut self, fd: usize, buf: *const u8, size: usize) -> SysResult {
-        // Debug
-        // info!("fd = {}", fd);
+        info!("write, fd = {}", fd);
         let mut proc = self.process();
         // FIXME: Should check first.
         let slice = unsafe { core::slice::from_raw_parts(buf, size) };
         let file = proc.get_file(fd)?;
         let len = file.write(slice)?;
         Ok(len as _)
+    }
+
+    /// The writev() system call writes iovcnt buffers of data described
+    /// by iov to the file associated with the file descriptor fd ("gather
+    /// output").
+    pub fn sys_writev(&mut self, fd: usize, iovec: *const IoVec, iovcnt: usize) -> SysResult {
+        info!("writev: fd: {}, iov: {:?}, cnt: {}", fd, iovec, iovcnt);
+        let iovecs = unsafe { IoVecs::new(iovec, iovcnt)? };
+        let buf = iovecs.read_all_to_vec();
+        let mut proc = self.process();
+        let file = proc.get_file(fd)?;
+        let len = file.write(&buf)?;
+        Ok(len)
     }
 
     /// Read from a file descriptor
@@ -63,6 +81,8 @@ impl Syscall<'_> {
     /// file descriptor fd.  The operation is determined by op.
     ///
     /// [fcntl(2)](https://man7.org/linux/man-pages/man2/fcntl.2.html)
+    ///
+    /// FIXME: Add more ops.
     pub fn sys_fcntl(&mut self, fd: usize, op: usize, arg: usize) -> SysResult {
         info!("fcntl: fd: {}, cmd: {:#x}, arg: {}", fd, op, arg);
         let mut proc = self.process();
@@ -94,5 +114,31 @@ impl Syscall<'_> {
                 unimplemented!("Not supported yet.")
             }
         }
+    }
+
+    /// The ioctl() system call manipulates the underlying device
+    /// parameters of special files.  In particular, many operating
+    /// characteristics of character special files (e.g., terminals) may
+    /// be controlled with ioctl() operations.  The argument fd must be an
+    /// open file descriptor.
+    ///
+    /// [ioctl(2)](https://man7.org/linux/man-pages/man2/ioctl.2.html)
+    ///
+    /// FIXME: Add more ops.
+    pub fn sys_ioctl(
+        &mut self,
+        fd: usize,
+        op: usize,
+        arg1: usize,
+        arg2: usize,
+        arg3: usize,
+    ) -> SysResult {
+        info!(
+            "ioctl: fd: {}, request: {:#x}, args: {:#x} {:#x} {:#x}",
+            fd, op, arg1, arg2, arg3
+        );
+        let mut proc = self.process();
+        let file = proc.get_file(fd)?;
+        file.ioctl(op, arg1, arg2, arg3)
     }
 }
