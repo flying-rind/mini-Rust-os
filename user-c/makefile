@@ -15,7 +15,12 @@ all: apps
 clean: 
 	rm bin/*
 
-apps: hello
+apps: hello raw
 
-%: src/%.c
-	$(MUCC) -static -I$(MUINC) -o bin/$@ $<
+# %: src/%.c
+# 	$(MUCC) -static -I$(MUINC) -o bin/$@ $<
+
+hello: src/hello.c
+	$(MUCC) -static -I$(MUINC) -o bin/hello src/hello.c
+raw: src/raw.c
+	gcc -nostdlib -static src/raw.c -o bin/raw

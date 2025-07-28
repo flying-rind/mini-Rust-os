@@ -1,7 +1,7 @@
 target remote :1234
 symbol-file Ncore/target/x86_64/debug/Ncore
-#b Ncore::kernel_main_monolithic
-b Ncore::kernel_main_hybrid
+b Ncore::kernel_main_monolithic
+#b Ncore::kernel_main_hybrid
 #b monolithic_syscalls::proc::<impl monolithic_syscalls::Syscall>::sys_exec
 b hybrid_syscalls::task::<impl hybrid_syscalls::Syscall>::sys_exec
 #b monolithic_syscalls::proc::<impl monolithic_syscalls::Syscall>::sys_fork

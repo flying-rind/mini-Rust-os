@@ -4,7 +4,7 @@ arch = x86_64
 FS_IMG = $(CURDIR)/user-rs/target/$(arch)/release/fs.img
 mode ?= release
 feature ?= monolithic
-# feature ?= monolithic
+# feature ?= hybrid
 
 build: ncore bootloader fs-img
 
