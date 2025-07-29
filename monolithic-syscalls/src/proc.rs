@@ -4,10 +4,10 @@ use hal::SysError;
 use hal::user::UserInOutPtr;
 use hal::{check_n_clone_cstr, check_n_clone_cstr_array};
 use log::info;
+use monolithic_objects::get_thread;
 use monolithic_objects::{
     PROCESSES, THREADS,
     sync::{Event, wait_for_event},
-    task::ThreadState,
 };
 use user_syscall::SysResult;
 
@@ -66,36 +66,7 @@ impl Syscall<'_> {
 
     /// Exit the current thread
     pub fn sys_exit(&mut self, exit_code: usize) -> SysResult {
-        let tid = self.thread.tid;
-        info!("Thread exit, tid: {}, code: {}", tid, exit_code);
-
-        // Delete tid ref in process.
-        let mut proc = self.process();
-        proc.threads.retain(|&id| id != tid);
-
-        // Delete arc ref in THREAD table;
-        let mut threads_table = THREADS.write();
-        threads_table.remove(&tid);
-
-        // for last thread, eixt the process
-        if proc.threads.len() == 0 {
-            proc.exit(exit_code);
-        };
-
-        // Perform futex wake 1.
-        // ref: http://man7.org/linux/man-pages/man2/set_tid_address.2.html
-        let mut inner = self.thread.inner.lock();
-        inner.state = ThreadState::Exited;
-        let clear_child_tid = inner.clear_child_tid as *mut u32;
-        if !clear_child_tid.is_null() {
-            let futex = proc.get_futex(clear_child_tid as usize);
-            info!("Perform futex {:#?} wake 1", clear_child_tid);
-            // FIXME: Check first.
-            unsafe {
-                *clear_child_tid = 0;
-                futex.wake(1);
-            }
-        }
+        self.thread.exit(exit_code);
         Ok(0)
     }
 
@@ -104,13 +75,15 @@ impl Syscall<'_> {
     ///
     /// [exit_group(2)](https://man7.org/linux/man-pages/man2/exit_group.2.html)
     pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
-        let mut proc = self.process();
+        let proc = self.process();
         info!("exit_group: {}, code: {}", proc.pid, exit_code);
 
-        proc.exit(exit_code);
+        let tids = proc.threads.clone();
         drop(proc);
-        // FIXME: quit other threads.
-        self.thread.inner.lock().state = ThreadState::Exited;
+        for tid in tids {
+            let thread = get_thread(tid).unwrap();
+            thread.exit(exit_code);
+        }
         Ok(0)
     }
 

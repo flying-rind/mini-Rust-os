@@ -9,6 +9,7 @@ use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::sync::Weak;
+use alloc::vec;
 use alloc::vec::Vec;
 use hal::ElfExt;
 use hal::PAGE_SIZE;
@@ -175,11 +176,12 @@ impl Process {
         let vm = MemorySet::new();
         // Read ELF header
         // 0x3c0: magic number from ld-musl.so
-        let mut data = [0u8; 20 * 1024];
-        inode.read_at(0, &mut data)?;
+        let size = inode.metadata().unwrap().size;
+        let mut buf = vec![0u8; size];
+        inode.read_at(0, buf.as_mut_slice())?;
 
         // Parse ELF
-        let elf = ElfFile::new(&data).map_err(|_| SysError::EINVAL)?;
+        let elf = ElfFile::new(&buf).map_err(|_| SysError::EINVAL)?;
 
         // Check ELF type
         match elf.header.pt2.type_().as_type() {
@@ -230,6 +232,7 @@ impl Process {
 
     /// Exit the process
     pub fn exit(&mut self, exit_code: usize) {
+        info!("Proc exit, pid: {}, code: {}", self.pid, exit_code);
         // Clear fd_table
         self.files.clear();
         info!("Process {} exit with {}", self.pid.get(), exit_code);

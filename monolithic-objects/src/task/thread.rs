@@ -40,6 +40,12 @@ pub fn set_current_thread(thread: Option<Arc<Thread>>) {
     *cur_thread = thread;
 }
 
+/// Get thread by tid.
+pub fn get_thread(tid: usize) -> Option<Arc<Thread>> {
+    let threads = THREADS.read();
+    threads.get(&tid).cloned()
+}
+
 /// Tid type
 pub type Tid = usize;
 
@@ -219,6 +225,40 @@ impl Thread {
         let future = thread_fn(self.clone());
         let switch = ThreadSwitchFuture::new(self, future);
         executor::spawn(switch);
+    }
+
+    /// Exit the thread.
+    pub fn exit(&self, exit_code: usize) {
+        let tid = self.tid;
+        info!("Thread exit, tid: {}, code: {}", tid, exit_code);
+
+        // Delete tid ref in process.
+        let mut proc = self.proc.lock();
+        proc.threads.retain(|&id| id != tid);
+
+        // Delete arc ref in THREAD table;
+        let mut threads_table = THREADS.write();
+        threads_table.remove(&tid);
+
+        // for last thread, eixt the process
+        if proc.threads.len() == 0 {
+            proc.exit(exit_code);
+        };
+
+        // Perform futex wake 1.
+        // ref: http://man7.org/linux/man-pages/man2/set_tid_address.2.html
+        let mut inner = self.inner.lock();
+        inner.state = ThreadState::Exited;
+        let clear_child_tid = inner.clear_child_tid as *mut u32;
+        if !clear_child_tid.is_null() {
+            let futex = proc.get_futex(clear_child_tid as usize);
+            info!("Perform futex {:#?} wake 1", clear_child_tid);
+            // FIXME: Check first.
+            unsafe {
+                *clear_child_tid = 0;
+                futex.wake(1);
+            }
+        }
     }
 }
 

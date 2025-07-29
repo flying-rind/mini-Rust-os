@@ -16,7 +16,7 @@ use user_syscall::SysResult;
 impl Syscall<'_> {
     /// Write to a file descriptor
     pub fn sys_write(&mut self, fd: usize, buf: *const u8, size: usize) -> SysResult {
-        info!("write, fd = {}", fd);
+        // info!("write, fd = {}", fd);
         let mut proc = self.process();
         // FIXME: Should check first.
         let slice = unsafe { core::slice::from_raw_parts(buf, size) };
