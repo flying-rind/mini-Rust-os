@@ -17,14 +17,16 @@ clean:
 
 apps: hello raw blank
 
-# %: src/%.c
-# 	$(MUCC) -static -I$(MUINC) -o bin/$@ $<
+%: src/%.c
+	$(MUCC) -static -I$(MUINC) -o bin/$@ $<
+	strip bin/$@ -o bin/$@
 
-hello: src/hello.c
-	$(MUCC) -static -I$(MUINC) -o bin/hello src/hello.c
+# hello: src/hello.c
+# 	$(MUCC) -static -I$(MUINC) -o bin/hello src/hello.c
 
 raw: src/raw.c
 	gcc -nostdlib -static src/raw.c -o bin/raw
+	strip bin/raw -o bin/raw
 
-blank: src/blank.c
-	$(MUCC) -static -I$(MUINC) -o bin/blank src/blank.c
+# blank: src/blank.c
+# 	$(MUCC) -static -I$(MUINC) -o bin/blank src/blank.c

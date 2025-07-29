@@ -8,6 +8,7 @@ pub use log::error;
 use log::info;
 use monolithic_objects::Thread;
 use monolithic_objects::ThreadFn;
+use monolithic_objects::fs::iovec::IoVec;
 use num::*;
 use spin::MutexGuard;
 use trapframe::UserContext;
@@ -63,6 +64,8 @@ impl Syscall<'_> {
             SYS_DUP2 => self.sys_dup2(a0, a1),
             SYS_DUP3 => self.sys_dup3(a0, a1, a2),
             SYS_FCNTL => self.sys_fcntl(a0, a1, a2),
+            SYS_IOCTL => self.sys_ioctl(a0, a1, a2, a3, a4),
+            SYS_WRITEV => self.sys_writev(a0, a1 as *const IoVec, a2),
 
             // Sync
             SYS_FUTEX => {
