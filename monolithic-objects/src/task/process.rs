@@ -10,8 +10,11 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::sync::Weak;
 use alloc::vec::Vec;
+use hal::ElfExt;
+use hal::PAGE_SIZE;
 use hal::SysError;
 use hal::SysError::EBADF;
+use hal::abi;
 use hybrid_objects::fs::ROOT_INODE;
 use hybrid_objects::mm::MemorySet;
 use hybrid_objects::mm::load_app;
@@ -22,6 +25,7 @@ use spin::RwLock;
 use thread::{Thread, Tid};
 use trapframe::UserContext;
 use xmas_elf::ElfFile;
+use xmas_elf::header;
 
 /// process id type
 #[derive(Clone, Default, Ord, PartialEq, PartialOrd, Eq, Copy)]
@@ -161,6 +165,47 @@ impl Process {
         self.futexes.get(&uaddr).unwrap().clone()
     }
 
+    /// Construct virtual memory of a new user process from ELF at `inode`.
+    /// Return `(MemorySet, entry_point, ustack_top)`
+    pub fn new_user_vm(
+        inode: &Arc<dyn INode>,
+        args: Vec<String>,
+        envs: Vec<String>,
+    ) -> Result<(Arc<MemorySet>, usize, usize), SysError> {
+        let vm = MemorySet::new();
+        // Read ELF header
+        // 0x3c0: magic number from ld-musl.so
+        let mut data = [0u8; 0x3c0];
+        inode.read_at(0, &mut data)?;
+
+        // Parse ELF
+        let elf = ElfFile::new(&data).map_err(|_| SysError::EINVAL)?;
+
+        // Check ELF type
+        match elf.header.pt2.type_().as_type() {
+            header::Type::Executable => {}
+            header::Type::SharedObject => {}
+            _ => return Err(SysError::EPERM),
+        }
+        load_app(vm.clone(), &elf);
+        // auxiliary vector
+        let auxv = {
+            let mut map = BTreeMap::new();
+            if let Some(phdr_vaddr) = elf.get_phdr_vaddr() {
+                map.insert(abi::AT_PHDR, phdr_vaddr as usize);
+            }
+            map.insert(abi::AT_PHENT, elf.header.pt2.ph_entry_size() as usize);
+            map.insert(abi::AT_PHNUM, elf.header.pt2.ph_count() as usize);
+            map.insert(abi::AT_PAGESZ, PAGE_SIZE);
+            map
+        };
+
+        // entry point
+        let entry_addr = elf.header.pt2.entry_point() as usize;
+        let sp = Thread::new_user_stack(vm.clone(), args, envs, auxv);
+        return Ok((vm, entry_addr, sp));
+    }
+
     /// 替换当前进程的elf文件
     /// FIXME: 适配MUSL
     /// return (ip, sp)
@@ -171,19 +216,9 @@ impl Process {
         args: Vec<String>,
         envs: Vec<String>,
         context: &mut Box<UserContext>,
-    ) -> Result<usize, FsError> {
-        // Read ELF header
-        // 0x3c0: magic number from ld-musl.so
-        let mut data = [0u8; 16 * 1024 * 10];
-        inode.read_at(0, &mut data)?;
-
-        // paese elf
-        let elf = ElfFile::new(&data).map_err(|_| FsError::NotFile)?;
-        let entry = elf.header.pt2.entry_point() as usize;
-        let new_vm = MemorySet::new();
-        let sp = Thread::new_user_stack(new_vm.clone(), args, envs);
+    ) -> Result<usize, SysError> {
+        let (new_vm, entry, sp) = Process::new_user_vm(inode, args, envs)?;
         self.vm = new_vm.clone();
-        load_app(new_vm, &elf);
         // Kill other threads
         self.threads.retain(|&tid| tid == cur_thread.tid);
         // 修改线程上下文

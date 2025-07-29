@@ -1,34 +1,38 @@
 //! For musl abi?
 
 use crate::alloc::string::String;
+use alloc::collections::BTreeMap;
 use alloc::slice;
 use alloc::vec::Vec;
 use core::ptr::null;
+use xmas_elf::ElfFile;
+use xmas_elf::program::Type;
 
 /// 进程初始化时压入用户栈的信息
 pub struct ProcInfo {
     pub args: Vec<String>,
     pub envs: Vec<String>,
-    // auxv: what for?
+    pub auxv: BTreeMap<u8, usize>,
 }
 
 impl ProcInfo {
     /// 将进程初始化信息压栈
     ///
     /// - high
+    /// - argv0(Program name)
     /// - env0
     /// - env1
     /// - ...
     /// - argv0
     /// - argv1
-    /// - ...
     /// - null
-    /// - envp0
+    /// - ...
     /// - envp1
-    /// - ...
+    /// - envp0
     /// - null
-    /// - argvp0
+    /// - ...
     /// - argvp1
+    /// - argvp0
     /// - ...
     /// - argc
     /// - low
@@ -54,6 +58,11 @@ impl ProcInfo {
                 writer.sp
             })
             .collect();
+        // auxiliary vector entries
+        writer.push_slice(&[null::<u8>(), null::<u8>()]);
+        for (&type_, &value) in self.auxv.iter() {
+            writer.push_slice(&[type_ as usize, value]);
+        }
         // envps
         writer.push_slice(&[null::<u8>]);
         writer.push_slice(envs.as_slice());
@@ -83,5 +92,41 @@ impl StackWriter {
     fn push_str(&mut self, s: &str) {
         self.push_slice(&[b'\0']);
         self.push_slice(s.as_bytes());
+    }
+}
+
+pub const AT_PHDR: u8 = 3;
+pub const AT_PHENT: u8 = 4;
+pub const AT_PHNUM: u8 = 5;
+pub const AT_PAGESZ: u8 = 6;
+pub const AT_BASE: u8 = 7;
+pub const AT_ENTRY: u8 = 9;
+
+/// Helper functions to process ELF file
+///
+/// Copied from rCore.
+pub trait ElfExt {
+    /// Get virtual address of PHDR section if it has.
+    fn get_phdr_vaddr(&self) -> Option<u64>;
+}
+
+impl ElfExt for ElfFile<'_> {
+    fn get_phdr_vaddr(&self) -> Option<u64> {
+        if let Some(phdr) = self
+            .program_iter()
+            .find(|ph| ph.get_type() == Ok(Type::Phdr))
+        {
+            // if phdr exists in program header, use it
+            Some(phdr.virtual_addr())
+        } else if let Some(elf_addr) = self
+            .program_iter()
+            .find(|ph| ph.get_type() == Ok(Type::Load) && ph.offset() == 0)
+        {
+            // otherwise, check if elf is loaded from the beginning, then phdr can be inferred.
+            Some(elf_addr.virtual_addr() + self.header.pt2.ph_offset())
+        } else {
+            warn!("elf: no phdr found, tls might not work");
+            None
+        }
     }
 }

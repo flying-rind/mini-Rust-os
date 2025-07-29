@@ -12,11 +12,11 @@ use alloc::vec::Vec;
 use core::pin::Pin;
 use core::task::Context;
 use core::task::Poll;
+use hal::SysError;
 use hybrid_objects::fs::Stdin;
 use hybrid_objects::fs::Stdout;
 use hybrid_objects::mm::MemoryArea;
 use hybrid_objects::mm::MemorySet;
-use hybrid_objects::mm::load_app;
 use lazy_static::lazy_static;
 use log::info;
 use rcore_fs::vfs::INode;
@@ -24,7 +24,6 @@ use spin::Mutex;
 use spin::RwLock;
 use trapframe::UserContext;
 use x86_64::structures::paging::PageTableFlags;
-use xmas_elf::ElfFile;
 
 lazy_static! {
     /// Records the mapping between tid and Thread struct.
@@ -111,7 +110,12 @@ impl Thread {
 
     /// Construct a new user stack memory area, insert to vm.
     /// And push args and envs to stack, return new sp.
-    pub fn new_user_stack(vm: Arc<MemorySet>, args: Vec<String>, envs: Vec<String>) -> usize {
+    pub fn new_user_stack(
+        vm: Arc<MemorySet>,
+        args: Vec<String>,
+        envs: Vec<String>,
+        auxv: BTreeMap<u8, usize>,
+    ) -> usize {
         let flags =
             PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
         let stack_area = MemoryArea::new(USER_STACK_BASE, USER_STACK_SIZE, flags);
@@ -120,7 +124,7 @@ impl Thread {
         vm.activate();
         use hal::abi::ProcInfo;
         use hybrid_objects::mm::{USER_STACK_BASE, USER_STACK_SIZE};
-        let init_info = ProcInfo { args, envs };
+        let init_info = ProcInfo { args, envs, auxv };
         unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) }
     }
 
@@ -130,19 +134,8 @@ impl Thread {
         exec_path: &str,
         args: Vec<String>,
         envs: Vec<String>,
-    ) -> Arc<Thread> {
-        // 创建虚存空间并加载app
-        // 0x3c0: magic number from ld-musl.so
-        let mut data = [0u8; 16 * 1024 * 10];
-        inode
-            .read_at(0, &mut data)
-            .expect("Failed to read elf data!");
-        let elf = ElfFile::new(&data).expect("Failed to construct elf file");
-        let entry = elf.header.pt2.entry_point() as usize;
-        let vm = MemorySet::new();
-        load_app(vm.clone(), &elf);
-        // 创建用户栈并压栈
-        let sp = Thread::new_user_stack(vm.clone(), args, envs);
+    ) -> Result<Arc<Thread>, SysError> {
+        let (new_vm, entry, sp) = Process::new_user_vm(inode, args, envs)?;
         // 构造用户上下文和用户线程
         let mut context = UserContext::default();
         context.set_ip(entry);
@@ -161,7 +154,7 @@ impl Thread {
                 pid: Pid::new(),
                 pgid: 0,
                 exit_code: 0,
-                vm: vm,
+                vm: new_vm,
                 exec_path: String::from(exec_path),
                 cwd: String::from("/"),
                 files: files,
@@ -174,7 +167,7 @@ impl Thread {
             tid: 0,
         };
         let res = thread.add_to_table();
-        res
+        Ok(res)
     }
 
     /// 从当前进程复制进程

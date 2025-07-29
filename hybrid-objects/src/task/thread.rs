@@ -79,7 +79,12 @@ impl Thread {
 
     /// Construct a new user stack memory area, insert to vm.
     /// And push args and envs to stack, return new sp.
-    pub fn new_user_stack(vm: Arc<MemorySet>, args: Vec<String>, envs: Vec<String>) -> usize {
+    pub fn new_user_stack(
+        vm: Arc<MemorySet>,
+        args: Vec<String>,
+        envs: Vec<String>,
+        auxv: BTreeMap<u8, usize>,
+    ) -> usize {
         let flags =
             PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE;
         let stack_area = MemoryArea::new(USER_STACK_BASE, USER_STACK_SIZE, flags);
@@ -88,7 +93,7 @@ impl Thread {
         vm.activate();
         use hal::abi::ProcInfo;
         use mm::{USER_STACK_BASE, USER_STACK_SIZE};
-        let init_info = ProcInfo { args, envs };
+        let init_info = ProcInfo { args, envs, auxv };
         unsafe { init_info.push_at(USER_STACK_BASE + USER_STACK_SIZE) }
     }
 

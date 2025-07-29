@@ -32,20 +32,17 @@ pub const KERNEL_OFFSET: usize = 0xFFFF_FF00_0000_0000;
 /// 内核堆内存大小(4M)
 const KERNEL_HEAP_SIZE: usize = 0x0040_0000;
 
-/// 内核堆起始虚拟地址
-// const KERNEL_HEAP_BASE: usize = 0xFFFF_FF20_0000_0000;
-
 /// 内核栈虚地址
 pub const KERNEL_STACK_BASE: usize = 0xFFFF_FF10_0000_0000;
 
 /// 内核线程栈大小(8M)
 pub const KERNEL_STACK_SIZE: usize = 0x80_0000;
 
-/// 用户线程栈大小(4M)
-pub const USER_STACK_SIZE: usize = 0x40_0000;
+/// 用户线程栈大小(8M)
+pub const USER_STACK_SIZE: usize = 8 * 1024 * 1024;
 
 /// 用户栈（最低地址处）
-pub const USER_STACK_BASE: usize = 0x0000_7E80_0000_0000;
+pub const USER_STACK_BASE: usize = 0x00008000_00000000 - USER_STACK_SIZE;
 
 /// 任意级页表含的页表项个数
 pub const ENTRY_COUNT: usize = 512;

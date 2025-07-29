@@ -7,6 +7,8 @@ use alloc::sync::Arc;
 use alloc::sync::Weak;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::usize;
+use hal::abi;
+use hal::{ElfExt, SysError};
 use hashbrown::HashMap;
 use rcore_fs::vfs::FsError;
 use rcore_fs::vfs::INode;
@@ -15,6 +17,7 @@ use spin::Mutex;
 use spin::RwLock;
 use sync::*;
 use xmas_elf::ElfFile;
+use xmas_elf::header;
 
 /// 全局变量，PID到进程对象的映射
 pub static PROCESS_MAP: Lazy<Cell<HashMap<usize, Arc<Process>>>> =
@@ -63,19 +66,8 @@ impl Process {
         inode: &Arc<dyn INode>,
         args: Vec<String>,
         envs: Vec<String>,
-    ) -> Arc<Thread> {
-        // 创建虚存空间并加载app
-        // 0x3c0: magic number from ld-musl.so
-        let mut data = [0u8; 16 * 1024 * 10];
-        inode
-            .read_at(0, &mut data)
-            .expect("Failed to read elf data!");
-        let elf = ElfFile::new(&data).expect("Failed to construct elf file");
-        let entry = elf.header.pt2.entry_point() as usize;
-        let vm = MemorySet::new();
-        load_app(vm.clone(), &elf);
-        // 创建用户栈并压栈
-        let sp = Thread::new_user_stack(vm.clone(), args, envs);
+    ) -> Result<Arc<Thread>, SysError> {
+        let (vm, entry, sp) = Process::new_user_vm(inode, args, envs)?;
         // 构造新进程，默认打开标准输入输出
         let pid = PROCESS_ID.fetch_add(1, Ordering::Relaxed);
         let mut files: BTreeMap<usize, Arc<File>> = BTreeMap::new();
@@ -96,7 +88,48 @@ impl Process {
         let tid = new_proc.thread_id.fetch_add(1, Ordering::Relaxed);
         let root_thread = Thread::new(Arc::downgrade(&new_proc), tid, entry, sp);
         new_proc.add_thread(root_thread.clone());
-        root_thread
+        Ok(root_thread)
+    }
+
+    /// Construct virtual memory of a new user process from ELF at `inode`.
+    /// Return `(MemorySet, entry_point, ustack_top)`
+    pub fn new_user_vm(
+        inode: &Arc<dyn INode>,
+        args: Vec<String>,
+        envs: Vec<String>,
+    ) -> Result<(Arc<MemorySet>, usize, usize), SysError> {
+        let vm = MemorySet::new();
+        // Read ELF header
+        // 0x3c0: magic number from ld-musl.so
+        let mut data = [0u8; 0x3c0];
+        inode.read_at(0, &mut data)?;
+
+        // Parse ELF
+        let elf = ElfFile::new(&data).map_err(|_| SysError::EINVAL)?;
+
+        // Check ELF type
+        match elf.header.pt2.type_().as_type() {
+            header::Type::Executable => {}
+            header::Type::SharedObject => {}
+            _ => return Err(SysError::EPERM),
+        }
+        load_app(vm.clone(), &elf);
+        // auxiliary vector
+        let auxv = {
+            let mut map = BTreeMap::new();
+            if let Some(phdr_vaddr) = elf.get_phdr_vaddr() {
+                map.insert(abi::AT_PHDR, phdr_vaddr as usize);
+            }
+            map.insert(abi::AT_PHENT, elf.header.pt2.ph_entry_size() as usize);
+            map.insert(abi::AT_PHNUM, elf.header.pt2.ph_count() as usize);
+            map.insert(abi::AT_PAGESZ, PAGE_SIZE);
+            map
+        };
+
+        // entry point
+        let entry_addr = elf.header.pt2.entry_point() as usize;
+        let sp = Thread::new_user_stack(vm.clone(), args, envs, auxv);
+        return Ok((vm, entry_addr, sp));
     }
 
     /// 复制当前进程
@@ -180,10 +213,7 @@ impl Process {
         inode: &Arc<dyn INode>,
         args: Vec<String>,
         envs: Vec<String>,
-    ) -> Result<usize, FsError> {
-        let mut data = [0u8; 16 * 1024 * 10];
-        inode.read_at(0, &mut data)?;
-        let elf = ElfFile::new(&data).unwrap();
+    ) -> Result<usize, SysError> {
         // Kill all other threads.
         let current_thread = current_thread();
         for (_, thread) in self.threads.get() {
@@ -195,11 +225,8 @@ impl Process {
         let threads = self.threads.get_mut();
         threads.clear();
         threads.insert(current_thread.tid(), current_thread.clone());
-        let new_vm = MemorySet::new();
-        // 加载elf
-        load_app(new_vm.clone(), &elf);
-        let entry = elf.header.pt2.entry_point() as usize;
-        let sp = Thread::new_user_stack(new_vm.clone(), args, envs);
+
+        let (new_vm, entry, sp) = Process::new_user_vm(inode, args, envs)?;
         *self.vm.lock() = new_vm;
         current_thread.set_ip(entry);
         current_thread.set_sp(sp);

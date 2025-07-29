@@ -17,3 +17,4 @@ num-derive = {version = "0.4.2", default-features = false}
 num-traits = {version = "0.2.19", default-features = false}
 rcore-fs = { git = "https://github.com/rcore-os/rcore-fs" }
 rcore-fs-sfs = { git = "https://github.com/rcore-os/rcore-fs" }
+xmas-elf = "0.10.0"
