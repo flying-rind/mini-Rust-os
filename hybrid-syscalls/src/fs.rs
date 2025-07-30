@@ -44,7 +44,7 @@ impl Syscall<'_> {
         let path = check_n_clone_cstr(path)?;
         let flags = OpenFlags::from_bits_truncate(flags);
         info!(
-            "openat: dir_fd: {}, path: {:?}, flags: {:?}, mode: {:#o}",
+            "openat: dir_fd: {}, path: {:?}, flags: {:#?}, mode: {:#o}",
             dir_fd as isize, path, flags, mode
         );
         let inode = if flags.contains(OpenFlags::CREATE) {

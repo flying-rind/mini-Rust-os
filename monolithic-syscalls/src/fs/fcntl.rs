@@ -1,4 +1,5 @@
 //! fcntl related consts.
+#![allow(unused)]
 
 // Consts used in fs syscalls.
 pub const F_DUPFD: usize = 0; /* dup */

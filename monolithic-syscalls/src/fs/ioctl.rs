@@ -1,5 +1,5 @@
 //! ioctl syscall related consts.
-
+#![allow(unused)]
 pub const TCGETS: usize = 0x5401;
 
 pub const TCSETS: usize = 0x5402;

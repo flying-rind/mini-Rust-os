@@ -18,6 +18,7 @@ use user_syscall::SysResult;
 
 bitflags::bitflags! {
     /// 打开文件时的读写权限
+    #[derive(Debug)]
     pub struct OpenFlags: usize {
         /// read only
         const RDONLY = 0;

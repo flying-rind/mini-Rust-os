@@ -5,6 +5,9 @@
     "[rust]": {
         "editor.defaultFormatter": "rust-lang.rust-analyzer",
         "editor.formatOnSave": true
+    },
+    "files.associations": {
+        "sqlite3.h": "c"
     }
 }
 

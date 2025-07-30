@@ -6,7 +6,7 @@ use hal::{check_n_clone_cstr, check_n_clone_cstr_array};
 use log::info;
 use monolithic_objects::get_thread;
 use monolithic_objects::{
-    PROCESSES, THREADS,
+    PROCESSES,
     sync::{Event, wait_for_event},
 };
 use user_syscall::SysResult;
@@ -74,6 +74,8 @@ impl Syscall<'_> {
     /// thread group.
     ///
     /// [exit_group(2)](https://man7.org/linux/man-pages/man2/exit_group.2.html)
+    ///
+    /// FIXME: Exit ohter proc in group.
     pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
         let proc = self.process();
         info!("exit_group: {}, code: {}", proc.pid, exit_code);
