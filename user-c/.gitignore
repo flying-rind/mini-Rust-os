@@ -1,2 +1,4 @@
 bin/*
-sqlite*
+sqlite3
+sqlite-am*
+obj
