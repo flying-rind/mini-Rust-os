@@ -101,11 +101,12 @@ impl Process {
         let vm = MemorySet::new();
         // Read ELF header
         // 0x3c0: magic number from ld-musl.so
-        let mut data = [0u8; 0x3c0];
-        inode.read_at(0, &mut data)?;
+        let size = inode.metadata().unwrap().size;
+        let mut buf = vec![0u8; size];
+        inode.read_at(0, buf.as_mut_slice())?;
 
         // Parse ELF
-        let elf = ElfFile::new(&data).map_err(|_| SysError::EINVAL)?;
+        let elf = ElfFile::new(&buf).map_err(|_| SysError::EINVAL)?;
 
         // Check ELF type
         match elf.header.pt2.type_().as_type() {

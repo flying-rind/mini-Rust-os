@@ -16,6 +16,8 @@ monolithic-syscalls = { path = "../monolithic-syscalls", optional = true }
 bootloader_api = "0.11"
 
 [features]
-default = ["monolithic"]
+# default = ["hybrid"]
+default = []
+# default = ["monolithic"]
 monolithic = ["monolithic-objects", "monolithic-syscalls"]
 hybrid = ["hybrid-objects", "hybrid-syscalls"]

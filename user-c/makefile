@@ -13,12 +13,16 @@ SQLITE_URL := https://sqlite.org/2025/sqlite-amalgamation-3500300.zip
 SQLITE_TAR := sqlite-amalgamation-3500300.zip
 SQLITE_DIR := sqlite3
 
-all: apps
+all: $(OBJ_TARGET) $(ELF_TARGET) apps
+	
+$(OBJ_TARGET) $(ELF_TARGET):
+	mkdir -p $@
 
 clean: 
 	rm -rf $(SQLITE_DIR) $(SQLITE_TAR)
 	find src -maxdepth 1 -type f ! -name "*.c" -delete
 	rm bin/*
+	rm obj/*
 
 # Download sqlite3.
 sqlite3: 
@@ -41,6 +45,7 @@ sqlite-test: src/sqlite-test.c sqlite3
 	$(MUCC) -I./sqlite3 src/sqlite-test.c -c -o $(OBJ_TARGET)/sqlite-test.o
 	$(MUCC) -I./sqlite3 sqlite3/sqlite3.c -c -o $(OBJ_TARGET)/sqlite3.o
 	$(MUCC) --static $(OBJ_TARGET)/$@.o $(OBJ_TARGET)/sqlite3.o -o $(ELF_TARGET)/$@
+	strip bin/$@
 
 
 

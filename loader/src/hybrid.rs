@@ -21,7 +21,8 @@ pub fn run_shell() {
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
         let args = vec!["arg1".to_string(), "arg2".to_string()];
         let envs = vec!["env1".to_string(), "env2".to_string()];
-        let thread = Process::new_user(shell.to_string(), &inode, args, envs);
+        let thread = Process::new_user(shell.to_string(), &inode, args, envs)
+            .expect("Failed to create root thread!");
         thread.start(thread_fn);
     } else {
         panic!("Failed to load shell");
