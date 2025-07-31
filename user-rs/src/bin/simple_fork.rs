@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use user_lib::{exec, exit, fork, wait4};
+use user_lib::{exit, fork, wait4};
 use user_syscall::println;
 
 extern crate alloc;

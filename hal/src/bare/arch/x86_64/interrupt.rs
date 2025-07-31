@@ -1,4 +1,5 @@
 //! x86的中断相关操作
+#![allow(unused)]
 use crate::hal_fn::interrupt::{__HalImpl, __HalTriat};
 
 impl __HalTriat for __HalImpl {
