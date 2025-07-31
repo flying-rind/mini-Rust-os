@@ -1,7 +1,6 @@
 //! AHCI设备驱动程序
 
 use super::BlockDriver;
-/// 基于rcore社区的isomorphic_driver第三方库
 use crate::{drivers::BLK_DRIVERS, *};
 use alloc::sync::Arc;
 use isomorphic_drivers::{

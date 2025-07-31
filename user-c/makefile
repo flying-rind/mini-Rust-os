@@ -42,6 +42,7 @@ raw: src/raw.c
 	strip bin/raw -o bin/raw
 
 sqlite-test: src/sqlite-test.c sqlite3
+	mkdir obj
 	$(MUCC) -I./sqlite3 src/sqlite-test.c -c -o $(OBJ_TARGET)/sqlite-test.o
 	$(MUCC) -I./sqlite3 sqlite3/sqlite3.c -c -o $(OBJ_TARGET)/sqlite3.o
 	$(MUCC) --static $(OBJ_TARGET)/$@.o $(OBJ_TARGET)/sqlite3.o -o $(ELF_TARGET)/$@

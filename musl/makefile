@@ -37,7 +37,7 @@ build/$(arch)/release/bin/musl-gcc:
 	cd $(MUSL_DIR) && \
 	CFLAGS='-Os -ffunction-sections -fdata-sections' \
 	LDFLAGS='-Wl,--gc-sections' \
-	./configure --prefix=$(CURDIR)/build/$(arch)/$(mode) &&\
+	./configure --prefix=$(CURDIR)/build/$(arch)/$(mode) --with-malloc=oldmalloc &&\
 	make -j$(shell nproc) && \
 	make install && \
 	make distclean &&\

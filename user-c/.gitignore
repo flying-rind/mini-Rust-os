@@ -1,3 +1,4 @@
 bin/*
 sqlite3
 sqlite-am*
+obj/*
