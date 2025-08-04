@@ -49,10 +49,6 @@ pub fn kernel_main_hybrid(boot_info: &'static mut BootInfo) -> ! {
     hybrid_objects::pic::init();
     // 初始化驱动
     hybrid_objects::drivers::init();
-    // 初始化文件系统
-    hybrid_objects::fs::init();
-    // 创建根内核线程
-    Kthread::new_root();
     // 初始化内核服务线程
     hybrid_objects::kthread::init();
     // 创建并启动shell进程

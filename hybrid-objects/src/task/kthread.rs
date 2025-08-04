@@ -63,7 +63,7 @@ pub enum KthreadType {
 }
 
 /// 内核线程的内核态现场
-#[derive(Default)]
+#[derive(Default, Clone)]
 #[repr(C)]
 pub struct KernelContext {
     /// 被调用者保存寄存器
@@ -126,13 +126,17 @@ impl Kthread {
             ktid,
             name,
             context: Cell::new(Box::new(context)),
-            processor,
+            processor: processor.clone(),
             ktype,
             ..Kthread::default()
         });
 
         // 将内核线程放入全局线程队列
         KTHREAD_DEQUE.get_mut().push_back(kthread.clone());
+        // Initialize the driver of kthread.
+        if let Some(pro) = processor {
+            pro.init();
+        }
         kthread
     }
 
@@ -178,8 +182,8 @@ impl Kthread {
     }
 
     /// 获取自己的类型
-    pub fn ktype(&self) -> &KthreadType {
-        &self.ktype
+    pub fn ktype(&self) -> KthreadType {
+        self.ktype.clone()
     }
 
     /// 添加一个请求
@@ -229,19 +233,21 @@ impl Kthread {
             ..Kthread::default()
         });
         // 设置当前内核线程为根线程
-        let _ = CURRENT_KTHREAD.get_mut().insert(root_kthread.clone());
+        set_current_kthread(Some(root_kthread.clone()));
         root_kthread
     }
 
     /// 是否需要调度执行
     pub fn need_schedule(&self) -> bool {
-        // 主线程，总是需要运行
-        if self.ktid == 0 {
-            return true;
+        // // 主线程，总是需要运行
+        // if self.ktid == 0 {
+        //     return true;
+        // }
+        if self.ktype() == KthreadType::EXECUTOR {
+            return executor::need_run();
         }
-
         // 服务线程
-        assert!(self.processor.is_some());
+        // assert!(self.processor.is_some());
         return !(*self.state.get() == KthreadState::Idle);
     }
 

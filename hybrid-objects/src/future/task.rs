@@ -96,6 +96,44 @@ impl Future for WaitForKthread {
     }
 }
 
+/// Kthread wait 4 another kthread.
+pub struct KthreadWait4Kthread {
+    /// Waiting kthread.
+    waiting: Arc<Kthread>,
+    /// Waited kthread.
+    waited: Arc<Kthread>,
+    /// Req Id.
+    req_id: usize,
+}
+
+impl KthreadWait4Kthread {
+    pub fn new(waiting: Arc<Kthread>, waited: Arc<Kthread>, req_id: usize) -> Self {
+        KthreadWait4Kthread {
+            waiting,
+            waited,
+            req_id,
+        }
+    }
+}
+
+impl Future for KthreadWait4Kthread {
+    type Output = ();
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        if self.waited.response_id() >= self.req_id {
+            self.waiting.set_state(crate::KthreadState::NeedRun);
+            return Poll::Ready(());
+        } else {
+            info!(
+                "[Executor] KthreadWait4Kthread poll pending, response_id: {}, req_id: {}",
+                self.waited.response_id(),
+                self.req_id
+            );
+            self.waited.add_waker(cx.waker().clone(), self.req_id);
+            Poll::Pending
+        }
+    }
+}
+
 /// 线程主动放弃CPU直到下一次被调度
 pub struct ThreadYield {
     /// 等待的线程

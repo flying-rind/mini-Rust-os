@@ -1,9 +1,12 @@
 //! 内核中的文件抽象
 
+pub use blkwrap::*;
 pub use file::*;
 pub use inode::{OSInode, OpenFlags, ROOT_INODE, init};
 pub use pipe::*;
 pub use stdio::*;
+
+mod blkwrap;
 /// 文件
 mod file;
 /// 内核使用的Inode类型

@@ -1,13 +1,14 @@
 //! 文件系统内核线程的响应器
 
+use crate::{activate_proc_ms, fs::File, task::PROCESS_MAP};
 use core::{
     panic,
     sync::atomic::{AtomicUsize, Ordering},
 };
-
-use crate::{activate_proc_ms, fs::File, task::PROCESS_MAP};
+use hal::println;
 
 use super::*;
+use crate::fs::ROOT_INODE;
 use alloc::sync::Arc;
 use requests_info::{CastBytes, fsreqinfo::FsReqDescription};
 
@@ -62,10 +63,10 @@ impl FsProcessor {
     ) {
         activate_proc_ms(pid.clone());
         // [模拟致命错误]
-        if PROCESSED_COUNT.load(Ordering::Relaxed) % 5 == 0 {
-            PROCESSED_COUNT.fetch_add(1, Ordering::Relaxed);
-            panic!("[Fs Processor] Fatal error in write request!");
-        }
+        // if PROCESSED_COUNT.load(Ordering::Relaxed) % 5 == 0 {
+        //     PROCESSED_COUNT.fetch_add(1, Ordering::Relaxed);
+        //     panic!("[Fs Processor] Fatal error in write request!");
+        // }
         let buf_ptr = buf_ptr as *const u8;
         let buf = unsafe { core::slice::from_raw_parts(buf_ptr, buf_len) };
         let proc = PROCESS_MAP.get().get(&pid);
@@ -87,6 +88,14 @@ impl FsProcessor {
 }
 
 impl Processor for FsProcessor {
+    fn init(&self) {
+        println!("/****APPS****/");
+        for app in ROOT_INODE.list().unwrap() {
+            println!("{}", app);
+        }
+        println!("**************/");
+    }
+
     /// 处理一个文件系统请求，并不响应请求（在内核入口函数中响应）
     fn process_request(&self, request: Request) {
         let fs_req = FsReqDescription::from_bytes(&request);

@@ -12,7 +12,17 @@ use woke::waker_ref;
 
 lazy_static! {
     /// 全局协程执行器
-    static ref GLOBAL_EXECUTOR: Executor = Executor::default();
+    static ref GLOBAL_EXECUTOR: Arc<Executor> = Arc::new(Executor::default());
+}
+
+/// 执行器状态
+#[derive(Default, PartialEq, Eq, Clone)]
+pub enum ExecutorState {
+    #[default]
+    /// 无任务运行
+    Idle,
+    /// 需要运行
+    NeedRun,
 }
 
 /// 协程执行器
@@ -20,6 +30,8 @@ lazy_static! {
 pub struct Executor {
     /// 任务队列
     tasks_queue: Mutex<VecDeque<Arc<Task>>>,
+    /// State.
+    state: Mutex<ExecutorState>,
 }
 
 impl Executor {
@@ -57,18 +69,31 @@ impl Executor {
             }
         }
     }
+
+    /// Set state.
+    pub fn set_state(&self, state: ExecutorState) {
+        *self.state.lock() = state;
+    }
 }
 
 /// 运行执行器直到没有就绪任务
 pub fn run_util_idle() {
+    GLOBAL_EXECUTOR.set_state(ExecutorState::NeedRun);
     // 轮讯协程，直到任务队列中无就绪任务才停止
     GLOBAL_EXECUTOR.run_until_idle();
+    GLOBAL_EXECUTOR.set_state(ExecutorState::Idle);
+}
+
+/// If need to run.
+pub fn need_run() -> bool {
+    *GLOBAL_EXECUTOR.state.lock() == ExecutorState::NeedRun
 }
 
 /// 添加协程到执行器队列中
 pub fn spawn(future: impl Future<Output = ()> + Send + 'static) {
     // 创建协程任务
-    let task = Task::new(future);
+    let task = Task::new(future, Arc::downgrade(&GLOBAL_EXECUTOR));
     // 添加到执行器队列中
     GLOBAL_EXECUTOR.add_task(task);
+    GLOBAL_EXECUTOR.set_state(ExecutorState::NeedRun);
 }

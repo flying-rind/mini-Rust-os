@@ -1,12 +1,11 @@
 target remote :1234
 symbol-file Ncore/target/x86_64/debug/Ncore
-b Ncore::kernel_main_monolithic
-#b Ncore::kernel_main_hybrid
-b monolithic_syscalls::proc::<impl monolithic_syscalls::Syscall>::sys_exit_group
-b hybrid_syscalls::task::<impl hybrid_syscalls::Syscall>::sys_exec
+#b Ncore::kernel_main_monolithic
+b Ncore::kernel_main_hybrid
+#b hybrid_syscalls::task::<impl hybrid_syscalls::Syscall>::sys_exec
 #b monolithic_syscalls::proc::<impl monolithic_syscalls::Syscall>::sys_fork
 #b monolithic_syscalls::proc::<impl monolithic_syscalls::Syscall>::sys_wait4
-#b monolithic_syscalls::fs::<impl monolithic_syscalls::Syscall>::sys_write
+b hybrid_syscalls::fs::<impl hybrid_syscalls::Syscall>::sys_openat
 #b loader/src/monolithic.rs:60
 
 define record_ins

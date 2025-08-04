@@ -7,15 +7,34 @@ use crate::task::KthreadType;
 
 use alloc::string::ToString;
 
-pub use for_test::*;
 pub use processor::*;
 
-pub mod for_test;
-pub mod processor;
+mod executor;
+mod for_test;
+mod processor;
 
 /// 内核服务线程初始化，建立重要的内核服务线程
 pub fn init() {
-    // 创建文件系统服务线程
+    // Create executor kthread.
+    Kthread::new(
+        "Executor".to_string(),
+        executor::executor_entry as _,
+        None,
+        KthreadType::EXECUTOR,
+    );
+    // 创建根内核线程
+    Kthread::new_root();
+    // Create blk kthread.
+    let blk_processor = BlkProcessor::new();
+    let blk_kthread = Kthread::new(
+        "Blk-Server".to_string(),
+        processor_entry as _,
+        Some(blk_processor),
+        KthreadType::BLK,
+    );
+    KTHREAD_MAP.get_mut().insert(KthreadType::BLK, blk_kthread);
+
+    // Create fs kthread.
     let fs_processor = FsProcessor::new();
     let fs_kthread = Kthread::new(
         "Fs-server".to_string(),
@@ -23,5 +42,6 @@ pub fn init() {
         Some(fs_processor),
         KthreadType::FS,
     );
+
     KTHREAD_MAP.get_mut().insert(KthreadType::FS, fs_kthread);
 }

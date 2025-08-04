@@ -19,6 +19,8 @@ pub fn run_shell() {
     let shell = "shell";
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
+        // Debug
+        info!("Found shell");
         let args = vec!["arg1".to_string(), "arg2".to_string()];
         let envs = vec!["env1".to_string(), "env2".to_string()];
         let thread = Process::new_user(shell.to_string(), &inode, args, envs)
@@ -113,7 +115,7 @@ pub async fn handle_user_trap(thread: Arc<Thread>, context: &UserContext) {
 
 /// 调度用户线程和内核线程
 pub fn main_loop() {
-    println!("[Kernel] Starting main loop...");
+    info!("[Kernel] Starting main loop...");
     loop {
         // 优先运行内核线程
         if let Some(kthread) = Scheduler::get_first_kthread() {

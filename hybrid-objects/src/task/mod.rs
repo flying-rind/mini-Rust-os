@@ -17,6 +17,7 @@ pub fn current_thread() -> Arc<Thread> {
 }
 
 /// Set current thread.
+#[inline]
 pub fn set_current_thread(thread: Option<Arc<Thread>>) {
     *CURRENT_THREAD.get_mut() = thread;
 }
@@ -25,6 +26,12 @@ pub fn set_current_thread(thread: Option<Arc<Thread>>) {
 #[inline]
 pub fn current_kthread() -> Arc<Kthread> {
     CURRENT_KTHREAD.get().as_ref().unwrap().clone()
+}
+
+/// Set current kthread.
+#[inline]
+pub fn set_current_kthread(kthread: Option<Arc<Kthread>>) {
+    *CURRENT_KTHREAD.get_mut() = kthread;
 }
 
 /// 获取当前进程

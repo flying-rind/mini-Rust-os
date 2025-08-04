@@ -1,7 +1,6 @@
 //! 定义内核使用的Inode结构，为其实现文件访问接口
-use crate::drivers::BlockDriverWrapper;
+use crate::fs::BlockDriverWrapper;
 use crate::future::WaitForKthread;
-use crate::println;
 use crate::*;
 use alloc::sync::Arc;
 use hal::SysError;
@@ -188,14 +187,7 @@ impl OSInode {
 lazy_static! {
     pub static ref ROOT_INODE: Arc<dyn INode> = {
         let device = {
-            let driver = BlockDriverWrapper(
-                crate::drivers::BLK_DRIVERS
-                    .read()
-                    .iter()
-                    .next()
-                    .expect("Block device not found")
-                    .clone(),
-            );
+            let driver = BlockDriverWrapper();
             Arc::new(BlockCache::new(driver, 0x100))
         };
         let sfs = SimpleFileSystem::open(device).expect("failed to open SFS");
@@ -204,6 +196,7 @@ lazy_static! {
 }
 
 /// 文件系统初始化,打印目录
+#[allow(unused)]
 pub fn init() {
     println!("/****APPS****/");
     for app in ROOT_INODE.list().unwrap() {

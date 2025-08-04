@@ -5,6 +5,7 @@ mod blk_processor;
 mod fs_processor;
 mod processor;
 
+pub use blk_processor::*;
 pub use fs_processor::*;
 pub use processor::*;
 

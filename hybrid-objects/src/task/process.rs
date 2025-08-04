@@ -1,8 +1,7 @@
 //! 进程抽象
 use crate::fs::ROOT_INODE;
-use crate::{mm::*, *};
-
 use crate::fs::{File, Stdin, Stdout};
+use crate::{mm::*, *};
 use alloc::sync::Arc;
 use alloc::sync::Weak;
 use core::sync::atomic::{AtomicUsize, Ordering};

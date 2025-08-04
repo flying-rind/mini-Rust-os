@@ -34,7 +34,9 @@ pub enum SyscallNum {
     // FS
     Write = 1,
     Read = 0,
+    Close = 3,
     Dup = 292,
+    Open = 2,
     // Custom
     TestCstr = 999,
 }
@@ -94,6 +96,14 @@ pub fn sys_write(fd: usize, buf: *const u8, size: usize) -> SysResult {
 
 pub fn sys_read(fd: usize, buf: *mut u8, size: usize) -> SysResult {
     syscall(SyscallNum::Read, [fd, buf as _, size, 0, 0, 0])
+}
+
+pub fn sys_close(fd: usize) -> SysResult {
+    syscall(SyscallNum::Close, [fd, 0, 0, 0, 0, 0])
+}
+
+pub fn sys_open(path: *const u8, flags: usize, mode: usize) -> SysResult {
+    syscall(SyscallNum::Open, [path as _, flags, mode, 0, 0, 0])
 }
 
 pub fn sys_dup(arg1: usize) -> SysResult {

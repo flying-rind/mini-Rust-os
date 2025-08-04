@@ -1,10 +1,13 @@
 //! 执行器轮询的task对象
+use alloc::boxed::Box;
+use alloc::sync::Arc;
+use alloc::sync::Weak;
 use core::task::{Context, Poll};
 use core::{future::Future, pin::Pin};
-use alloc::sync::Arc;
 use spin::Mutex;
 use woke::Woke;
-use alloc::boxed::Box;
+
+use crate::Executor;
 
 extern crate alloc;
 
@@ -19,6 +22,8 @@ pub struct Task {
     /// sleep标记的代码区域，实现该Future的开发者
     /// 必须自行决定何时使用Waker来取消sleep标记
     sleep_flag: Mutex<bool>,
+    /// Weak ref of Executor.
+    executor: Weak<Executor>,
 }
 
 impl Task {
@@ -47,10 +52,12 @@ impl Task {
     /// 新建一个task
     pub fn new(
         future: impl Future<Output = ()> + Send + 'static,
+        executor: Weak<Executor>,
     ) -> Arc<Self> {
         Arc::new(Task {
             inner_future: Mutex::new(Box::pin(future)),
             sleep_flag: Mutex::new(false),
+            executor,
         })
     }
 }
@@ -59,5 +66,10 @@ impl Woke for Task {
     /// 唤醒任务，且将执行器设置为需要执行
     fn wake_by_ref(arc_self: &Arc<Self>) {
         arc_self.wakeup();
+        arc_self
+            .executor
+            .upgrade()
+            .unwrap()
+            .set_state(crate::ExecutorState::NeedRun);
     }
 }
