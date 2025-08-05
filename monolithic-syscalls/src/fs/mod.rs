@@ -7,11 +7,28 @@ mod ioctl;
 use crate::Syscall;
 use alloc::vec;
 use fcntl::{F_DUPFD_CLOEXEC, F_GETFD, F_GETFL, F_SETFD, F_SETFL};
+use hal::SysError;
+use hal::check_n_clone_cstr;
 use hal::user::UserOutPtr;
+use log::error;
 use log::info;
+use monolithic_objects::fs::OpenFlags;
 use monolithic_objects::fs::file::File;
+use monolithic_objects::fs::filehandle::FileHandle;
 use monolithic_objects::fs::iovec::{IoVec, IoVecs};
+use rcore_fs::vfs::FsError;
 use user_syscall::SysResult;
+
+/// Split a `path` str to `(base_path, file_name)`
+fn split_path(path: &str) -> (&str, &str) {
+    let mut split = path.trim_end_matches('/').rsplitn(2, '/');
+    let file_name = split.next().unwrap();
+    let mut dir_path = split.next().unwrap_or(".");
+    if dir_path == "" {
+        dir_path = "/";
+    }
+    (dir_path, file_name)
+}
 
 impl Syscall<'_> {
     /// Write to a file descriptor
@@ -140,5 +157,82 @@ impl Syscall<'_> {
         let mut proc = self.process();
         let file = proc.get_file(fd)?;
         file.ioctl(op, arg1, arg2, arg3)
+    }
+
+    /// The open() system call opens the file specified by pathname.  If
+    /// the specified file does not exist, it may optionally (if O_CREAT
+    /// is specified in flags) be created by open().
+    ///
+    /// [open(2)](https://man7.org/linux/man-pages/man2/open.2.html)
+    pub fn sys_open(&mut self, path: *const u8, flags: usize, mode: usize) -> SysResult {
+        const AT_FDCWD: usize = -100isize as usize;
+        self.sys_openat(AT_FDCWD, path, flags, mode)
+    }
+
+    /// Open and possibly create a file.
+    pub fn sys_openat(
+        &mut self,
+        dir_fd: usize,
+        path: *const u8,
+        flags: usize,
+        mode: usize,
+    ) -> SysResult {
+        let mut proc = self.process();
+        let path = check_n_clone_cstr(path)?;
+        let flags = OpenFlags::from_bits_truncate(flags);
+        info!(
+            "openat: dir_fd: {}, path: {:?}, flags: {:#?}, mode: {:#o}",
+            dir_fd as isize, path, flags, mode
+        );
+        let inode = if flags.contains(OpenFlags::CREATE) {
+            let (dir_path, file_name) = split_path(&path);
+            let dir_inode = proc.lookup_inode_at(dir_fd, dir_path, true)?;
+            match dir_inode.find(file_name) {
+                Ok(file_inode) => {
+                    if flags.contains(OpenFlags::EXCLUSIVE) {
+                        return Err(SysError::EEXIST);
+                    }
+                    if flags.contains(OpenFlags::TRUNCATE) {
+                        if let Err(_e) = file_inode.resize(0) {
+                            error!("Resize error!");
+                        }
+                    }
+                    file_inode
+                }
+                Err(FsError::EntryNotFound) => {
+                    let inode =
+                        dir_inode.create(file_name, rcore_fs::vfs::FileType::File, mode as _)?;
+                    inode
+                }
+                Err(e) => return Err(SysError::from(e)),
+            }
+        } else {
+            proc.lookup_inode_at(dir_fd, &path, true)?
+        };
+        let file = File::FileHandle(FileHandle::new(
+            inode,
+            flags.contains(OpenFlags::CLOEXEC),
+            flags.to_options(),
+            false,
+        ));
+        Ok(proc.add_file(file))
+    }
+
+    /// close() closes a file descriptor, so that it no longer refers to
+    /// any file and may be reused.  Any record locks (see fcntl(2)) held
+    /// on the file it was associated with, and owned by the process, are
+    /// removed regardless of the file descriptor that was used to obtain
+    /// the lock.  This has some unfortunate consequences and one should
+    /// be extra careful when using advisory record locking.  See fcntl(2)
+    /// for discussion of the risks and consequences as well as for the
+    /// (probably preferred) open file description locks.
+    ///
+    /// [close(2)](https://man7.org/linux/man-pages/man2/close.2.html)
+    pub fn sys_close(&mut self, fd: usize) -> SysResult {
+        info!("close: fd: {:?}", fd);
+        let mut proc = self.process();
+
+        proc.files.remove(&fd).ok_or(SysError::EBADF)?;
+        Ok(0)
     }
 }

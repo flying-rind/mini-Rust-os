@@ -66,6 +66,8 @@ impl Syscall<'_> {
             SYS_FCNTL => self.sys_fcntl(a0, a1, a2),
             SYS_IOCTL => self.sys_ioctl(a0, a1, a2, a3, a4),
             SYS_WRITEV => self.sys_writev(a0, a1 as *const IoVec, a2),
+            SYS_OPEN => self.sys_open(a0 as _, a1, a2),
+            SYS_CLOSE => self.sys_close(a0),
 
             // Sync
             SYS_FUTEX => {

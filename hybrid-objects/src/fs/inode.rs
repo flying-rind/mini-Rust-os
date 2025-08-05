@@ -194,13 +194,3 @@ lazy_static! {
         sfs.root_inode()
     };
 }
-
-/// 文件系统初始化,打印目录
-#[allow(unused)]
-pub fn init() {
-    println!("/****APPS****/");
-    for app in ROOT_INODE.list().unwrap() {
-        println!("{}", app);
-    }
-    println!("**************/");
-}

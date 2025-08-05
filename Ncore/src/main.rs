@@ -76,13 +76,12 @@ pub fn kernel_main_monolithic(boot_info: &'static mut BootInfo) -> ! {
     // 初始化驱动
     hybrid_objects::drivers::init();
     // 初始化文件系统
-    hybrid_objects::fs::init();
+    monolithic_objects::fs::init();
     // 测试宏内核入口
     loader::monolithic::run_shell();
     loop {
         executor::run_util_idle();
     }
-    // unreachable!("Should not reach here!");
 }
 
 // 使用bootloader_api库提供的宏声明内核入口

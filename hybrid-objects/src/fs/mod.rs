@@ -2,7 +2,7 @@
 
 pub use blkwrap::*;
 pub use file::*;
-pub use inode::{OSInode, OpenFlags, ROOT_INODE, init};
+pub use inode::{OSInode, OpenFlags, ROOT_INODE};
 pub use pipe::*;
 pub use stdio::*;
 

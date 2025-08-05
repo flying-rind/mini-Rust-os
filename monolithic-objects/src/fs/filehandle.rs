@@ -4,6 +4,52 @@ use rcore_fs::vfs::{INode, Result};
 use spin::RwLock;
 use user_syscall::SysResult;
 
+bitflags::bitflags! {
+    /// 打开文件时的读写权限
+    #[derive(Debug)]
+    pub struct OpenFlags: usize {
+        /// read only
+        const RDONLY = 0;
+        /// write only
+        const WRONLY = 1 << 0;
+        /// read write
+        const RDWR = 1 << 1;
+        /// create file if it does not exist
+        const CREATE = 1 << 6;
+        /// error if create and the file exists
+        const EXCLUSIVE = 1 << 7;
+        /// truncate file upon open
+        const TRUNCATE = 1 << 9;
+        /// append on each write
+        const APPEND = 1<<10;
+        /// close on exec
+        const CLOEXEC = 1 << 19;
+    }
+}
+
+impl OpenFlags {
+    /// 获取读写权限
+    pub fn read_write(&self) -> (bool, bool) {
+        if self.is_empty() {
+            (true, false)
+        } else if self.contains(Self::WRONLY) {
+            (false, true)
+        } else {
+            (true, true)
+        }
+    }
+
+    pub fn to_options(&self) -> OpenOptions {
+        let (read, write) = self.read_write();
+        OpenOptions {
+            read,
+            write,
+            append: self.contains(OpenFlags::APPEND),
+            nonblock: false,
+        }
+    }
+}
+
 /// Open file descriptions.
 pub struct OpenFileDescription {
     options: OpenOptions,

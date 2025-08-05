@@ -12,6 +12,7 @@ dependencies = [
  "hybrid-objects",
  "loader",
  "log",
+ "monolithic-objects",
 ]
 
 [[package]]
@@ -385,6 +386,7 @@ dependencies = [
  "lazy_static",
  "log",
  "rcore-fs",
+ "rcore-fs-sfs",
  "spin 0.10.0",
  "trapframe",
  "user-syscall",

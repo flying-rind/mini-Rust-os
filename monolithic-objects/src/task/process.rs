@@ -3,6 +3,7 @@ use core::fmt::Display;
 
 use super::*;
 use crate::debug;
+use crate::fs::ROOT_INODE;
 use crate::fs::file::File;
 use crate::sync::{Event, EventBus, Futex};
 use alloc::boxed::Box;
@@ -16,7 +17,6 @@ use hal::PAGE_SIZE;
 use hal::SysError;
 use hal::SysError::EBADF;
 use hal::abi;
-use hybrid_objects::fs::ROOT_INODE;
 use hybrid_objects::mm::MemorySet;
 use hybrid_objects::mm::load_app;
 use lazy_static::lazy_static;
@@ -146,6 +146,13 @@ impl Process {
     /// Get file
     pub fn get_file(&mut self, fd: usize) -> Result<&mut File, SysError> {
         self.files.get_mut(&fd).ok_or(EBADF)
+    }
+
+    /// Add a file.
+    pub fn add_file(&mut self, file: File) -> usize {
+        let fd = self.get_free_fd();
+        self.files.insert(fd, file);
+        fd
     }
 
     /// Get lowest free fd.

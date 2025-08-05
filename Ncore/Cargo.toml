@@ -7,12 +7,13 @@ edition = "2024"
 bootloader_api = "0.11"
 loader = { path = "../loader" }
 hybrid-objects ={ path = "../hybrid-objects" }
+monolithic-objects = {path = "../monolithic-objects"}
 executor = {path = "../executor"}
 hal = {path = "../hal"}
 log = "0.4.27"
 
 [features]
-# default = ["monolithic"]
-default = ["hybrid"]
+default = ["monolithic"]
+# default = ["hybrid"]
 hybrid = ["loader/hybrid"]
 monolithic = ["loader/monolithic"]

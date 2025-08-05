@@ -20,6 +20,7 @@ pub enum SysError {
     ENXIO = 6,
     E2BIG = 7,
     ENOEXEC = 8,
+    /// Bad file number.
     EBADF = 9,
     /// No children process.
     ECHILD = 10,
