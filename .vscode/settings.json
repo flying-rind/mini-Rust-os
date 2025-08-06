@@ -7,7 +7,8 @@
         "editor.formatOnSave": true
     },
     "files.associations": {
-        "sqlite3.h": "c"
+        "sqlite3.h": "c",
+        "pthread_impl.h": "c"
     }
 }
 

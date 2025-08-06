@@ -11,6 +11,8 @@ MUINC = $(MUSL_DIR)/build/$(arch)/$(mode)/include
 SQLITE_URL := https://sqlite.org/2025/sqlite-amalgamation-3500300.zip
 SQLITE_TAR := sqlite-amalgamation-3500300.zip
 SQLITE_DIR := sqlite3
+# Busybox
+BUSYBOX_URL = 
 
 all: $(OBJ_TARGET) $(ELF_TARGET) apps
 	
