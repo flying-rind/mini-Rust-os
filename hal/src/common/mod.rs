@@ -1,4 +1,5 @@
 //! 各硬件平台通用的抽象数据结构
+#![allow(unused)]
 pub(super) mod defs;
 pub(super) mod mem;
 

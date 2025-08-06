@@ -1,6 +1,7 @@
 //! 裸机的硬件接口实现
-use cfg_if::cfg_if;
+#![allow(unused)]
 use crate::*;
+use cfg_if::cfg_if;
 
 cfg_if! {
     if #[cfg(target_arch = "x86_64")] {

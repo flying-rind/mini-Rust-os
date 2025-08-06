@@ -24,8 +24,7 @@ clean:
 	rm bin/*
 
 # Download and extract sqlite3.
-sqlite3: $(SQLITE_TAR)
-	rm $(SQLITE_TAR)
+sqlite3:  $(SQLITE_TAR)
 
 # Download sqlite3 src code.
 $(SQLITE_TAR):
@@ -35,14 +34,6 @@ $(SQLITE_TAR):
 	@echo "SQLite3 downloaded and extracted."
 
 
-# Compile busy box with musl-libc, then copy busybox elf to bin.
-busybox: $(BUSYBOX_TAR)
-	cp ../misc/.config busybox/.config
-	export PATH="$(MUCC_DIR):$$PATH" &&\
-	cd busybox && make -j 16
-	cp busybox/busybox bin/
-	rm $(BUSYBOX_TAR)
-
 # Download busybox src code.
 $(BUSYBOX_TAR):
 	@echo "Downloading busybox"
@@ -51,18 +42,25 @@ $(BUSYBOX_TAR):
 	mv busybox-master busybox
 	@echo "Busybox downloaded and extracted."
 
-apps: hello raw blank sqlite-test busybox
+apps: $(ELF_TARGET)/hello $(ELF_TARGET)/raw $(ELF_TARGET)/blank $(ELF_TARGET)/sqlite-test $(ELF_TARGET)/busybox
 
-%: src/%.c
-	$(MUCC) -static -o bin/$@ $<
-	strip bin/$@ -o bin/$@
+$(ELF_TARGET)/%: src/%.c
+	$(MUCC) -static -o $@ $<
+	strip $@ -o $@
 
-raw: src/raw.c
-	gcc -nostdlib -static src/raw.c -o bin/raw
-	strip bin/raw -o bin/raw
+$(ELF_TARGET)/raw: src/raw.c
+	gcc -nostdlib -static $< -o $@
+	strip $@ -o $@
 
-sqlite-test: src/sqlite-test.c sqlite3
+$(ELF_TARGET)/sqlite-test: src/sqlite-test.c sqlite3
 	$(MUCC) -I./sqlite3 src/sqlite-test.c -c -o $(OBJ_TARGET)/sqlite-test.o
 	$(MUCC) -I./sqlite3 sqlite3/sqlite3.c -c -o $(OBJ_TARGET)/sqlite3.o
-	$(MUCC) --static $(OBJ_TARGET)/$@.o $(OBJ_TARGET)/sqlite3.o -o $(ELF_TARGET)/$@
-	strip bin/$@
+	$(MUCC) --static $(OBJ_TARGET)/sqlite-test.o $(OBJ_TARGET)/sqlite3.o -o $@
+	strip $@
+
+# Compile busy box with musl-libc, then copy busybox elf to bin.
+$(ELF_TARGET)/busybox: $(BUSYBOX_TAR)
+	cp ../misc/.config busybox/.config
+	export PATH="$(MUCC_DIR):$$PATH" &&\
+	cd busybox && make -j 16
+	cp busybox/busybox bin/
