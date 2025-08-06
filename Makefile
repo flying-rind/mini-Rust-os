@@ -1,6 +1,5 @@
 boot ?= uefi
 BUILD_ARGS = -Z build-std=core,alloc,compiler_builtins --target x86_64.json
-# BUILD_ARGS = -Z build-std=core,alloc,compiler_builtins
 arch = x86_64
 FS_IMG = $(CURDIR)/user-rs/target/$(arch)/release/fs.img
 mode ?= release

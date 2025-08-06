@@ -1,13 +1,8 @@
 MUSL_DIR = ../musl
-arch = x86_64
-CFLAGS=-I. -Wall -fno-builtin -ffloat-store
-
 MUCC_DIR = $(CURDIR)/$(MUSL_DIR)/musl-1.2.5/bin
 MUCC = $(MUCC_DIR)/musl-gcc
 ELF_TARGET = bin
-APP_SRC = src
 OBJ_TARGET = obj
-MUINC = $(MUSL_DIR)/build/$(arch)/$(mode)/include
 # SQLite
 SQLITE_URL := https://sqlite.org/2025/sqlite-amalgamation-3500300.zip
 SQLITE_TAR := sqlite-amalgamation-3500300.zip
