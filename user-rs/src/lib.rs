@@ -16,7 +16,7 @@ use buddy_system_allocator::LockedHeap;
 pub use user_syscall::*;
 
 const USER_HEAP_SIZE: usize = 0x40000;
-static mut HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];
+static HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];
 
 #[global_allocator]
 static HEAP: LockedHeap<32> = LockedHeap::empty();

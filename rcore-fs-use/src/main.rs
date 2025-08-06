@@ -80,6 +80,9 @@ fn main() {
         .collect();
     println!("c-apps: {:?}", c_apps);
 
+    // Busybox.
+    c_apps.push("busybox".to_string());
+
     // 将app挂载到文件系统
 
     for app in rs_apps {

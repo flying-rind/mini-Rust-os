@@ -6,7 +6,6 @@ MUSL_TAR_PATH := src/$(MUSL_TAR)
 MUSL_DIR = src/$(arch)/musl-$(MUSL_VERSION)/
 
 arch := x86_64
-mode := release
 
 # 下载musl
 $(MUSL_TAR_PATH):
@@ -20,29 +19,17 @@ $(MUSL_DIR): $(MUSL_TAR_PATH)
 
 
 # 编译musl
-musl: build/$(arch)/$(mode)/bin/musl-gcc
+musl: build/$(arch)/bin/musl-gcc
 
-build/$(arch)/debug/bin/musl-gcc:
-	cd $(MUSL_DIR) && \
-	./configure --prefix=$(CURDIR)/build/$(arch)/$(mode) \
-		--enable-debug \
-		--enable-optimize=0
-	make -j$(shell nproc) &&\
-	make install &&\
-	make distclean &&\
-	mkdir ../../../user-c/bin &&\
-	cp ../../../build/$(arch)/$(mode)/lib/libc.so ../../../../user-c/bin/
-
-build/$(arch)/release/bin/musl-gcc:
+build/$(arch)/bin/musl-gcc:
 	cd $(MUSL_DIR) && \
 	CFLAGS='-Os -ffunction-sections -fdata-sections' \
 	LDFLAGS='-Wl,--gc-sections' \
-	./configure --prefix=$(CURDIR)/build/$(arch)/$(mode) --with-malloc=oldmalloc &&\
+	./configure --prefix=$(CURDIR)/build/$(arch) &&\
 	make -j$(shell nproc) && \
 	make install && \
 	make distclean &&\
-	mkdir ../../../user-c/bin &&\
-	cp ../../../build/$(arch)/$(mode)/lib/libc.so ../../../../user-c/bin/
+	mkdir ../../../user-c/bin 
 
 # 下载并编译musl
 all: $(MUSL_TAR_PATH) $(MUSL_DIR) musl

@@ -1,9 +1,8 @@
 MUSL_DIR = ../musl
 arch = x86_64
-mode ?= release
 CFLAGS=-I. -Wall -fno-builtin -ffloat-store
 
-MUCC = $(MUSL_DIR)/build/$(arch)/$(mode)/bin/musl-gcc
+MUCC = $(MUSL_DIR)/build/$(arch)/bin/musl-gcc
 ELF_TARGET = bin
 APP_SRC = src
 OBJ_TARGET = obj
@@ -21,7 +20,7 @@ $(OBJ_TARGET) $(ELF_TARGET):
 clean: 
 	rm -rf $(SQLITE_DIR) $(SQLITE_TAR)
 	find src -maxdepth 1 -type f ! -name "*.c" -delete
-	rm bin/*
+	find bin -maxdepth 1 -type f ! -name "busybox" -delete
 	rm obj/*
 
 # Download sqlite3.
