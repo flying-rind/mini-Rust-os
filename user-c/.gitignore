@@ -1,4 +1,6 @@
 bin/*
 sqlite3
 sqlite-am*
+busybox*
 obj/*
+wget-log
