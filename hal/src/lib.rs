@@ -5,7 +5,6 @@ extern crate log;
 extern crate alloc;
 pub use common::*;
 
-
 // 通用模块
 mod common;
 // 硬件抽象层提供给上层的接口定义
@@ -20,6 +19,5 @@ mod config;
 // 工具库
 mod utils;
 
-pub use common::*;
 pub use imp::*;
 pub use kernel_handler::KernelHandler;
