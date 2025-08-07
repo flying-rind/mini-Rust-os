@@ -1,12 +1,9 @@
 //! 宏内核加载器
 
-use core::pin::Pin;
-use core::str::FromStr;
-
 use alloc::boxed::Box;
-use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
+use core::pin::Pin;
 use hal::println;
 use log::info;
 use monolithic_objects::ROOT_INODE;
@@ -21,14 +18,14 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "shell";
+    let shell = "busybox";
     // let shell = "shell";
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
         let thread = Thread::new_user(
             &inode,
             shell,
-            vec![String::from_str("shell").unwrap()],
+            vec!["busybox".into(), "ash".into()],
             Vec::new(),
         )
         .expect("Failed to create shell.");

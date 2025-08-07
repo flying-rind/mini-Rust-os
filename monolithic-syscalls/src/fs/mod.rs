@@ -3,6 +3,7 @@
 
 mod fcntl;
 mod ioctl;
+mod stat;
 
 use crate::Syscall;
 use alloc::vec;
@@ -17,6 +18,7 @@ use monolithic_objects::fs::file::File;
 use monolithic_objects::fs::filehandle::FileHandle;
 use monolithic_objects::fs::iovec::{IoVec, IoVecs};
 use rcore_fs::vfs::FsError;
+pub use stat::*;
 use user_syscall::SysResult;
 
 /// Split a `path` str to `(base_path, file_name)`
@@ -115,9 +117,7 @@ impl Syscall<'_> {
                     file.set_options(arg);
                     Ok(0)
                 }
-                F_GETFL => {
-                    self.unimplemented("F_GETFL");
-                }
+                F_GETFL => self.unimplemented("F_GETFL", Ok(0)),
                 F_DUPFD_CLOEXEC => {
                     info!("fcntl: dupfd_cloexec: arg: {:#x}", arg);
                     // let file_like = proc.get_file_like(fd1)?.clone();
@@ -234,5 +234,49 @@ impl Syscall<'_> {
 
         proc.files.remove(&fd).ok_or(SysError::EBADF)?;
         Ok(0)
+    }
+
+    /// These functions return information about a file, in the buffer
+    /// pointed to by statbuf.  No permissions are required on the file
+    /// itself, but—in the case of stat(), fstatat(), and lstat()—execute
+    /// (search) permission is required on all of the directories in
+    /// pathname that lead to the file.
+    ///
+    /// fstat() is identical to stat(), except that the file about which
+    /// information is to be retrieved is specified by the file descriptor
+    /// fd.
+    ///
+    /// [fstat(2)](https://man7.org/linux/man-pages/man2/stat.2.html)
+    pub fn sys_fstatat(
+        &mut self,
+        dirfd: usize,
+        path: *const u8,
+        stat_ptr: *mut Stat,
+        flags: usize,
+    ) -> SysResult {
+        let proc = self.process();
+        let path = check_n_clone_cstr(path)?;
+        let flags = AtFlags::from_bits_truncate(flags);
+        info!(
+            "fstatat: dirfd: {}, path: {:?}, stat_ptr: {:?}, flags: {:?}",
+            dirfd as isize, path, stat_ptr, flags
+        );
+        let inode =
+            proc.lookup_inode_at(dirfd, &path, !flags.contains(AtFlags::SYMLINK_NOFOLLOW))?;
+        let stat_ref: &'static mut Stat = unsafe {
+            let slice = core::slice::from_raw_parts_mut::<'static>(stat_ptr, 1);
+            &mut slice[0]
+        };
+        let stat = Stat::from(inode.metadata()?);
+        *stat_ref = stat;
+        Ok(0)
+    }
+
+    /// See [`Self::sys_fstatat`]
+    pub fn sys_stat(&mut self, path: *const u8, stat_ptr: *mut Stat) -> SysResult {
+        info!("stat: path: {:?}, stat_ptr: {:?}", path, stat_ptr);
+        /// Pathname is interpreted relative to the current working directory(CWD)
+        const AT_FDCWD: usize = -100isize as usize;
+        self.sys_fstatat(AT_FDCWD, path, stat_ptr, 0)
     }
 }

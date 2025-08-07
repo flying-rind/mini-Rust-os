@@ -1,8 +1,7 @@
 //! 宏内核线程
-use crate::sync::EventBus;
-
 use super::*;
 use crate::fs::file::File;
+use crate::sync::EventBus;
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
@@ -208,7 +207,7 @@ impl Thread {
             ..Thread::default()
         }
         .add_to_table();
-        info!("Created new thread, tid = {}", new_thread.tid);
+        // info!("Created new thread, tid = {}", new_thread.tid);
         // 关联线程和进程，新进程的pid设置为新线程的tid
         let child_pid = Pid(new_thread.tid);
         add_to_process_table(new_proc.clone(), child_pid.clone());

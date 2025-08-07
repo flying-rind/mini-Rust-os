@@ -93,11 +93,6 @@ pub fn load_app(ms: Arc<MemorySet>, elf: &ElfFile) {
         "64-bit ELF required"
     );
     assert_eq!(
-        elf.header.pt2.type_().as_type(),
-        header::Type::Executable,
-        "ELF is not an executable object"
-    );
-    assert_eq!(
         elf.header.pt2.machine().as_machine(),
         header::Machine::X86_64,
         "invalid ELF arch"

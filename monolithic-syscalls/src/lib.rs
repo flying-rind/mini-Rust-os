@@ -1,23 +1,28 @@
 //! 宏内核系统调用
 #![no_std]
 
+use crate::fs::Stat;
 use alloc::boxed::Box;
 use alloc::{sync::Arc, vec::Vec};
+use hal::SysError;
 use hal::user::{UserInOutPtr, UserPtr};
 pub use log::error;
-use log::info;
+use log::{info, warn};
+use mem::*;
 use monolithic_objects::Thread;
 use monolithic_objects::ThreadFn;
 use monolithic_objects::fs::iovec::IoVec;
 use num::*;
 use spin::MutexGuard;
 use trapframe::UserContext;
+use user_syscall::SysResult;
 
 extern crate alloc;
 extern crate num_traits;
 
 mod custom;
 mod fs;
+mod mem;
 mod misc;
 mod num;
 mod proc;
@@ -57,6 +62,11 @@ impl Syscall<'_> {
             SYS_WAIT4 => self.sys_wait4(a0 as _, UserInOutPtr::from(a1)).await,
             SYS_EXIT_GROUP => self.sys_exit_group(a0),
             SYS_SET_TID_ADDRESS => self.sys_set_tid_address(a0 as _),
+            SYS_GETUID => self.unimplemented("getuid", Ok(0)),
+            SYS_GETGID => self.unimplemented("getgid", Ok(0)),
+            SYS_SETUID => self.unimplemented("setuid", Ok(0)),
+            SYS_GETEUID => self.unimplemented("geteuid", Ok(0)),
+            SYS_GETEGID => self.unimplemented("getegid", Ok(0)),
 
             // FS
             SYS_WRITE => self.sys_write(a0 as _, a1 as _, a2 as _),
@@ -68,6 +78,11 @@ impl Syscall<'_> {
             SYS_WRITEV => self.sys_writev(a0, a1 as *const IoVec, a2),
             SYS_OPEN => self.sys_open(a0 as _, a1, a2),
             SYS_CLOSE => self.sys_close(a0),
+            SYS_STAT => self.sys_stat(a0 as *const u8, a1 as *mut Stat),
+            SYS_FSTAT => self.sys_fstatat(a0 as _, a1 as _, a2 as _, a3),
+
+            // Mem
+            SYS_BRK => self.unimplemented("brk", Err(SysError::ENOMEM)),
 
             // Sync
             SYS_FUTEX => {
@@ -80,7 +95,7 @@ impl Syscall<'_> {
 
             // Custom
             SYS_TEST_CSTR => self.sys_test_cstr(a0 as _),
-            _ => unimplemented!("Not implemented yet"),
+            _ => unimplemented!("syscall id {} Not implemented yet", id),
         };
         match ret {
             Ok(code) => code as _,
@@ -89,7 +104,8 @@ impl Syscall<'_> {
     }
 
     /// Mark unimplemented.
-    fn unimplemented(&self, name: &str) -> ! {
-        unimplemented!("{} is unimplemented!", name);
+    fn unimplemented(&self, name: &str, ret: SysResult) -> SysResult {
+        warn!("{} is unimplemented", name);
+        ret
     }
 }
