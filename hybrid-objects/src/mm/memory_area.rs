@@ -47,6 +47,15 @@ impl MemoryArea {
         self.mapper.get_mut().remove(&vaddr);
     }
 
+    /// Test if the area is overlap with area [`start_adrr`, `end_addr`].
+    pub fn is_overlap_with(&self, start_addr: usize, end_addr: usize) -> bool {
+        let p0 = self.start_vaddr / PAGE_SIZE;
+        let p1 = (self.start_vaddr + self.size - 1) / PAGE_SIZE + 1;
+        let p2 = start_addr / PAGE_SIZE;
+        let p3 = (end_addr - 1) / PAGE_SIZE + 1;
+        !(p1 <= p2 || p3 <= p0)
+    }
+
     /// 获取起始虚地址
     pub fn start_vaddr(&self) -> usize {
         self.start_vaddr

@@ -1,5 +1,6 @@
 //! 进程地址空间
 use super::*;
+use alloc::collections::btree_map::BTreeMap;
 use core::fmt::Debug;
 use x86_64::registers::control::Cr3;
 use x86_64::registers::control::Cr3Flags;
@@ -13,13 +14,13 @@ use xmas_elf::{
 use super::PageTable;
 use super::memory_area::MemoryArea;
 use crate::Cell;
-use alloc::{sync::Arc, vec::Vec};
+use alloc::sync::Arc;
 
 /// 进程地址空间
 #[derive(Default)]
 pub struct MemorySet {
     /// 地址空间包含的虚存区域
-    areas: Cell<Vec<Arc<MemoryArea>>>,
+    areas: Cell<BTreeMap<usize, Arc<MemoryArea>>>,
     /// 页表
     page_table: Arc<Cell<PageTable>>,
 }
@@ -28,16 +29,51 @@ impl MemorySet {
     /// 新建地址空间
     pub fn new() -> Arc<MemorySet> {
         Arc::new(MemorySet {
-            areas: Cell::new(Vec::new()),
+            areas: Cell::new(BTreeMap::new()),
             page_table: Arc::new(Cell::new(PageTable::new())),
         })
     }
 
     /// 插入一段虚存区域
     pub fn insert_area(&self, area: Arc<MemoryArea>) {
-        self.areas.get_mut().push(area.clone());
+        self.areas
+            .get_mut()
+            .insert(area.start_vaddr(), area.clone());
         // 映射到页表中去
         self.page_table.get_mut().map_area(area);
+    }
+
+    /// Remove a mem area.
+    pub fn remove_area(&self, addr: usize) {
+        if let Some((addr, area)) = self.areas.get().get_key_value(&addr) {
+            self.areas.get_mut().remove(&addr);
+            self.page_table.get_mut().unmap_area(area.clone());
+        }
+    }
+
+    /// Find a free area with hint address `address hint` and length `len`.
+    /// Return the start addr of found free area.
+    /// Used for mmap.
+    pub fn find_free_area(&self, addr_hint: usize, len: usize) -> usize {
+        core::iter::once(addr_hint)
+            .chain(
+                self.areas
+                    .values()
+                    .cloned()
+                    .map(|area| area.start_vaddr() + area.size()),
+            )
+            .map(|addr| (addr + PAGE_SIZE - 1) & !(PAGE_SIZE - 1))
+            .find(|&addr| self.test_free_area(addr, addr + len))
+            .expect("failed to find free area!")
+    }
+
+    /// Test if [`start_addr`, `end_addr`] is a free area.
+    fn test_free_area(&self, start_addr: usize, end_addr: usize) -> bool {
+        self.areas
+            .values()
+            .cloned()
+            .find(|area| area.is_overlap_with(start_addr, end_addr))
+            .is_none()
     }
 
     /// 切换为当前地址空间，即修改cr3寄存器
@@ -52,7 +88,7 @@ impl MemorySet {
     /// 克隆一个地址空间时，克隆其中所有的虚存区域
     pub fn clone_myself(&self) -> Arc<Self> {
         let ms = Self::new();
-        for area in self.areas.get() {
+        for (_addr, area) in self.areas.get() {
             ms.insert_area(area.clone_myself());
         }
         ms
@@ -67,7 +103,7 @@ impl MemorySet {
 impl Drop for MemorySet {
     /// 析构时取消映射所有虚存区域
     fn drop(&mut self) {
-        for area in self.areas.get() {
+        for (_addr, area) in self.areas.get() {
             self.page_table.get_mut().unmap_area(area.clone());
         }
         self.areas.clear();
