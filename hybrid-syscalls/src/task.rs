@@ -66,7 +66,6 @@ impl Syscall<'_> {
         wait4proc.await;
         Ok(pid as _)
     }
-
     /// 当前线程放弃CPU
     ///
     /// FIXME: Modify
@@ -156,4 +155,28 @@ impl Syscall<'_> {
         thread.clone().start(self.thread_fn);
         Ok(thread.proc().unwrap().pid())
     }
+
+    //new
+    pub fn sys_vfork(&mut self) -> SysResult {
+        self.sys_fork()
+    }
+
+    //new
+    pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
+        let proc = self.process();
+        info!("exit_group: {}, code: {}", proc.pid, exit_code);
+
+        for (_, thread) in self.threads.iter() {
+            thread.exit(exit_code);
+        }
+        info!("exit_group: {}, code: {}", proc.pid, exit_code);
+        Ok(())
+        
+    }
+
+    //new
+    pub fn sys_set_tid_address(&mut self, tidptr: *mut u32) -> SysResult {
+        info!("set_tid_address: {:?}", tidptr);
+        self.thread.inner.lock().clear_child_tid = tidptr as usize;
+        Ok((self.thread.tid))
 }
