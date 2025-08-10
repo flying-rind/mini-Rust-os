@@ -4,12 +4,20 @@ use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::pin::Pin;
+use hal::arch::cpu::MachineContext;
 use hal::println;
 use log::info;
 use monolithic_objects::ROOT_INODE;
+use monolithic_objects::Siginfo;
+use monolithic_objects::SignalActionFlags;
+use monolithic_objects::SignalFrame;
+use monolithic_objects::SignalStackFlags;
+use monolithic_objects::SignalUserContext;
+use monolithic_objects::Sigset;
 use monolithic_objects::set_current_thread;
 use monolithic_objects::sync::timer;
 use monolithic_objects::{Arc, Thread, ThreadState};
+use num_traits::FromPrimitive;
 use trapframe::TrapFrame;
 use trapframe::UserContext;
 
@@ -48,9 +56,15 @@ async fn run_user(thread: Arc<Thread>) {
         if thread.inner.lock().state == ThreadState::Exited {
             break;
         }
-        // TODO: Handle Signal
         // 进入用户态
         let mut context = thread.begin_running();
+        // TODO: Handle Signal
+        if let Some((idx, info, sigmask)) = thread.handle_signal() {
+            let mut proc = thread.proc.lock();
+            proc.signals.remove(idx);
+            context = handle_signal(thread.clone(), context, info, sigmask);
+        }
+
         context.run();
         // 返回内核，处理中断/系统调用
         handle_user_trap(thread.clone(), &mut context).await;
@@ -111,3 +125,126 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
         }
     }
 }
+
+/// Handle signal of current thread.
+fn handle_signal(
+    thread: Arc<Thread>,
+    mut ctx: Box<UserContext>,
+    siginfo: Siginfo,
+    _sigmask: Sigset,
+) -> Box<UserContext> {
+    pub const SIG_ERR: usize = usize::max_value() - 1;
+    pub const SIG_DFL: usize = 0;
+    pub const SIG_IGN: usize = 1;
+    use monolithic_objects::Signal::*;
+
+    let mut proc = thread.proc.lock();
+    let signal = FromPrimitive::from_i32(siginfo.signo).unwrap();
+    let action = proc.signal_action(signal);
+    let action_flags = SignalActionFlags::from_bits_truncate(action.flags.bits());
+    info!("thread {} received signal: {:?}", thread.tid, signal);
+    // Enter signal handler.
+    match action.handler {
+        SIG_DFL => match signal {
+            SIGALRM | SIGHUP | SIGINT => {
+                info!("Default action: Term!");
+                proc.exit(siginfo.signo as _);
+                ctx
+            }
+            _ => ctx,
+        },
+        SIG_IGN => {
+            info!("Ignore!");
+            ctx
+        }
+        SIG_ERR => {
+            unimplemented!()
+        }
+        _ => {
+            info!("Go to handler at {:#x}", action.handler);
+            // mask current signal and actions mask.
+            let mut inner = thread.inner.lock();
+            let sig_mask = inner.signal_mask;
+            let stack = inner.signal_altstack;
+            inner.signal_mask.add(signal);
+            inner.signal_mask.add_set(&action.mask);
+            drop(inner);
+
+            let sig_sp: usize = {
+                if action_flags.contains(SignalActionFlags::ONSTACK) {
+                    let stack_flags = SignalStackFlags::from_bits_truncate(stack.flags);
+                    if stack_flags.contains(SignalStackFlags::DISABLE) {
+                        ctx.get_sp()
+                    } else {
+                        let mut inner = thread.inner.lock();
+                        inner.signal_altstack.flags |= SignalStackFlags::ONSTACK.bits();
+
+                        // handle auto disarm.
+                        if stack_flags.contains(SignalStackFlags::AUTODISARM) {
+                            // ?
+                            inner.signal_altstack.flags |= SignalStackFlags::DISABLE.bits();
+                        }
+                        stack.sp + stack.size
+                    }
+                } else {
+                    ctx.get_sp()
+                }
+            } - core::mem::size_of::<SignalFrame>();
+            let frame: &'static mut SignalFrame = unsafe {
+                let slice: &'static mut [SignalFrame] =
+                    core::slice::from_raw_parts_mut(sig_sp as *mut SignalFrame, 1);
+                &mut slice[0]
+            };
+            frame.info = siginfo;
+            frame.ucontext = SignalUserContext {
+                flags: 0,
+                link: 0,
+                stack,
+                context: MachineContext::from_tf(&mut ctx),
+                sig_mask,
+            };
+            if action_flags.contains(SignalActionFlags::RESTORER) {
+                frame.ret_code_addr = action.restorer; // legacy
+            } else {
+                frame.ret_code_addr = frame.ret_code.as_ptr() as usize;
+                // mov SYS_RT_SIGRETURN, %eax
+                frame.ret_code.copy_from_slice(&RET_CODE);
+            }
+            let ctx = set_signal_handler(
+                ctx,
+                sig_sp,
+                action.handler,
+                siginfo.signo as _,
+                &frame.info as *const Siginfo,
+                &frame.ucontext as *const SignalUserContext,
+            );
+            ctx
+        }
+    }
+}
+
+/// Set signal handler.
+pub fn set_signal_handler(
+    mut ctx: Box<UserContext>,
+    sp: usize,
+    handler: usize,
+    signo: usize,
+    siginfo: *const Siginfo,
+    uctx: *const SignalUserContext,
+) -> Box<UserContext> {
+    ctx.general.rsp = sp;
+    ctx.general.rip = handler;
+
+    // Pass handler argument.
+    ctx.general.rdi = signo as usize;
+    ctx.general.rsi = siginfo as usize;
+    ctx.general.rdx = uctx as usize;
+    ctx
+}
+
+pub const RET_CODE: [u8; 7] = [
+    // mov SYS_RT_SIGRETURN, %eax
+    0xb8, // SYS_RT_SIGRETURN
+    15, 0, 0, 0, // syscall
+    0x0f, 0x05,
+];

@@ -8,7 +8,6 @@ use hal::SysError;
 use hal::user::{UserInOutPtr, UserPtr};
 pub use log::error;
 use log::{info, warn};
-use mem::*;
 use monolithic_objects::Thread;
 use monolithic_objects::ThreadFn;
 use monolithic_objects::fs::iovec::IoVec;
@@ -67,6 +66,7 @@ impl Syscall<'_> {
             SYS_SETUID => self.unimplemented("setuid", Ok(0)),
             SYS_GETEUID => self.unimplemented("geteuid", Ok(0)),
             SYS_GETEGID => self.unimplemented("getegid", Ok(0)),
+            SYS_GETPID => self.sys_getpid(),
 
             // FS
             SYS_WRITE => self.sys_write(a0 as _, a1 as _, a2 as _),
@@ -83,6 +83,7 @@ impl Syscall<'_> {
 
             // Mem
             SYS_BRK => self.unimplemented("brk", Err(SysError::ENOMEM)),
+            SYS_MMAP => self.sys_mmap(a0, a1, a2, a3, a4, a5),
 
             // Sync
             SYS_FUTEX => {

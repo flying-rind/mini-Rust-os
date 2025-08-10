@@ -14,6 +14,8 @@ hybrid-objects = { path = "../hybrid-objects", optional = true }
 monolithic-objects = { path = "../monolithic-objects", optional = true }
 monolithic-syscalls = { path = "../monolithic-syscalls", optional = true }
 bootloader_api = "0.11"
+num-derive = { version = "0.4", default-features = false }
+num-traits = { version = "0.2.19", default-features = false }
 
 [features]
 # default = ["hybrid"]

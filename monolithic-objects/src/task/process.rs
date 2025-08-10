@@ -2,12 +2,17 @@
 use core::fmt::Display;
 
 use super::*;
+use crate::Siginfo;
+use crate::Signal;
+use crate::SignalAction;
+use crate::SignalActions;
 use crate::debug;
 use crate::fs::ROOT_INODE;
 use crate::fs::file::File;
 use crate::sync::{Event, EventBus, Futex};
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
+use alloc::collections::vec_deque::VecDeque;
 use alloc::string::String;
 use alloc::sync::Weak;
 use alloc::vec;
@@ -80,6 +85,10 @@ pub struct Process {
     pub threads: Vec<Tid>,
     /// Event bus
     pub eventbus: Arc<Mutex<EventBus>>,
+    /// Signal actions.
+    pub sigactions: SignalActions,
+    /// Signals. isize speciyies tid, -1 stands for any thread.
+    pub signals: VecDeque<(Siginfo, isize)>,
 }
 
 lazy_static! {
@@ -235,6 +244,11 @@ impl Process {
         context.set_ip(entry);
         context.set_sp(sp);
         Ok(0)
+    }
+
+    /// Get signal action.
+    pub fn signal_action(&self, signal: Signal) -> SignalAction {
+        self.sigactions.table[signal as u8 as usize]
     }
 
     /// Exit the process

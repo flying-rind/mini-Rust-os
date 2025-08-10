@@ -1,5 +1,9 @@
 //! 宏内核线程
 use super::*;
+use crate::Siginfo;
+use crate::Signal;
+use crate::SignalStack;
+use crate::Sigset;
 use crate::fs::file::File;
 use crate::sync::EventBus;
 use alloc::boxed::Box;
@@ -18,6 +22,7 @@ use hybrid_objects::mm::MemoryArea;
 use hybrid_objects::mm::MemorySet;
 use lazy_static::lazy_static;
 use log::info;
+use num::FromPrimitive;
 use rcore_fs::vfs::INode;
 use spin::Mutex;
 use spin::RwLock;
@@ -52,7 +57,7 @@ pub type Tid = usize;
 pub type ThreadFn = fn(thread: Arc<Thread>) -> Pin<Box<dyn Future<Output = ()> + Send + 'static>>;
 
 /// 线程可变部分
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct ThreadInner {
     /// 用户态上下文
     pub context: Option<Box<UserContext>>,
@@ -61,6 +66,12 @@ pub struct ThreadInner {
     pub clear_child_tid: usize,
     /// 线程状态
     pub state: ThreadState,
+    /// Signal mask.
+    pub signal_mask: Sigset,
+    /// handling signals.
+    pub handling_signal: Option<Signal>,
+    /// Signal alternate stack.
+    pub signal_altstack: SignalStack,
 }
 
 /// 线程状态
@@ -154,6 +165,7 @@ impl Thread {
                 clear_child_tid: 0,
                 state: ThreadState::Ready,
                 context: Some(Box::new(context)),
+                ..Default::default()
             }),
             proc: Arc::new(Mutex::new(Process {
                 pid: Pid::new(),
@@ -168,6 +180,7 @@ impl Thread {
                 children: Vec::new(),
                 threads: Vec::new(),
                 eventbus: Arc::new(Mutex::new(EventBus::default())),
+                ..Default::default()
             })),
             tid: 0,
         };
@@ -202,6 +215,7 @@ impl Thread {
                 clear_child_tid: 0,
                 context: Some(Box::new(new_context)),
                 state: ThreadState::Ready,
+                ..Default::default()
             }),
             proc: new_proc.clone(),
             ..Thread::default()
@@ -258,6 +272,27 @@ impl Thread {
                 futex.wake(1);
             }
         }
+    }
+
+    /// Handle signal.
+    /// Return (idx, info, sigmask).
+    pub fn handle_signal(&self) -> Option<(usize, Siginfo, Sigset)> {
+        let mut inner = self.inner.lock();
+        if inner.handling_signal.is_none() {
+            let proc = self.proc.lock();
+            if let Some((idx, (info, _tid))) = {
+                proc.signals.iter().enumerate().find(|(_idx, (info, tid))| {
+                    (*tid as usize == self.tid || *tid == -1)
+                        && (!inner
+                            .signal_mask
+                            .contains(FromPrimitive::from_i32(info.signo).unwrap()))
+                })
+            } {
+                inner.handling_signal = FromPrimitive::from_i32(info.signo);
+                return Some((idx, *info, inner.signal_mask));
+            }
+        }
+        None
     }
 }
 

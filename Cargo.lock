@@ -232,6 +232,7 @@ dependencies = [
  "rcore-fs",
  "rcore-fs-sfs",
  "spin 0.10.0",
+ "trapframe",
  "x86_64",
  "xmas-elf",
 ]
@@ -356,6 +357,8 @@ dependencies = [
  "log",
  "monolithic-objects",
  "monolithic-syscalls",
+ "num-derive",
+ "num-traits",
  "trapframe",
 ]
 
@@ -385,6 +388,10 @@ dependencies = [
  "hybrid-objects",
  "lazy_static",
  "log",
+ "num",
+ "num-derive",
+ "num-traits",
+ "numeric-enum-macro",
  "rcore-fs",
  "rcore-fs-sfs",
  "spin 0.10.0",

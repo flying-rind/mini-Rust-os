@@ -243,4 +243,10 @@ impl Syscall<'_> {
         self.thread.inner.lock().clear_child_tid = tidptr as usize;
         Ok(self.thread.tid)
     }
+
+    /// Get the current pid.
+    pub fn sys_getpid(&mut self) -> SysResult {
+        info!("getpid");
+        Ok(self.process().pid.get())
+    }
 }

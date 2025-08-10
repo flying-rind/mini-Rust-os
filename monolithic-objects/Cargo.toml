@@ -17,3 +17,7 @@ bitflags = "2.9.1"
 hal ={ path = "../hal"}
 user-syscall = { path = "../user-components/user-syscall"}
 rcore-fs-sfs = { git = "https://github.com/rcore-os/rcore-fs" }
+num = { version = "0.4", default-features = false }
+num-derive = { version = "0.4", default-features = false }
+num-traits = { version = "0.2.19", default-features = false }
+numeric-enum-macro = "0.2.0"
