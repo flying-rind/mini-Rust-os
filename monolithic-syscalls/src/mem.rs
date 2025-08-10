@@ -3,6 +3,7 @@
 use crate::Syscall;
 use bitflags::bitflags;
 use hal::PAGE_SIZE;
+use hal::SysError;
 use hybrid_objects::mm::{MemoryArea, PageTableFlags};
 use log::info;
 use user_syscall::SysResult;
@@ -42,9 +43,8 @@ impl Syscall<'_> {
         // Kernel will find a area.
         } else {
             addr = vm.find_free_area(addr, len);
+            info!("mmap found address: {:#x}", addr);
         }
-
-        //
         if flags.contains(MmapFlags::ANONYMOUS) {
             let area = MemoryArea::new(addr, len, prot.to_flags());
             vm.insert_area(area);
@@ -52,6 +52,29 @@ impl Syscall<'_> {
         } else {
             unimplemented!("File mmap unimplemented yet!");
         }
+    }
+
+    ///  mprotect() changes the access protections for the calling
+    /// process's memory pages containing any part of the address range in
+    /// the interval [addr, addr+size-1].  addr must be aligned to a page
+    /// boundary.
+    pub fn sys_mprotect(&mut self, addr: usize, len: usize, prot: usize) -> SysResult {
+        let prot = MmapProt::from_bits_truncate(prot);
+        info!(
+            "mprotect: addr={:#x}, size={:#x}, prot={:?}",
+            addr, len, prot
+        );
+        // TODO: properly set the attribute of the area
+        //        now some mut ptr check is fault
+        let proc = self.process();
+        let vm = proc.vm.clone();
+        let memory_area = vm
+            .areas()
+            .find(|area| area.is_overlap_with(addr, addr + len));
+        if memory_area.is_none() {
+            return Err(SysError::ENOMEM);
+        }
+        Ok(0)
     }
 }
 

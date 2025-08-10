@@ -87,8 +87,11 @@ impl Signal {
 
 bitflags! {
     pub struct SignalStackFlags : u32 {
+        /// Using the stack.
         const ONSTACK = 1;
+        /// Stack disabled.
         const DISABLE = 2;
+        /// Auto disable stack.
         const AUTODISARM = 0x80000000;
     }
 }
@@ -115,10 +118,15 @@ impl Default for SignalStack {
 #[repr(C)]
 #[derive(Clone)]
 pub struct SignalFrame {
-    pub ret_code_addr: usize, // point to ret_code
+    /// ret addr. Point ro ret_code.
+    pub ret_code_addr: usize,
+    /// Signal info.
     pub info: Siginfo,
-    pub ucontext: SignalUserContext, // adapt interface, a little bit waste
-    pub ret_code: [u8; 7],           // call sys_sigreturn
+    /// Usercontext.
+    pub ucontext: SignalUserContext,
+    /// Execute this when done signal handling.
+    /// Default set to sys_rt_sigreturn().
+    pub ret_code: [u8; 7],
 }
 
 /// See musl struct __ucontext

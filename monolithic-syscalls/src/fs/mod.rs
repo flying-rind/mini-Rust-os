@@ -279,4 +279,18 @@ impl Syscall<'_> {
         const AT_FDCWD: usize = -100isize as usize;
         self.sys_fstatat(AT_FDCWD, path, stat_ptr, 0)
     }
+
+    /// Get current working dir.
+    pub fn sys_getcwd(&mut self, buf: *mut u8, len: usize) -> SysResult {
+        let proc = self.process();
+        info!("getcwd: buf: {:?}, len: {:#x}", buf, len);
+        let buf: &'static mut [u8] = unsafe { core::slice::from_raw_parts_mut(buf, len) };
+        if proc.cwd.len() + 1 > len {
+            return Err(SysError::ERANGE);
+        }
+        unsafe {
+            hal::write_cstr(buf.as_mut_ptr(), &proc.cwd);
+            Ok(buf.as_ptr() as usize)
+        }
+    }
 }

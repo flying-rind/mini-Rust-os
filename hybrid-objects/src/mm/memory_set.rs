@@ -76,6 +76,11 @@ impl MemorySet {
             .is_none()
     }
 
+    /// Get areas.
+    pub fn areas(&self) -> impl Iterator<Item = Arc<MemoryArea>> {
+        self.areas.get().values().cloned()
+    }
+
     /// 切换为当前地址空间，即修改cr3寄存器
     pub fn activate(&self) {
         let frame =
