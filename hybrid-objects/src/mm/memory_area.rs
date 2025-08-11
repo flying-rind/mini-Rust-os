@@ -57,16 +57,19 @@ impl MemoryArea {
     }
 
     /// 获取起始虚地址
+    #[inline(always)]
     pub fn start_vaddr(&self) -> usize {
         self.start_vaddr
     }
 
     /// 获取虚存区域长度
+    #[inline(always)]
     pub fn size(&self) -> usize {
         self.size
     }
 
     /// 获取映射标识
+    #[inline(always)]
     pub fn flags(&self) -> PageTableFlags {
         self.flags
     }

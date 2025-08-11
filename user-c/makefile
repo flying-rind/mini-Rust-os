@@ -42,7 +42,9 @@ $(BUSYBOX_TAR):
 	mv busybox-master busybox
 	@echo "Busybox downloaded and extracted."
 
-apps: $(ELF_TARGET)/hello $(ELF_TARGET)/raw $(ELF_TARGET)/blank $(ELF_TARGET)/sqlite-test $(ELF_TARGET)/busybox
+apps: 	$(ELF_TARGET)/hello $(ELF_TARGET)/raw $(ELF_TARGET)/blank $(ELF_TARGET)/sqlite-test $(ELF_TARGET)/busybox $(ELF_TARGET)/mmap-test1 $(ELF_TARGET)/mmap-test2 \
+		$(ELF_TARGET)/writev-test
+	 	
 
 $(ELF_TARGET)/%: src/%.c
 	$(MUCC) -static -o $@ $<
@@ -59,8 +61,12 @@ $(ELF_TARGET)/sqlite-test: src/sqlite-test.c sqlite3
 	strip $@
 
 # Compile busy box with musl-libc, then copy busybox elf to bin.
-$(ELF_TARGET)/busybox: $(BUSYBOX_TAR)
-	cp ../misc/.config busybox/.config
-	export PATH="$(MUCC_DIR):$$PATH" &&\
-	cd busybox && make -j 16
-	cp busybox/busybox bin/
+# $(ELF_TARGET)/busybox: $(BUSYBOX_TAR)
+# 	# cp ../misc/.config busybox/.config
+# 	# export PATH="$(MUCC_DIR):$$PATH" &&\
+# 	# cd busybox && make -j 16
+# 	# cp busybox/busybox bin/
+
+# Now we just use pre-compiled busybox elf.
+$(ELF_TARGET)/busybox:
+	cp ../misc/busybox bin/

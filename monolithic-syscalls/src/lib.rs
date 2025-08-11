@@ -96,6 +96,7 @@ impl Syscall<'_> {
             // Mem
             SYS_BRK => self.unimplemented("brk", Err(SysError::ENOMEM)),
             SYS_MMAP => self.sys_mmap(a0, a1, a2, a3, a4, a5),
+            SYS_MUNMAP => self.sys_munmap(a0, a1),
             SYS_MPROTECT => self.sys_mprotect(a0, a1, a2),
 
             // Sync

@@ -54,6 +54,8 @@ impl Syscall<'_> {
         }
     }
 
+    ///
+
     ///  mprotect() changes the access protections for the calling
     /// process's memory pages containing any part of the address range in
     /// the interval [addr, addr+size-1].  addr must be aligned to a page
@@ -74,6 +76,21 @@ impl Syscall<'_> {
         if memory_area.is_none() {
             return Err(SysError::ENOMEM);
         }
+        Ok(0)
+    }
+
+    /// The munmap() system call deletes the mappings for the specified
+    /// address range, and causes further references to addresses within
+    /// the range to generate invalid memory references.  The region is
+    /// also automatically unmapped when the process is terminated.  On
+    /// the other hand, closing the file descriptor does not unmap the
+    /// region.
+    ///
+    /// [munmap(2)](https://man7.org/linux/man-pages/man2/mmap.2.html)
+    pub fn sys_munmap(&mut self, addr: usize, len: usize) -> SysResult {
+        info!("munmap addr={:#x}, size={:#x}", addr, len);
+        let vm = self.process().vm.clone();
+        vm.remove_with_split(addr, addr + len);
         Ok(0)
     }
 }

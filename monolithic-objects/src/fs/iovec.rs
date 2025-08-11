@@ -2,9 +2,10 @@
 use alloc::vec;
 use alloc::vec::Vec;
 use hal::SysError;
+use log::info;
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct IoVec {
     /// Starting address.
     base: *mut u8,
@@ -24,6 +25,11 @@ impl IoVecs {
         let mut slices = vec![];
         slices.reserve(iovs.len());
         for iov in iovs.iter() {
+            // Just for now.
+            if iov.base.is_null() || iov.len == 0 {
+                continue;
+            }
+            info!("Iov base: {:x?}, iov len: {}", iov.base, iov.len);
             unsafe {
                 slices.push(core::slice::from_raw_parts_mut(iov.base, iov.len));
             }

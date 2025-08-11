@@ -48,7 +48,7 @@ impl Syscall<'_> {
     /// by iov to the file associated with the file descriptor fd ("gather
     /// output").
     pub fn sys_writev(&mut self, fd: usize, iovec: *const IoVec, iovcnt: usize) -> SysResult {
-        info!("writev: fd: {}, iov: {:?}, cnt: {}", fd, iovec, iovcnt);
+        info!("writev: fd: {}, iov_ptr: {:?}, cnt: {}", fd, iovec, iovcnt);
         let iovecs = unsafe { IoVecs::new(iovec, iovcnt)? };
         let buf = iovecs.read_all_to_vec();
         let mut proc = self.process();
