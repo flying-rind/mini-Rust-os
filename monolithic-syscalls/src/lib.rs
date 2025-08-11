@@ -83,6 +83,7 @@ impl Syscall<'_> {
             SYS_IOCTL => self.sys_ioctl(a0, a1, a2, a3, a4),
             SYS_WRITEV => self.sys_writev(a0, a1 as *const IoVec, a2),
             SYS_OPEN => self.sys_open(a0 as _, a1, a2),
+            SYS_OPENAT => self.sys_openat(a0, a1 as _, a2, a3),
             SYS_CLOSE => self.sys_close(a0),
             SYS_STAT => self.sys_stat(a0 as *const u8, a1 as *mut Stat),
             SYS_FSTAT => self.sys_fstatat(a0 as _, a1 as _, a2 as _, a3),
@@ -91,7 +92,7 @@ impl Syscall<'_> {
             // Signal
             SYS_RT_SIGRETURN => self.sys_rt_sigreturn(),
             SYS_RT_SIGPROCMASK => self.sys_rt_procmask(a0, a1.into(), a2.into(), a3),
-            SYS_RT_SIGACTION => self.unimplemented("rt_sigaction", Ok(0)),
+            SYS_RT_SIGACTION => self.sys_rt_sigaction(a0, a1.into(), a2.into(), a3),
 
             // Mem
             SYS_BRK => self.unimplemented("brk", Err(SysError::ENOMEM)),

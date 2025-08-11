@@ -290,7 +290,7 @@ impl Syscall<'_> {
         }
         unsafe {
             hal::write_cstr(buf.as_mut_ptr(), &proc.cwd);
-            Ok(buf.as_ptr() as usize)
         }
+        Ok(buf.as_ptr() as usize)
     }
 }

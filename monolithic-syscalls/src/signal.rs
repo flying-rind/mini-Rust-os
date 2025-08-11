@@ -1,6 +1,10 @@
 //! Signal related syscalls.
 use hal::user::{UserInPtr, UserOutPtr};
-use monolithic_objects::{SignalFrame, Sigset};
+use monolithic_objects::{
+    Signal::{self},
+    SignalAction, SignalFrame, Sigset,
+};
+use num_traits::FromPrimitive;
 
 use super::*;
 
@@ -72,5 +76,47 @@ impl Syscall<'_> {
             }
         }
         return Ok(0);
+    }
+
+    /// The sigaction() system call is used to change the action taken by
+    /// a process on receipt of a specific signal.  (See signal(7) for an
+    /// overview of signals.)
+    pub fn sys_rt_sigaction(
+        &mut self,
+        signum: usize,
+        act: UserInPtr<SignalAction>,
+        mut oldact: UserOutPtr<SignalAction>,
+        sigsetsize: usize,
+    ) -> SysResult {
+        if let Some(signal) = <Signal as FromPrimitive>::from_usize(signum) {
+            use monolithic_objects::Signal::*;
+            info!(
+                "rt_sigaction: signum: {:?}, act: {:?}, oldact: {:?}, sigsetsize: {}",
+                signal, act, oldact, sigsetsize
+            );
+            if signal == SIGKILL
+                || signal == SIGSTOP
+                || sigsetsize != core::mem::size_of::<Sigset>()
+            {
+                Err(SysError::EINVAL)
+            } else {
+                let mut proc = self.process();
+                if !oldact.is_null() {
+                    oldact.write(proc.signal_action(signal))?;
+                }
+                if !act.is_null() {
+                    let act = act.read()?;
+                    info!("new action: {:?} -> {:x?}", signal, act);
+                    proc.sigactions.table[signum] = act;
+                }
+                Ok(0)
+            }
+        } else {
+            info!(
+                "rt_sigaction: signal: UNKNOWN, act: {:?}, oldact: {:?}, sigsetsize: {}",
+                act, oldact, sigsetsize
+            );
+            Err(SysError::EINVAL)
+        }
     }
 }

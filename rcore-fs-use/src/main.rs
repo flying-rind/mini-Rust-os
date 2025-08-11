@@ -69,19 +69,19 @@ fn main() {
         .collect();
     println!("rs-apps: {:?}", rs_apps);
 
-    let mut c_apps: Vec<_> = read_dir(c_src_path)
+    let mut c_apps: Vec<_> = read_dir(c_target_path)
         .unwrap()
         .into_iter()
         .map(|dir_entry| {
             let mut name_with_ext = dir_entry.unwrap().file_name().into_string().unwrap();
-            name_with_ext.drain(name_with_ext.find('.').unwrap()..name_with_ext.len());
+            // name_with_ext.drain(name_with_ext.find('.').unwrap()..name_with_ext.len());
             name_with_ext
         })
         .collect();
     println!("c-apps: {:?}", c_apps);
 
     // Busybox.
-    c_apps.push("busybox".to_string());
+    // c_apps.push("busybox".to_string());
 
     // 将app挂载到文件系统
 

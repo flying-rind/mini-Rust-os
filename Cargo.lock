@@ -260,7 +260,7 @@ dependencies = [
 name = "hybrid-objects"
 version = "0.1.0"
 dependencies = [
- "bitflags 2.9.1",
+ "bitflags 1.3.2",
  "bitmap-allocator",
  "bootloader_api",
  "buddy_system_allocator 0.10.0",
@@ -360,6 +360,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "trapframe",
+ "x86_64",
 ]
 
 [[package]]
@@ -393,6 +394,8 @@ dependencies = [
  "num-traits",
  "numeric-enum-macro",
  "rcore-fs",
+ "rcore-fs-devfs",
+ "rcore-fs-mountfs",
  "rcore-fs-sfs",
  "spin 0.10.0",
  "trapframe",
@@ -621,6 +624,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcore-fs-devfs"
+version = "0.1.0"
+source = "git+https://github.com/rcore-os/rcore-fs#3cdbe41f2fa4b9122e81ddd833c0fa339e5ac016"
+dependencies = [
+ "rcore-fs",
+ "spin 0.9.8",
+]
+
+[[package]]
+name = "rcore-fs-mountfs"
+version = "0.1.0"
+source = "git+https://github.com/rcore-os/rcore-fs#3cdbe41f2fa4b9122e81ddd833c0fa339e5ac016"
+dependencies = [
+ "lazy_static",
+ "log",
+ "rcore-fs",
+ "spin 0.9.8",
+]
+
+[[package]]
 name = "rcore-fs-sfs"
 version = "0.1.0"
 source = "git+https://github.com/rcore-os/rcore-fs#3cdbe41f2fa4b9122e81ddd833c0fa339e5ac016"
@@ -750,7 +773,7 @@ checksum = "7dd6e30e90baa6f72411720665d41d89b9a3d039dc45b8faea1ddd07f617f6af"
 name = "user-syscall"
 version = "0.1.0"
 dependencies = [
- "bitflags 2.9.1",
+ "bitflags 1.3.2",
  "hal",
  "num-derive",
  "num-traits",

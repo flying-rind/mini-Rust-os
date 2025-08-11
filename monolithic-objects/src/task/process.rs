@@ -6,6 +6,7 @@ use crate::Siginfo;
 use crate::Signal;
 use crate::SignalAction;
 use crate::SignalActions;
+use crate::Sigset;
 use crate::debug;
 use crate::fs::ROOT_INODE;
 use crate::fs::file::File;
@@ -89,12 +90,24 @@ pub struct Process {
     pub sigactions: SignalActions,
     /// Signals. isize speciyies tid, -1 stands for any thread.
     pub signals: VecDeque<(Siginfo, isize)>,
+    /// Pending sigset.
+    pub pending_sigset: Sigset,
 }
 
 lazy_static! {
     /// Records the mapping between pid and Process struct.
     pub static ref PROCESSES: RwLock<BTreeMap<Pid, Arc<Mutex<Process>>>> =
         RwLock::new(BTreeMap::new());
+}
+
+/// Get process group by pgid
+pub fn process_group(pgid: Pgid) -> Vec<Arc<Mutex<Process>>> {
+    PROCESSES
+        .read()
+        .iter()
+        .map(|(_, proc)| proc.clone())
+        .filter(|proc| proc.lock().pgid == pgid)
+        .collect()
 }
 
 /// 设置pid并加入全局进程映射表
@@ -162,6 +175,18 @@ impl Process {
         let fd = self.get_free_fd();
         self.files.insert(fd, file);
         fd
+    }
+
+    /// Add a signal.
+
+    /// Remove a signal.
+    pub fn remove_signal(&mut self, idx: usize) {
+        self.signals.remove(idx);
+    }
+
+    /// Remove from pending sigset.
+    pub fn remove_pendingsigset(&mut self, signal: Signal) {
+        self.pending_sigset.remove(signal);
     }
 
     /// Get lowest free fd.
