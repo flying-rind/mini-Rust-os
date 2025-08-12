@@ -28,7 +28,7 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "busybox";
+    let shell = "sqlite-test";
     // let shell = "shell";
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
@@ -36,7 +36,7 @@ pub fn run_shell() {
             &inode,
             shell,
             // vec!["busybox".into()],
-            vec!["busybox".into()],
+            vec!["ash".into()],
             Vec::new(),
         )
         .expect("Failed to create shell.");
@@ -115,7 +115,12 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
     match ctx.trap_num {
         PAGE_FAULT => {
             let addr = get_page_fault_addr();
-            error!("[Trap Handler]: PAGEFAULT, addr: {:#x}", addr);
+            error!(
+                "[Trap Handler]: PAGEFAULT, addr: {:#x}, userspace rip: {:#x}",
+                addr, ctx.general.rip
+            );
+            let vm = &thread.proc.lock().vm;
+            vm.show_areas();
             panic!("page fault");
         }
         TIMER => {

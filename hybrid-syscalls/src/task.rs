@@ -171,24 +171,24 @@ impl Syscall<'_> {
     //Ok(0)
     //}
     pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
-        let proc = self.process.clone();
+        let proc = self.process().clone();
         info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
-        let threads = get_process_threads(&proc);
+        let threads = proc.get_threads();
         for thread in threads {
             thread.exit(exit_code);
         }
         info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
-        Ok(())
+        Ok(0)
     }
 
     //new
 
     pub fn sys_set_tid_address(&mut self, tidptr: *mut u32) -> SysResult {
         if tidptr.is_null() {
-            return Err(SysError::NullPointerError);
+            panic!("invalid ptr!");
         }
-        let mut thread = &mut self.thread;
-        thread.clear_child_tid = tidptr as usize;
+        let thread = &mut self.thread;
+        thread.set_clear_child_tid(tidptr as _);
         // 返回一个默认值 0 ，可根据实际需求修改
         Ok(0)
     }

@@ -47,7 +47,7 @@ async fn run_user(thread: Arc<Thread>) {
         // Enter userspace until trap.
         thread.run_until_trap();
         // 返回内核，处理中断/系统调用
-        handle_user_trap(thread.clone(), &thread.user_context()).await;
+        handle_user_trap(thread.clone(), &mut thread.user_context()).await;
     }
     set_current_thread(None);
 }
@@ -78,7 +78,7 @@ pub extern "C" fn trap_handler(tf: &mut TrapFrame) {
 /// 处理用户态的中断或系统调用
 /// 若是系统调用则context中的trap_num一定为100
 /// 若是中断则trap_num从context中获取
-pub async fn handle_user_trap(thread: Arc<Thread>, context: &UserContext) {
+pub async fn handle_user_trap(thread: Arc<Thread>, context: &mut UserContext) {
     // 用户态系统调用
     if context.trap_num == 0x100 {
         let sys_num = context.get_syscall_num();
@@ -86,6 +86,7 @@ pub async fn handle_user_trap(thread: Arc<Thread>, context: &UserContext) {
         let mut syscall = hybrid_syscalls::Syscall {
             thread: &thread,
             thread_fn,
+            context,
         };
         let ret = syscall.do_syscall(sys_num, sys_args).await;
         thread.set_syscall_ret(ret as _, 0);

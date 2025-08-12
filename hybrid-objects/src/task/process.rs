@@ -356,6 +356,11 @@ impl Process {
         thread
     }
 
+    /// Get all threads.
+    pub fn get_threads(&self) -> Vec<Arc<Thread>> {
+        self.threads.get().values().cloned().collect()
+    }
+
     /// 获取父进程的引用
     pub fn parent(&self) -> Option<Arc<Process>> {
         self.parent.read().upgrade()

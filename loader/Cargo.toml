@@ -20,7 +20,7 @@ x86_64 = "0.15.2"
 
 [features]
 # default = ["hybrid"]
-default = []
+default = ["hybrid"]
 # default = ["monolithic"]
 monolithic = ["monolithic-objects", "monolithic-syscalls"]
 hybrid = ["hybrid-objects", "hybrid-syscalls"]

@@ -2,6 +2,7 @@
 #![no_std]
 mod debug;
 mod fs;
+mod misc;
 mod sync;
 mod task;
 
@@ -11,6 +12,7 @@ use alloc::sync::Arc;
 use hal::user::UserInOutPtr;
 use hybrid_objects::task::Thread;
 use hybrid_objects::*;
+use trapframe::UserContext;
 use user_syscall::num::*;
 
 /// 系统调用结构体，包含了用于执行一个系统调用的信息
@@ -19,10 +21,12 @@ pub struct Syscall<'a> {
     pub thread: &'a Arc<Thread>,
     /// Thread Function
     pub thread_fn: ThreadFn,
-    // 新添加的系统调用编号字段
-    pub syscall_num: u32,
-    // 新添加的系统调用参数存储字段
-    pub params: Vec<u8>,
+    // // 新添加的系统调用编号字段
+    // pub syscall_num: u32,
+    // // 新添加的系统调用参数存储字段
+    // pub params: Vec<u8>,
+    /// UserContext
+    pub context: &'a mut UserContext,
 }
 
 impl Syscall<'_> {
@@ -51,6 +55,7 @@ impl Syscall<'_> {
             SYS_FORK => self.sys_fork(),
             SYS_VFORK => self.sys_vfork(),
             SYS_EXECVE => self.sys_exec(args[0] as _, args[1] as _, args[2] as _),
+            SYS_SET_TID_ADDRESS => self.sys_set_tid_address(a0 as _),
 
             // 文件相关
             SYS_OPEN => self.sys_open(args[0] as _, args[1], args[2]),
@@ -59,7 +64,10 @@ impl Syscall<'_> {
             SYS_WRITE => self.sys_write(args[0], args[1], args[2]).await,
             SYS_PIPE => self.sys_pipe(args[0] as _),
             // SYS_DUP => sys_dup(args[0]),
-            _ => unimplemented!("Not implemented yet!"),
+
+            // Misc
+            SYS_ARCH_PRCTL => self.sys_arch_prctl(a0 as _, a1),
+            _ => unimplemented!("Not implemented yet, syscall id: {}", syscall_id),
         };
         match ret {
             Ok(code) => code as _,
