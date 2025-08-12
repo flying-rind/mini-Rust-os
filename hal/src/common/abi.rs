@@ -20,17 +20,19 @@ impl ProcInfo {
     ///
     /// - high
     /// - argv0(Program name)
-    /// - env0
+    /// - env...
     /// - env1
-    /// - ...
-    /// - argv0
+    /// - env0
+    /// - argv...
     /// - argv1
+    /// - argv0
+    /// - auxiliary vectors
     /// - null
-    /// - ...
+    /// - envp...
     /// - envp1
     /// - envp0
     /// - null
-    /// - ...
+    /// - argvp...
     /// - argvp1
     /// - argvp0
     /// - ...
@@ -39,6 +41,11 @@ impl ProcInfo {
     pub unsafe fn push_at(&self, stack_top: usize) -> usize {
         let mut writer = StackWriter { sp: stack_top };
         // program name
+        // if !self.args.is_empty() {
+        //     writer.push_str(&self.args[0]);
+        // } else {
+        //     writer.push_slice(&[b'\0']);
+        // }
         writer.push_str(&self.args[0]);
         // env strings
         let envs: Vec<_> = self

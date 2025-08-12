@@ -279,9 +279,11 @@ impl Thread {
     pub fn handle_signal(&self) -> Option<(usize, Siginfo, Sigset)> {
         let mut inner = self.inner.lock();
         if inner.handling_signal.is_none() {
-            let proc = self.proc.lock();
+            let mut proc = self.proc.lock();
+            // clone the signals form process.
+            let signals = proc.signals.clone();
             if let Some((idx, (info, _tid))) = {
-                proc.signals.iter().enumerate().find(|(_idx, (info, tid))| {
+                signals.iter().enumerate().find(|(_idx, (info, tid))| {
                     (*tid as usize == self.tid || *tid == -1)
                         && (!inner
                             .signal_mask
@@ -289,6 +291,9 @@ impl Thread {
                 })
             } {
                 inner.handling_signal = FromPrimitive::from_i32(info.signo);
+                let signal: Signal = FromPrimitive::from_i32(info.signo).unwrap();
+                proc.remove_signal(idx);
+                proc.remove_pendingsigset(signal);
                 return Some((idx, *info, inner.signal_mask));
             }
         }

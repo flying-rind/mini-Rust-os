@@ -67,6 +67,7 @@ pub struct MachineContext {
 }
 
 impl MachineContext {
+    /// Construct from UserContext.
     pub fn from_tf(tf: &UserContext) -> Self {
         Self {
             r8: tf.general.r8,
@@ -98,5 +99,29 @@ impl MachineContext {
             fpstate: 0,
             _reserved1: [0; 8],
         }
+    }
+
+    /// Fill UserContext.
+    pub fn fill_tf(&self, ctx: &mut UserContext) {
+        ctx.general.rax = self.rax;
+        ctx.general.rbx = self.rbx;
+        ctx.general.rcx = self.rcx;
+        ctx.general.rdx = self.rdx;
+        ctx.general.rsi = self.rsi;
+        ctx.general.rdi = self.rdi;
+        ctx.general.rbp = self.rbp;
+        ctx.general.rsp = self.rsp;
+        ctx.general.r8 = self.r8;
+        ctx.general.r9 = self.r9;
+        ctx.general.r10 = self.r10;
+        ctx.general.r11 = self.r11;
+        ctx.general.r12 = self.r12;
+        ctx.general.r13 = self.r13;
+        ctx.general.r14 = self.r14;
+        ctx.general.r15 = self.r15;
+        ctx.general.rip = self.rip;
+        ctx.general.rflags = self.eflags;
+        ctx.trap_num = self.trapno;
+        ctx.error_code = self.err;
     }
 }

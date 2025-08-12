@@ -7,4 +7,4 @@ pub use spin::Mutex;
 pub use thread::*;
 
 mod process;
-pub mod thread;
+mod thread;

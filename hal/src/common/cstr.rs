@@ -66,3 +66,11 @@ pub fn copy_from_user<T>(addr: *const T) -> Option<T> {
 pub fn access_ok(addr: usize, len: usize) -> bool {
     addr < PHYS_OFFSET && (addr + len) < PHYS_OFFSET
 }
+
+/// Write a Rust string to C string
+pub unsafe fn write_cstr(ptr: *mut u8, s: &str) {
+    unsafe {
+        ptr.copy_from(s.as_ptr(), s.len());
+        ptr.add(s.len()).write(0);
+    }
+}

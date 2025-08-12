@@ -3,6 +3,8 @@
 use super::Signal;
 use bitflags::bitflags;
 
+pub const SI_KERNEL: i32 = 128;
+
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct Siginfo {
@@ -17,6 +19,14 @@ pub struct Siginfo {
 pub union SiginfoFields {
     pad: [u8; Self::PAD_SIZE],
     // TODO: fill this union
+}
+
+impl Default for SiginfoFields {
+    fn default() -> Self {
+        SiginfoFields {
+            pad: [0; Self::PAD_SIZE],
+        }
+    }
 }
 
 impl SiginfoFields {

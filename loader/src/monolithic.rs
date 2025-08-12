@@ -6,6 +6,7 @@ use alloc::vec::Vec;
 use core::pin::Pin;
 use hal::arch::cpu::MachineContext;
 use hal::println;
+use log::error;
 use log::info;
 use monolithic_objects::ROOT_INODE;
 use monolithic_objects::Siginfo;
@@ -20,6 +21,7 @@ use monolithic_objects::{Arc, Thread, ThreadState};
 use num_traits::FromPrimitive;
 use trapframe::TrapFrame;
 use trapframe::UserContext;
+use x86_64::registers::control::Cr2;
 
 const PAGE_FAULT: usize = 14;
 const TIMER: usize = 32;
@@ -33,7 +35,8 @@ pub fn run_shell() {
         let thread = Thread::new_user(
             &inode,
             shell,
-            vec!["busybox".into(), "ash".into()],
+            // vec!["busybox".into()],
+            vec!["busybox".into()],
             Vec::new(),
         )
         .expect("Failed to create shell.");
@@ -58,10 +61,7 @@ async fn run_user(thread: Arc<Thread>) {
         }
         // 进入用户态
         let mut context = thread.begin_running();
-        // TODO: Handle Signal
-        if let Some((idx, info, sigmask)) = thread.handle_signal() {
-            let mut proc = thread.proc.lock();
-            proc.signals.remove(idx);
+        if let Some((_idx, info, sigmask)) = thread.handle_signal() {
             context = handle_signal(thread.clone(), context, info, sigmask);
         }
 
@@ -114,7 +114,8 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
     // 内核或用户中断
     match ctx.trap_num {
         PAGE_FAULT => {
-            println!("[Trap Handler]: PAGEFAULT",);
+            let addr = get_page_fault_addr();
+            error!("[Trap Handler]: PAGEFAULT, addr: {:#x}", addr);
             panic!("page fault");
         }
         TIMER => {
@@ -126,7 +127,13 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
     }
 }
 
+/// Get page fault addr.
+pub fn get_page_fault_addr() -> usize {
+    Cr2::read().unwrap().as_u64() as _
+}
+
 /// Handle signal of current thread.
+/// May change the user context to run signal handler first.
 fn handle_signal(
     thread: Arc<Thread>,
     mut ctx: Box<UserContext>,
@@ -164,7 +171,9 @@ fn handle_signal(
             info!("Go to handler at {:#x}", action.handler);
             // mask current signal and actions mask.
             let mut inner = thread.inner.lock();
+            // store orignal sig_mask.
             let sig_mask = inner.signal_mask;
+            // store orignal altstack.
             let stack = inner.signal_altstack;
             inner.signal_mask.add(signal);
             inner.signal_mask.add_set(&action.mask);
@@ -181,7 +190,6 @@ fn handle_signal(
 
                         // handle auto disarm.
                         if stack_flags.contains(SignalStackFlags::AUTODISARM) {
-                            // ?
                             inner.signal_altstack.flags |= SignalStackFlags::DISABLE.bits();
                         }
                         stack.sp + stack.size
@@ -242,9 +250,10 @@ pub fn set_signal_handler(
     ctx
 }
 
+/// mov 0x15 %eax(SYS_RT_SIGRETURN)
+/// syscall
 pub const RET_CODE: [u8; 7] = [
     // mov SYS_RT_SIGRETURN, %eax
-    0xb8, // SYS_RT_SIGRETURN
-    15, 0, 0, 0, // syscall
-    0x0f, 0x05,
+    0xb8, 15, 0, 0, 0, //
+    0x0f, 0x05, // syscall
 ];

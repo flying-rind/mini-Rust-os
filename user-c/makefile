@@ -42,7 +42,9 @@ $(BUSYBOX_TAR):
 	mv busybox-master busybox
 	@echo "Busybox downloaded and extracted."
 
-apps: $(ELF_TARGET)/hello $(ELF_TARGET)/raw $(ELF_TARGET)/blank $(ELF_TARGET)/sqlite-test $(ELF_TARGET)/busybox
+apps: 	$(ELF_TARGET)/hello $(ELF_TARGET)/raw $(ELF_TARGET)/blank $(ELF_TARGET)/sqlite-test $(ELF_TARGET)/busybox $(ELF_TARGET)/mmap-test1 $(ELF_TARGET)/mmap-test2 \
+		$(ELF_TARGET)/writev-test $(ELF_TARGET)/getcwd-test $(ELF_TARGET)/open-test $(ELF_TARGET)/ash
+	 	
 
 $(ELF_TARGET)/%: src/%.c
 	$(MUCC) -static -o $@ $<
@@ -64,3 +66,10 @@ $(ELF_TARGET)/busybox: $(BUSYBOX_TAR)
 	export PATH="$(MUCC_DIR):$$PATH" &&\
 	cd busybox && make -j 16
 	cp busybox/busybox bin/
+
+$(ELF_TARGET)/ash:
+	cp ../misc/ash bin/
+
+# # Now we just use pre-compiled busybox elf.
+# $(ELF_TARGET)/busybox:
+# 	cp ../misc/busybox bin/

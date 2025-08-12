@@ -1,6 +1,7 @@
 //! 进程地址空间
 use super::*;
 use alloc::collections::btree_map::BTreeMap;
+use alloc::vec::Vec;
 use core::fmt::Debug;
 use x86_64::registers::control::Cr3;
 use x86_64::registers::control::Cr3Flags;
@@ -36,6 +37,11 @@ impl MemorySet {
 
     /// 插入一段虚存区域
     pub fn insert_area(&self, area: Arc<MemoryArea>) {
+        info!(
+            "insert area, start address: {:#x}, size: {:#x}",
+            area.start_vaddr(),
+            area.size()
+        );
         self.areas
             .get_mut()
             .insert(area.start_vaddr(), area.clone());
@@ -46,8 +52,48 @@ impl MemorySet {
     /// Remove a mem area.
     pub fn remove_area(&self, addr: usize) {
         if let Some((addr, area)) = self.areas.get().get_key_value(&addr) {
+            info!(
+                "remove area, start address: {:#x}, size: {:#x}",
+                addr,
+                area.size()
+            );
             self.areas.get_mut().remove(&addr);
             self.page_table.get_mut().unmap_area(area.clone());
+        }
+    }
+
+    /// Remove the area `[start_addr, end_addr]`.
+    /// Split existed ones when necessary.
+    pub fn remove_with_split(&self, start_addr: usize, end_addr: usize) {
+        assert!(start_addr <= end_addr, "invalid memory area");
+        let mut i = 0;
+        let areas: Vec<_> = self.areas.values().cloned().collect();
+        while i < areas.len() {
+            if areas[i].is_overlap_with(start_addr, end_addr) {
+                let area_start = areas[i].start_vaddr();
+                let area_size = areas[i].size();
+                let area_end = area_start + area_size;
+                let flags = areas[i].flags();
+                if area_start >= start_addr && area_end <= end_addr {
+                    self.remove_area(area_start);
+                    // i = i.wrapping_sub(1);
+                } else if area_start >= start_addr && area_start < end_addr {
+                    self.remove_area(area_start);
+                    let new_area = MemoryArea::new(end_addr, area_end - end_addr, flags);
+                    self.insert_area(new_area);
+                } else if area_end > start_addr && area_end <= end_addr {
+                    self.remove_area(area_start);
+                    let new_area = MemoryArea::new(area_start, start_addr - area_start, flags);
+                    self.insert_area(new_area);
+                } else {
+                    self.remove_area(area_start);
+                    let new_area_left = MemoryArea::new(area_start, start_addr - area_start, flags);
+                    let new_area_right = MemoryArea::new(end_addr, area_end - end_addr, flags);
+                    self.insert_area(new_area_left);
+                    self.insert_area(new_area_right);
+                }
+            }
+            i = i.wrapping_add(1);
         }
     }
 
@@ -74,6 +120,11 @@ impl MemorySet {
             .cloned()
             .find(|area| area.is_overlap_with(start_addr, end_addr))
             .is_none()
+    }
+
+    /// Get areas.
+    pub fn areas(&self) -> impl Iterator<Item = Arc<MemoryArea>> {
+        self.areas.get().values().cloned()
     }
 
     /// 切换为当前地址空间，即修改cr3寄存器

@@ -1,8 +1,15 @@
 //! Signal related objects.
+use crate::sync::Event;
+use crate::task::Process;
+pub use Signal::*;
 pub use action::*;
+use alloc::sync::Arc;
 use bitflags::bitflags;
 use hal::arch::cpu::MachineContext;
+use log::info;
+use num::FromPrimitive;
 use num_derive::FromPrimitive;
+use spin::Mutex;
 
 mod action;
 
@@ -80,15 +87,34 @@ impl Signal {
     pub const RTMIN: usize = 32;
     pub const RTMAX: usize = 64;
 
-    pub fn is_stardard(self) -> bool {
+    pub fn is_standard(self) -> bool {
         (self as usize) < Self::RTMIN
     }
 }
 
+/// Send signal to process.
+pub fn send_signal(process: Arc<Mutex<Process>>, tid: isize, info: Siginfo) {
+    let signal: Signal = FromPrimitive::from_i32(info.signo).unwrap();
+    let mut process = process.lock();
+    if signal.is_standard() && process.pending_sigset.contains(signal) {
+        return;
+    }
+    process.signals.push_back((info, tid));
+    process.pending_sigset.add(signal);
+    process.eventbus.lock().set(Event::RECEIVE_SIGNAL);
+    info!(
+        "send signal {} to pid {} tid {}",
+        info.signo, process.pid, tid
+    )
+}
+
 bitflags! {
     pub struct SignalStackFlags : u32 {
+        /// Using the stack.
         const ONSTACK = 1;
+        /// Stack disabled.
         const DISABLE = 2;
+        /// Auto disable stack.
         const AUTODISARM = 0x80000000;
     }
 }
@@ -115,10 +141,15 @@ impl Default for SignalStack {
 #[repr(C)]
 #[derive(Clone)]
 pub struct SignalFrame {
-    pub ret_code_addr: usize, // point to ret_code
+    /// ret addr. Point ro ret_code.
+    pub ret_code_addr: usize,
+    /// Signal info.
     pub info: Siginfo,
-    pub ucontext: SignalUserContext, // adapt interface, a little bit waste
-    pub ret_code: [u8; 7],           // call sys_sigreturn
+    /// Usercontext.
+    pub ucontext: SignalUserContext,
+    /// Execute this when done signal handling.
+    /// Default set to sys_rt_sigreturn().
+    pub ret_code: [u8; 7],
 }
 
 /// See musl struct __ucontext

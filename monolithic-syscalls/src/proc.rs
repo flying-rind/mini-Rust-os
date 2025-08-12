@@ -249,4 +249,15 @@ impl Syscall<'_> {
         info!("getpid");
         Ok(self.process().pid.get())
     }
+
+    /// Get parent process id.
+    pub fn sys_getppid(&mut self) -> SysResult {
+        info!("getppid");
+        let (pid, parent) = self.process().parent.clone();
+        if parent.upgrade().is_some() {
+            Ok(pid.get())
+        } else {
+            Ok(0)
+        }
+    }
 }

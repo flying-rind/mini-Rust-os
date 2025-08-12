@@ -25,7 +25,9 @@ mod mem;
 mod misc;
 mod num;
 mod proc;
+mod signal;
 mod sync;
+mod system;
 
 /// 系统调用
 pub struct Syscall<'a> {
@@ -64,9 +66,13 @@ impl Syscall<'_> {
             SYS_GETUID => self.unimplemented("getuid", Ok(0)),
             SYS_GETGID => self.unimplemented("getgid", Ok(0)),
             SYS_SETUID => self.unimplemented("setuid", Ok(0)),
-            SYS_GETEUID => self.unimplemented("geteuid", Ok(0)),
+            SYS_GETEUID => self.unimplemented("geteuid", Ok(1000)),
             SYS_GETEGID => self.unimplemented("getegid", Ok(0)),
             SYS_GETPID => self.sys_getpid(),
+            SYS_GETPPID => self.sys_getppid(),
+
+            // System.
+            SYS_UNAME => self.sys_uname(a0 as _),
 
             // FS
             SYS_WRITE => self.sys_write(a0 as _, a1 as _, a2 as _),
@@ -77,13 +83,22 @@ impl Syscall<'_> {
             SYS_IOCTL => self.sys_ioctl(a0, a1, a2, a3, a4),
             SYS_WRITEV => self.sys_writev(a0, a1 as *const IoVec, a2),
             SYS_OPEN => self.sys_open(a0 as _, a1, a2),
+            SYS_OPENAT => self.sys_openat(a0, a1 as _, a2, a3),
             SYS_CLOSE => self.sys_close(a0),
             SYS_STAT => self.sys_stat(a0 as *const u8, a1 as *mut Stat),
             SYS_FSTAT => self.sys_fstatat(a0 as _, a1 as _, a2 as _, a3),
+            SYS_GETCWD => self.sys_getcwd(a0 as _, a1),
+
+            // Signal
+            SYS_RT_SIGRETURN => self.sys_rt_sigreturn(),
+            SYS_RT_SIGPROCMASK => self.sys_rt_procmask(a0, a1.into(), a2.into(), a3),
+            SYS_RT_SIGACTION => self.sys_rt_sigaction(a0, a1.into(), a2.into(), a3),
 
             // Mem
             SYS_BRK => self.unimplemented("brk", Err(SysError::ENOMEM)),
             SYS_MMAP => self.sys_mmap(a0, a1, a2, a3, a4, a5),
+            SYS_MUNMAP => self.sys_munmap(a0, a1),
+            SYS_MPROTECT => self.sys_mprotect(a0, a1, a2),
 
             // Sync
             SYS_FUTEX => {

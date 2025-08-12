@@ -8,7 +8,13 @@
     },
     "files.associations": {
         "sqlite3.h": "c",
-        "pthread_impl.h": "c"
+        "pthread_impl.h": "c",
+        "mman.h": "c",
+        "unistd.h": "c",
+        "array": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "stdlib.h": "c"
     }
 }
 
