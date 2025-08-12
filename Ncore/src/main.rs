@@ -64,7 +64,6 @@ pub fn kernel_main_monolithic(boot_info: &'static mut BootInfo) -> ! {
     hal::hal_fn::boot::primary_init();
     // 初始化日志
     logging::init();
-    warn!("Test for warn");
     // 初始化堆
     hybrid_objects::mm::heap_init();
     // 初始化中断描述符表

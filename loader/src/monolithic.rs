@@ -15,7 +15,7 @@ use monolithic_objects::SignalFrame;
 use monolithic_objects::SignalStackFlags;
 use monolithic_objects::SignalUserContext;
 use monolithic_objects::Sigset;
-use monolithic_objects::set_current_thread;
+// use monolithic_objects::set_current_thread;
 use monolithic_objects::sync::timer;
 use monolithic_objects::{Arc, Thread, ThreadState};
 use num_traits::FromPrimitive;
@@ -28,15 +28,16 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "sqlite-test";
+    let shell = "shell";
     // let shell = "shell";
+    println!("Running monolithic kernel!");
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
         let thread = Thread::new_user(
             &inode,
             shell,
             // vec!["busybox".into()],
-            vec!["ash".into()],
+            vec!["shell".into()],
             Vec::new(),
         )
         .expect("Failed to create shell.");
@@ -54,7 +55,7 @@ pub fn run_shell() {
 /// - 处理中断/系统调用
 /// - Put back UserContext
 async fn run_user(thread: Arc<Thread>) {
-    set_current_thread(Some(thread.clone()));
+    // set_current_thread(Some(thread.clone()));
     loop {
         if thread.inner.lock().state == ThreadState::Exited {
             break;
@@ -70,7 +71,7 @@ async fn run_user(thread: Arc<Thread>) {
         handle_user_trap(thread.clone(), &mut context).await;
         thread.end_running(context);
     }
-    set_current_thread(None);
+    // set_current_thread(None);
 }
 
 /// 用户线程统一线程函数

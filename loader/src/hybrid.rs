@@ -17,6 +17,7 @@ const TIMER: usize = 32;
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
     let shell = "shell";
+    println!("Running hybrid kernel now!");
     info!("Trying to enter user shell now!");
     if let Ok(inode) = ROOT_INODE.lookup(shell) {
         // Debug

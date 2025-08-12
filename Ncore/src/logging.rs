@@ -6,7 +6,7 @@ use log::{Level, Log};
 pub fn init() {
     static LOGGER: SimpleLogger = SimpleLogger;
     let _ = log::set_logger(&LOGGER);
-    log::set_max_level(log::LevelFilter::Info);
+    log::set_max_level(log::LevelFilter::Off);
 }
 
 #[allow(dead_code)]
