@@ -49,6 +49,8 @@ pub struct Thread {
     user_context: Cell<Box<UserContext>>,
     /// 状态改变时的唤醒器
     state_wakers: Cell<Vec<(Waker, ThreadState)>>,
+    //new
+    pub clear_child_tid: usize,
 }
 
 impl Thread {

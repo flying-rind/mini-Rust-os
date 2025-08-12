@@ -162,21 +162,34 @@ impl Syscall<'_> {
     }
 
     //new
-    pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
-        let proc = self.process();
-        info!("exit_group: {}, code: {}", proc.pid, exit_code);
+    //pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
+    //let proc = self.process();
+    //info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
 
-        for (_, thread) in self.threads.iter() {
+    //}
+    //info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
+    //Ok(0)
+    //}
+    pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
+        let proc = self.process.clone();
+        info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
+        let threads = get_process_threads(&proc);
+        for thread in threads {
             thread.exit(exit_code);
         }
-        info!("exit_group: {}, code: {}", proc.pid, exit_code);
+        info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
         Ok(())
-        
     }
 
     //new
+
     pub fn sys_set_tid_address(&mut self, tidptr: *mut u32) -> SysResult {
-        info!("set_tid_address: {:?}", tidptr);
-        self.thread.inner.lock().clear_child_tid = tidptr as usize;
-        Ok((self.thread.tid))
+        if tidptr.is_null() {
+            return Err(SysError::NullPointerError);
+        }
+        let mut thread = &mut self.thread;
+        thread.clear_child_tid = tidptr as usize;
+        // 返回一个默认值 0 ，可根据实际需求修改
+        Ok(0)
+    }
 }

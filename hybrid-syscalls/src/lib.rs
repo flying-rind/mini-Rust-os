@@ -19,6 +19,10 @@ pub struct Syscall<'a> {
     pub thread: &'a Arc<Thread>,
     /// Thread Function
     pub thread_fn: ThreadFn,
+    // 新添加的系统调用编号字段
+    pub syscall_num: u32,
+    // 新添加的系统调用参数存储字段
+    pub params: Vec<u8>,
 }
 
 impl Syscall<'_> {
@@ -45,7 +49,7 @@ impl Syscall<'_> {
             SYS_GETPID => self.sys_get_pid(),
             SYS_GETTID => self.sys_get_tid(),
             SYS_FORK => self.sys_fork(),
-            SYS_VFORK => self.sys_fork(),
+            SYS_VFORK => self.sys_vfork(),
             SYS_EXECVE => self.sys_exec(args[0] as _, args[1] as _, args[2] as _),
 
             // 文件相关
