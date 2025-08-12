@@ -15,9 +15,9 @@
 
   - 本项目从零实现了一个X86架构的实验性操作系统内核，使用Rust开发
   
-  - 本项目目的是结合宏内核和微内核的优点，实现一种可靠性增强的内核架构
+  - 本项目目标是实现一种混合内核架构，将非核心系统服务放置在独立内核线程中，从而提高内核可靠性
     
-  - 从宏内核出发，吸收借鉴微内核的设计模式来提高安全性的同时保证一定的性能
+  - 从宏内核出发，提高内核可靠性前提下尽量保证系统性能
 
   - 内核启动时，可以选择宏内核或混合内核两种启动模式
 
@@ -32,6 +32,8 @@
   - 利用Rust无栈异步协程实现`多对多线程模型`，所有用户线程共享内核栈
 
   - 实现了宏内核与混合内核`两种内核架构`
+
+  - 支持musl-libc和原生Linux C语言应用程序，正在适配busybox和sqlite等
 
 
 
@@ -61,7 +63,7 @@ NUDT-OS实现了宏内核、混合内核两种架构，微内核架构还在实�
 
 ## 代码目录树
 项目的代码目录树如下
-```
+```bash
 .
 ├── boot                    // 启动内核
 ├── crates                  // 有修改的第三方库
@@ -70,8 +72,7 @@ NUDT-OS实现了宏内核、混合内核两种架构，微内核架构还在实�
 ├── hybrid-objects          // 混合内核对象
 ├── hybrid-syscalls         // 混合内核系统调用
 ├── loader                  // 加载器
-├── micro-objects           // 微内核对象（尚未实现）
-├── micro-syscalls          // 微内核系统调用（尚未实现）
+├── misc                    // 杂项
 ├── monolithic-objects      // 宏内核对象
 ├── monolithic-syscalls     // 宏内核系统调用
 ├── musl                    // musl源码
@@ -80,11 +81,12 @@ NUDT-OS实现了宏内核、混合内核两种架构，微内核架构还在实�
 ├── tutorial                // 文档
 ├── user-c                  // C语言用户程序
 ├── user-components         // 用户态组件
-└── user-rs                 // Rust用户程序
+├── user-rs                 // Rust用户程序
+└── Question.md             // 本题目简介
 ``` 
 项目整体的架构如下：
 
-![项目总体架构](tutorial/src/pic/项目总体架构2.png)
+![项目总体架构](tutorial/src/pic/项目总体架构.png)
 
 虚线部分表示还未完成的部分。项目采用层次化的软件开发方法，内核自底向上被划分为硬件抽象层、内核对象层、系统调用层、加载器层、几个层次，下层靠近硬件，上层远离硬件，每层都依赖下层提供的接口与服务，但同一层的模块之间没有依赖关系，可以并行地开发。
 
@@ -96,7 +98,7 @@ NUDT-OS实现了宏内核、混合内核两种架构，微内核架构还在实�
 
 加载器（Loader）位于系统调用层之上，其向下使用系统调用层给出的系统调用API，完成内核对象初始化、系统调用入口设定、第一个用户程序加载和启动的工作。
 
-最终形成宏内核、微内核（尚未实现）、混合内核三种内核架构。
+最终形成宏内核、混合内核两种内核架构。
 
 ## 编译运行
 使用Liunx开发，目前可运行于Qemu模拟器，还未在裸机测试，经过简单修改应该可以运行于x86开发板。
@@ -106,13 +108,16 @@ NUDT-OS实现了宏内核、混合内核两种架构，微内核架构还在实�
 sudo apt install make git gcc qemu-system-x86 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+rustup component add llvm-tools-preview
 ```
 
 ### 运行
 ```shell
-make run
+# 运行宏内核
+make run feature=monolithic
+# 运行混合内核
+make run feature=hybrid
 # 之后终端会进入系统最终出现命令提示符：
-Rust user sehll
 [Shell]>>
 ```
 
@@ -146,20 +151,12 @@ make clean
 
 ## 参考资料与仓库
 
-参考内核架构与代码
-
 - [rcore-tutorial-x86-64](https://github.com/rcore-os/rCore-Tutorial-v3-x86_64)
 
 - [rcore-tutorial](https://github.com/rcore-os/rCore-Tutorial-v3)
 
-- [zcore](https://github.com/rcore-os/zCore)
+- [rcore](https://github.com/rcore-os/rCore)：学习了多个Linux系统调用实现方法
 
-使用了多个rcore社区中开源的工具，下面列出了一些
+- [zcore](https://github.com/rcore-os/zCore)：学习了其中的一体化异步协程设计和项目组织形式
 
-- [trapframe-rs](https://github.com/rcore-os/trapframe-rs)
-
-- [isomorphic_drivers](https://github.com/rcore-os/isomorphic_drivers)
-
-- [pci](https://github.com/rcore-os/pci-rs)
-
-- [bitmap-allocator](https://github.com/rcore-os/bitmap-allocator)
+使用了多个rcore社区中开源的工具
