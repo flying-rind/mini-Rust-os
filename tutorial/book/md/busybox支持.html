@@ -166,7 +166,11 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="busybox支持"><a class="header" href="#busybox支持">busybox支持</a></h1>
+                        <h1 id="busybox支持"><a class="header" href="#busybox支持">Busybox支持</a></h1>
+<p>BusyBox 是一个高度精简的 嵌入式 Linux 工具集，将 上百种常用 Unix/Linux 命令行工具（如 ls、cp、sh、grep、vi 等）集成到一个 单个可执行文件 中，大幅节省存储空间和内存占用。它被广泛用于嵌入式设备、救援系统、容器基础镜像 等资源受限环境。</p>
+<p>Busybox自带了shell程序,若系统支持busybox，就可以直接使用其ash作为默认程序，并且提供常用的Linux工具集支持。</p>
+<p>我们可以自己下载并编译busybox，为此我们需要关闭busybox配置中的一些功能，并且采用静态链接，最终使用musl-gcc进行编译即可。</p>
+<p>若觉得自己编译太复杂，也可以采用musl-libc预编译好的二进制文件，直接打包到文件系统中运行。</p>
 
                     </main>
 

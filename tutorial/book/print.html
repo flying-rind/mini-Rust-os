@@ -612,10 +612,21 @@ exit_group(0)                           = ?
 +++ exited with 0 +++
 </code></pre>
 <p>因此，理论上只要实现了相应的系统调用，我们就可以运行Linux生态中的任意C语言用户程序了。</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="busybox支持"><a class="header" href="#busybox支持">busybox支持</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="busybox支持"><a class="header" href="#busybox支持">Busybox支持</a></h1>
+<p>BusyBox 是一个高度精简的 嵌入式 Linux 工具集，将 上百种常用 Unix/Linux 命令行工具（如 ls、cp、sh、grep、vi 等）集成到一个 单个可执行文件 中，大幅节省存储空间和内存占用。它被广泛用于嵌入式设备、救援系统、容器基础镜像 等资源受限环境。</p>
+<p>Busybox自带了shell程序,若系统支持busybox，就可以直接使用其ash作为默认程序，并且提供常用的Linux工具集支持。</p>
+<p>我们可以自己下载并编译busybox，为此我们需要关闭busybox配置中的一些功能，并且采用静态链接，最终使用musl-gcc进行编译即可。</p>
+<p>若觉得自己编译太复杂，也可以采用musl-libc预编译好的二进制文件，直接打包到文件系统中运行。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="附录效果演示"><a class="header" href="#附录效果演示">附录：效果演示</a></h1>
 <p>由于时间关系，目前只支持了Qemu平台。下面给出了一些在Linux系统上使用Qemu运行的效果演示：</p>
-<h2 id="reboot测试"><a class="header" href="#reboot测试">Reboot测试</a></h2>
+<h2 id="以宏内核和混合内核两种模式运行内核"><a class="header" href="#以宏内核和混合内核两种模式运行内核">以宏内核和混合内核两种模式运行内核</a></h2>
+<p>内核通过Rust语言的feature特性来在编译时确定内核架构，想要运行宏内核模式或混合内核模式，在项目根目录输入：</p>
+<pre><code class="language-bash">make run feature=monolithic
+make run feature=hybrid
+</code></pre>
+<p>宏内核运行效果如下：</p>
+<p><img src="md/../pic/mono.gif" alt="mono" /></p>
+<h2 id="测试混合内核的故障恢复功能"><a class="header" href="#测试混合内核的故障恢复功能">测试混合内核的故障恢复功能</a></h2>
 <p>reboot测试创建文件filea，并进行20次write系统调用，每次写入一个字符'a'。在文件系统内核服务线程的processor中，我们设置每响应5次write请求，就触发一个panic，以测试内核是否能够重启文件系统内核线程：</p>
 <pre><code class="language-Rust">// Write请求，进程Pid将buf中的数据写入文件表中fd对应的文件
 FsReqDescription::Write(pid, fd, buf_ptr, buf_len, result_ptr) =&gt; {
@@ -646,69 +657,14 @@ FsReqDescription::Write(pid, fd, buf_ptr, buf_len, result_ptr) =&gt; {
 <p>mpsc_sem是生产者消费者问题，测试内核中的信号量和互斥锁，而condvar_test测试内核条件变量。</p>
 <p><img src="md/../pic/sync.gif" alt="sync" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="总结与计划"><a class="header" href="#总结与计划">总结与计划</a></h1>
-<p>NUDT-OS目前只是一个简单的类UNIX系统，采用混合内核架构，本章简要总结已实现的各模块功能和特点，并给出后续的拓展方向和计划。</p>
-<h2 id="总结"><a class="header" href="#总结">总结</a></h2>
-<p>NUDT-OS是一个x86_64架构的，使用Rust实现的64位分时多任务操作系统。试图平衡微内核性能低于宏内核可靠性低的问题，我们采用基于内核线程的混合内核架构，目前运行在单核CPU上，主要实现的模块和特点总结如下：</p>
-<div class="table-wrapper"><table><thead><tr><th>模块</th><th>功能和特点</th></tr></thead><tbody>
-<tr><td>任务管理</td><td>具有进程、内核线程、用户线程三种对象<br>内核统一调度内核线程和用户线程<br>采用<code>多对多线程模型</code>,一个协程执行器内核线程服务多个用户线程<br>支持互斥锁、信号量、管道等进程间通信</td></tr>
-<tr><td>内存管理</td><td>每个进程有独立的地址空间<br>切换进程时切换地址空间<br>所有<code>用户线程共享内核栈</code></td></tr>
-<tr><td>文件系统</td><td>一个简易的文件系统<br>一切皆文件,将多种对象都抽象为文件<br>实现管道,命令行参数,重定向</td></tr>
-<tr><td>异步管理</td><td>利用协程实现多个异步系统调用<br>利用协程实现多对多线程模型</td></tr>
-<tr><td>内核服务线程</td><td>每个内核服务线程执行一种特定服务<br>用户通过系统调用向内核服务线程发送请求并获得服务 <br> 内核服务线程崩溃时系统保持稳定，并可以`重启恢复内核线程</td></tr>
-</tbody></table>
-</div>
-<p>目前实现的系统调用如下：</p>
-<ul>
-<li>任务管理类：
-<ul>
-<li>fork：复制当前进程</li>
-<li>exec：当前进程加载可执行文件</li>
-<li>waitpid：等待子进程结束并回收子进程资源</li>
-<li>getpid：获取进程号</li>
-<li>gettid：获取线程号</li>
-<li>thread_join：等待线程结束</li>
-<li>thread_create：创建用户线程</li>
-<li>kthread_req：向内核线程发送请求</li>
-<li>thread_exit：线程退出</li>
-<li>proc_eixt：进程退出</li>
-<li>sleep：线程睡眠</li>
-<li>yield：线程放弃CPU，主动调度</li>
-<li>get_time：获取系统时钟数</li>
-</ul>
-</li>
-<li>文件类：
-<ul>
-<li>dup：复制文件描述符</li>
-<li>open：打开文件</li>
-<li>close：关闭文件</li>
-<li>pipe：创建管道</li>
-<li>read：从文件读取</li>
-<li>write：向文件写入</li>
-</ul>
-</li>
-<li>同步互斥：
-<ul>
-<li>mutex_create：创建互斥锁</li>
-<li>mutex_lock：互斥锁上锁</li>
-<li>mutex_unlock：互斥锁解锁</li>
-<li>semaphore_create：创建信号量</li>
-<li>semaphore_up：增加信号量资源</li>
-<li>semaphore_down：减少信号量资源</li>
-<li>condvar_create：创建条件变量</li>
-<li>condvar_wait： 当前线程阻塞条件变量</li>
-<li>condvar_signal： 唤醒条件变量阻塞的线程</li>
-</ul>
-</li>
-</ul>
+<p>nCore目前支持x86_64架构，实现了大约40个Linux系统调用，实现了宏内核与混合内核两种运行模式（编译时确定），支持musl-libc和原生Linux应用程序，正在逐步完成对于busybox和sqlite3等应用程序的支持。</p>
 <h2 id="计划"><a class="header" href="#计划">计划</a></h2>
 <ul>
 <li><input disabled="" type="checkbox"/>
 添加多核支持</li>
 <li><input disabled="" type="checkbox"/>
-实现更完善的文件系统</li>
-<li><input disabled="" type="checkbox"/>
 添加更多内核线程</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 添加C语言用户程序支持</li>
 <li><input disabled="" type="checkbox"/>
 添加更多设备驱动</li>
