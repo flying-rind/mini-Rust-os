@@ -1,7 +1,7 @@
 //! 任务管理相关的系统调用
 use super::*;
 use future::{ThreadYield, WaitForProc};
-use hal::SysError;
+
 use hal::user::UserInOutPtr;
 use hal::{check_n_clone_cstr, check_n_clone_cstr_array};
 use log::info;
@@ -178,18 +178,10 @@ impl Syscall<'_> {
 
     pub fn sys_set_tid_address(&mut self, tidptr: *mut u32) -> SysResult {
         if tidptr.is_null() {
-<<<<<<< HEAD
-            panic!()
-        }
-        info!("set_tid_address: {:?}", tidptr);
-        let mut thread = &mut self.thread;
-        thread.clear_child_tid = tidptr as usize;
-=======
             panic!("invalid ptr!");
         }
         let thread = &mut self.thread;
         thread.set_clear_child_tid(tidptr as _);
->>>>>>> 0e8a0914afe1d3e2b34acf3e05b7055c1e762ddc
         // 返回一个默认值 0 ，可根据实际需求修改
         Ok(0)
     }
