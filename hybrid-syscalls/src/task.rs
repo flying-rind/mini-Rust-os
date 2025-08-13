@@ -1,6 +1,7 @@
 //! 任务管理相关的系统调用
 use super::*;
 use future::{ThreadYield, WaitForProc};
+use hal::SysError;
 use hal::user::UserInOutPtr;
 use hal::{check_n_clone_cstr, check_n_clone_cstr_array};
 use log::info;
@@ -162,16 +163,8 @@ impl Syscall<'_> {
     }
 
     //new
-    //pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
-    //let proc = self.process();
-    //info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
-
-    //}
-    //info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
-    //Ok(0)
-    //}
     pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
-        let proc = self.process.clone();
+        let proc = self.process().clone();
         info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
         let threads = get_process_threads(&proc);
         for thread in threads {
@@ -185,8 +178,9 @@ impl Syscall<'_> {
 
     pub fn sys_set_tid_address(&mut self, tidptr: *mut u32) -> SysResult {
         if tidptr.is_null() {
-            return Err(SysError::NullPointerError);
+            panic!()
         }
+        info!("set_tid_address: {:?}", tidptr);
         let mut thread = &mut self.thread;
         thread.clear_child_tid = tidptr as usize;
         // 返回一个默认值 0 ，可根据实际需求修改
