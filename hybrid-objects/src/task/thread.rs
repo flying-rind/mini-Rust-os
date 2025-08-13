@@ -49,8 +49,8 @@ pub struct Thread {
     user_context: Cell<Box<UserContext>>,
     /// 状态改变时的唤醒器
     state_wakers: Cell<Vec<(Waker, ThreadState)>>,
-
-    pub clear_child_tid: usize,
+    /// clear_child_thread
+    clear_child_tid: Cell<usize>,
 }
 
 impl Thread {
@@ -71,7 +71,7 @@ impl Thread {
             state: Cell::new(ThreadState::Stop),
             user_context: Cell::new(context),
             state_wakers: Cell::new(Vec::new()),
-            clear_child_tid: 0,
+            clear_child_tid: Cell::new(0),
         });
 
         // 加入全局线程队列
@@ -157,6 +157,11 @@ impl Thread {
     pub fn set_args(&self, rdi: usize, rsi: usize) {
         self.user_context.get_mut().general.rdi = rdi;
         self.user_context.get_mut().general.rsi = rsi;
+    }
+
+    /// Set clear_childtid
+    pub fn set_clear_child_tid(&self, new: usize) {
+        *self.clear_child_tid.get_mut() = new;
     }
 
     /// 设置rax

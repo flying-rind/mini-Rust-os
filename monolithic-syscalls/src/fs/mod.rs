@@ -165,6 +165,10 @@ impl Syscall<'_> {
     ///
     /// [open(2)](https://man7.org/linux/man-pages/man2/open.2.html)
     pub fn sys_open(&mut self, path: *const u8, flags: usize, mode: usize) -> SysResult {
+        info!(
+            "open, path_ptr: {:x?}, flags: {:?}, mode: {:?}",
+            path, flags, mode
+        );
         const AT_FDCWD: usize = -100isize as usize;
         self.sys_openat(AT_FDCWD, path, flags, mode)
     }
@@ -178,11 +182,12 @@ impl Syscall<'_> {
         mode: usize,
     ) -> SysResult {
         let mut proc = self.process();
+        let path_ptr = path.clone();
         let path = check_n_clone_cstr(path)?;
         let flags = OpenFlags::from_bits_truncate(flags);
         info!(
-            "openat: dir_fd: {}, path: {:?}, flags: {:#?}, mode: {:#o}",
-            dir_fd as isize, path, flags, mode
+            "openat: dir_fd: {}, path_ptr: {:x?}, path: {:?}, flags: {:#?}, mode: {:#o}",
+            dir_fd as isize, path_ptr, path, flags, mode
         );
         let inode = if flags.contains(OpenFlags::CREATE) {
             let (dir_path, file_name) = split_path(&path);

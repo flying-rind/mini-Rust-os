@@ -166,23 +166,30 @@ impl Syscall<'_> {
     pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
         let proc = self.process().clone();
         info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
-        let threads = get_process_threads(&proc);
+        let threads = proc.get_threads();
         for thread in threads {
             thread.exit(exit_code);
         }
         info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
-        Ok(())
+        Ok(0)
     }
 
     //new
 
     pub fn sys_set_tid_address(&mut self, tidptr: *mut u32) -> SysResult {
         if tidptr.is_null() {
+<<<<<<< HEAD
             panic!()
         }
         info!("set_tid_address: {:?}", tidptr);
         let mut thread = &mut self.thread;
         thread.clear_child_tid = tidptr as usize;
+=======
+            panic!("invalid ptr!");
+        }
+        let thread = &mut self.thread;
+        thread.set_clear_child_tid(tidptr as _);
+>>>>>>> 0e8a0914afe1d3e2b34acf3e05b7055c1e762ddc
         // 返回一个默认值 0 ，可根据实际需求修改
         Ok(0)
     }

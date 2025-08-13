@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>线程模型分析 - NUDT-OS-Book</title>
+        <title>本项目架构 - NUDT-OS-Book</title>
 
 
         <!-- Custom HTML head -->
@@ -166,25 +166,33 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="线程模型分析"><a class="header" href="#线程模型分析">线程模型分析</a></h1>
-<p>在支持多线程的内核中，存在内核线程与用户线程两种线程对象，用户线程位于内核线程之上，它的管理无需内核支持，而内核线程由操作系统来直接支持与管理，只有内核线程才能通过操作系统调度以便运行于物理处理器。本节首先介绍常用的一对一和多对多线程模型设计。</p>
-<h2 id="一对一线程模型"><a class="header" href="#一对一线程模型">一对一线程模型</a></h2>
-<p>一对一模型映射每个用户线程到一个内核线程,一个用户线程阻塞系统调用时,将内核现场保存在自己的内核栈上,并调度另一个线程继续运行。这种模型允许多个线程并行运行在多处理器系统上,唯一的缺点是,创建一个用户线程就必须创建一个相对应的内核线程,由于创建内核线程的开销会影响应用程序的性能而且每个内核线程都有独立的内核栈,所以这种模型的实现大多数<strong>限制了系统支持的线程数量</strong>以避免过大的性能和内存开销。Linux 系统和 Windows 操作系统家族都实现了这种模型。下图描述了一对一线程模型的映射关系:</p>
-<p><img src="../pic/121threadmodel.png" alt="一对一线程模型" /></p>
-<h2 id="多对多线程模型"><a class="header" href="#多对多线程模型">多对多线程模型</a></h2>
-<p>多对多模型多路复用多个用户线程到同样数量或更少数量的内核线程。多对多线程模型不存在一对一模型的限制,系统可以创建任意数量的用户线程,并且相应的内核线程可以在多处理器系统上并发执行,且一个线程执行阻塞系统调用时可以调度另一个线程来执行。下图描述了多对多线程模型的映射关系：</p>
-<p><img src="../pic/many2manythreadmodel.png" alt="多对多线程模型" /></p>
-<p>我们在<a href="%E5%A4%9A%E5%AF%B9%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1.html">多对多线程模型设计</a>中详细介绍了nCore的线程模型设计。</p>
+                        <h1 id="项目架构与内核架构设计"><a class="header" href="#项目架构与内核架构设计">项目架构与内核架构设计</a></h1>
+<h2 id="项目总体架构"><a class="header" href="#项目总体架构">项目总体架构</a></h2>
+<p>为了进行混合内核与宏内核的对比，本项目实现了混合内核与宏内核两种内核架构，项目总体结构如下图所示：</p>
+<p><img src="../pic/%E9%A1%B9%E7%9B%AE%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84.png" alt="项目总体架构" /></p>
+<p>项目总体采用层次化软件开发方法，自底向上分为驱动、硬件抽象层、内核对象层、系统调用层、装载器和上层标准库和应用程序。</p>
+<p>硬件抽象层(Hardware Abstraction Layer,HAL)定义一套硬件操作 API,提供给上层的内核对象使用,HAL层内部的实现和依赖的环境,对于上层内核对象
+来说是完全透明的,且上层内核对象只能通过 HAL 层的 API 来操作硬件。HAL
+层只给出接口定义,具体的实现可以有多种硬件架构,如 x86_64、aarch64 等(目前只实现了x86_64架构),在编译时通过 Rust 语言的 feature 条件编译选项将
+HAL 定义的硬件接口绑定到具体的硬件平台实现上去。这种做法一方面可以将底
+层的 unsafe 代码进行独立封装与集中检查测试,限制上层对象只能通过 HAL 层的
+API 操作硬件,从而最大限度地利用 Rust 语言提供的内存安全特性,另一方面屏
+蔽了不同硬件架构的硬件细节,使上层内核对象的操作独立于硬件。</p>
+<p>内核对象层(Kernel Objects)基于 HAL 层给出的硬件接口,实现内核数据结
+构和他们的方法(如进程线程等)。由于混合内核与宏内核的内部实现有所不同，分别实现宏内核对象和混合内核对象两套对象。</p>
+<p>系统调用层(Syscall Layer)根据内核对象的方法实现系统调用接口。为了直接支持musl-libc，我们直接实现了Linux系统调用。</p>
+<p>加载器(Loader)位于系统调用层之上,其向下使用系统调用层给出的系统调用 API,完成内核对象初始化、系统调用入口设定、第一个用户程序加载和启动的工作。用户程序(App)层运行用户态应用程序,可以直接使用内核提供的系统调用,也可以运行在系统调用层之上的 c 标准库(musl-libc)上。</p>
+<h2 id="代码目录树"><a class="header" href="#代码目录树">代码目录树</a></h2>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../md/内核架构.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../md/线程模型.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../md/本项目架构.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../md/内核服务可靠性增强设计.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -194,11 +202,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../md/内核架构.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../md/线程模型.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../md/本项目架构.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../md/内核服务可靠性增强设计.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

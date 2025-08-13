@@ -48,28 +48,25 @@ apps: 	$(ELF_TARGET)/hello $(ELF_TARGET)/raw $(ELF_TARGET)/blank $(ELF_TARGET)/s
 
 $(ELF_TARGET)/%: src/%.c
 	$(MUCC) -static -o $@ $<
-	strip $@ -o $@
 
 $(ELF_TARGET)/raw: src/raw.c
 	gcc -nostdlib -static $< -o $@
-	strip $@ -o $@
 
 $(ELF_TARGET)/sqlite-test: src/sqlite-test.c sqlite3
 	$(MUCC) -I./sqlite3 src/sqlite-test.c -c -o $(OBJ_TARGET)/sqlite-test.o
 	$(MUCC) -I./sqlite3 sqlite3/sqlite3.c -c -o $(OBJ_TARGET)/sqlite3.o
 	$(MUCC) --static $(OBJ_TARGET)/sqlite-test.o $(OBJ_TARGET)/sqlite3.o -o $@
-	strip $@
 
 # Compile busy box with musl-libc, then copy busybox elf to bin.
-$(ELF_TARGET)/busybox: $(BUSYBOX_TAR)
-	cp ../misc/.config busybox/.config
-	export PATH="$(MUCC_DIR):$$PATH" &&\
-	cd busybox && make -j 16
-	cp busybox/busybox bin/
+# $(ELF_TARGET)/busybox: $(BUSYBOX_TAR)
+# 	cp ../misc/.config busybox/.config
+# 	export PATH="$(MUCC_DIR):$$PATH" &&\
+# 	cd busybox && make -j 16
+# 	cp busybox/busybox bin/
 
 $(ELF_TARGET)/ash:
 	cp ../misc/ash bin/
 
-# # Now we just use pre-compiled busybox elf.
-# $(ELF_TARGET)/busybox:
-# 	cp ../misc/busybox bin/
+# Now we just use pre-compiled busybox elf.
+$(ELF_TARGET)/busybox:
+	cp ../misc/busybox bin/

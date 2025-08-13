@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>附录：效果演示 - NUDT-OS-Book</title>
+        <title>内核运行效果演示 - NUDT-OS-Book</title>
 
 
         <!-- Custom HTML head -->
@@ -168,7 +168,14 @@
                     <main>
                         <h1 id="附录效果演示"><a class="header" href="#附录效果演示">附录：效果演示</a></h1>
 <p>由于时间关系，目前只支持了Qemu平台。下面给出了一些在Linux系统上使用Qemu运行的效果演示：</p>
-<h2 id="reboot测试"><a class="header" href="#reboot测试">Reboot测试</a></h2>
+<h2 id="以宏内核和混合内核两种模式运行内核"><a class="header" href="#以宏内核和混合内核两种模式运行内核">以宏内核和混合内核两种模式运行内核</a></h2>
+<p>内核通过Rust语言的feature特性来在编译时确定内核架构，想要运行宏内核模式或混合内核模式，在项目根目录输入：</p>
+<pre><code class="language-bash">make run feature=monolithic
+make run feature=hybrid
+</code></pre>
+<p>宏内核运行效果如下：</p>
+<p><img src="../pic/mono.gif" alt="mono" /></p>
+<h2 id="测试混合内核的故障恢复功能"><a class="header" href="#测试混合内核的故障恢复功能">测试混合内核的故障恢复功能</a></h2>
 <p>reboot测试创建文件filea，并进行20次write系统调用，每次写入一个字符'a'。在文件系统内核服务线程的processor中，我们设置每响应5次write请求，就触发一个panic，以测试内核是否能够重启文件系统内核线程：</p>
 <pre><code class="language-Rust">// Write请求，进程Pid将buf中的数据写入文件表中fd对应的文件
 FsReqDescription::Write(pid, fd, buf_ptr, buf_len, result_ptr) =&gt; {
@@ -203,10 +210,13 @@ FsReqDescription::Write(pid, fd, buf_ptr, buf_len, result_ptr) =&gt; {
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../md/总结与计划.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../md/busybox支持.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
+                            <a rel="next prefetch" href="../md/总结与计划.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -214,10 +224,13 @@ FsReqDescription::Write(pid, fd, buf_ptr, buf_len, result_ptr) =&gt; {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../md/总结与计划.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../md/busybox支持.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
+                    <a rel="next prefetch" href="../md/总结与计划.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>

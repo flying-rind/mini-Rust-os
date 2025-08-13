@@ -2,7 +2,7 @@ name: Deploy
 on:
   push:
     branches:
-      - Final
+      - multi-arch
 
 jobs:
   deploy:

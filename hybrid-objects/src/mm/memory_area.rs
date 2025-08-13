@@ -11,9 +11,9 @@ use core::fmt::Debug;
 
 /// 虚存区域
 pub struct MemoryArea {
-    /// 起始虚地址
+    /// 起始虚地址, Must be page aligned.
     start_vaddr: usize,
-    /// 虚拟内存区域长度
+    /// 虚拟内存区域长度, must be page aligned.
     size: usize,
     /// 映射标识
     flags: PageTableFlags,

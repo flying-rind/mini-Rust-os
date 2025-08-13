@@ -122,6 +122,17 @@ impl MemorySet {
             .is_none()
     }
 
+    /// Debug. print all areas.
+    pub fn show_areas(&self) {
+        for area in self.areas() {
+            info!(
+                "Memory area, start addr: {:#x}, end addr: {:#x}",
+                area.start_vaddr(),
+                area.start_vaddr() + area.size()
+            )
+        }
+    }
+
     /// Get areas.
     pub fn areas(&self) -> impl Iterator<Item = Arc<MemoryArea>> {
         self.areas.get().values().cloned()
@@ -206,5 +217,36 @@ pub fn load_app(ms: Arc<MemorySet>, elf: &ElfFile) {
         // 数据写入虚存区域中
         memory_area.write_data(offset, data);
         ms.insert_area(memory_area);
+    }
+    // Check interpreter (for dynamic link)
+    // When interpreter is used, map both dynamic linker and executable
+    if let Ok(loader_path) = elf.get_interpreter() {
+        error!("The elf need interpreter!, load_path: {}", loader_path);
+    }
+}
+
+/// Helper functions to process ELF file
+pub trait ElfExt {
+    /// Get interpreter string if it has.
+    fn get_interpreter(&self) -> Result<&str, &str>;
+}
+
+impl ElfExt for ElfFile<'_> {
+    fn get_interpreter(&self) -> Result<&str, &str> {
+        let header = self
+            .program_iter()
+            .filter(|ph| ph.get_type() == Ok(Type::Interp))
+            .next()
+            .ok_or("no interp header")?;
+        let mut data = match header.get_data(self)? {
+            SegmentData::Undefined(data) => data,
+            _ => unreachable!(),
+        };
+        // skip NULL
+        while let Some(0) = data.last() {
+            data = &data[..data.len() - 1];
+        }
+        let path = str::from_utf8(data).map_err(|_| "failed to convert to utf8")?;
+        Ok(path)
     }
 }
