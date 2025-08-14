@@ -1,6 +1,7 @@
 //! 任务管理相关的系统调用
 use super::*;
 use future::{ThreadYield, WaitForProc};
+
 use hal::user::UserInOutPtr;
 use hal::{check_n_clone_cstr, check_n_clone_cstr_array};
 use log::info;
@@ -162,14 +163,6 @@ impl Syscall<'_> {
     }
 
     //new
-    //pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
-    //let proc = self.process();
-    //info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
-
-    //}
-    //info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
-    //Ok(0)
-    //}
     pub fn sys_exit_group(&mut self, exit_code: usize) -> SysResult {
         let proc = self.process().clone();
         info!("exit_group: {:?}, code: {:?}", proc.pid(), exit_code);
