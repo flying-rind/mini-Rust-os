@@ -342,3 +342,9 @@ pub const SYS_RSEQ: usize = 334;
 // custom temporary syscall
 pub const SYS_TEST_CSTR: usize = 999;
 pub const SYS_GET_PADDR: usize = 998;
+
+// Mem
+pub const SYS_MALLOC: usize = 10086;
+pub const SYS_REALLOC: usize = 10087;
+pub const SYS_FREE: usize = 10088;
+pub const SYS_ALIGNEDALLOC: usize = 10089;

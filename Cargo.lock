@@ -412,6 +412,7 @@ dependencies = [
  "executor",
  "hal",
  "hybrid-objects",
+ "lazy_static",
  "log",
  "monolithic-objects",
  "num-derive",
@@ -419,6 +420,16 @@ dependencies = [
  "rcore-fs",
  "spin 0.10.0",
  "trapframe",
+ "user-syscall",
+]
+
+[[package]]
+name = "mymalloc"
+version = "0.1.0"
+dependencies = [
+ "buddy_system_allocator 0.11.0",
+ "lazy_static",
+ "spin 0.10.0",
  "user-syscall",
 ]
 

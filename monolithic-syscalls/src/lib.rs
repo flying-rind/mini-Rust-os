@@ -100,6 +100,10 @@ impl Syscall<'_> {
             SYS_MUNMAP => self.sys_munmap(a0, a1),
             SYS_MPROTECT => self.sys_mprotect(a0, a1, a2),
 
+            // Temp.
+            SYS_MALLOC => self.sys_malloc(a0),
+            SYS_FREE => self.sys_free(a0),
+
             // Sync
             SYS_FUTEX => {
                 self.sys_futex(a0, a1 as _, a2 as _, UserPtr::from(a3))

@@ -11,5 +11,5 @@ members = [
     "loader",
     "Ncore", "executor",
     "hal"
-]
+, "mymalloc"]
 exclude = ["boot"]

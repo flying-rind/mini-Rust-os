@@ -1,12 +1,20 @@
 //! Memory related syscalls.
 
 use crate::Syscall;
+use alloc::collections::btree_map::BTreeMap;
 use bitflags::bitflags;
+use core::alloc::Layout;
 use hal::PAGE_SIZE;
 use hal::SysError;
 use hybrid_objects::mm::{MemoryArea, PageTableFlags};
+use lazy_static::lazy_static;
 use log::info;
+use spin::Mutex;
 use user_syscall::SysResult;
+
+lazy_static! {
+    pub static ref MALLOC_LAYOUTS: Mutex<BTreeMap<usize, Layout>> = Mutex::new(BTreeMap::new());
+}
 
 impl Syscall<'_> {
     /// mmap() creates a new mapping in the virtual address space of the
@@ -91,6 +99,35 @@ impl Syscall<'_> {
         info!("munmap addr={:#x}, size={:#x}", addr, len);
         let vm = self.process().vm.clone();
         vm.remove_with_split(addr, addr + len);
+        Ok(0)
+    }
+
+    /// Malloc.
+    pub fn sys_malloc(&mut self, size: usize) -> SysResult {
+        info!("malloc, size = {:#x}", size);
+        if size == 0 {
+            return Ok(0);
+        }
+        let lay = Layout::array::<u8>(size).map_err(|_| SysError::ENOMEM)?;
+        let ptr = unsafe { alloc::alloc::alloc(lay) };
+        if ptr.is_null() {
+            panic!("failed to malloc!");
+        }
+        let mut layouts = MALLOC_LAYOUTS.lock();
+        layouts.insert(ptr as usize, lay);
+        info!("alloc ptr: {:?}", ptr);
+        Ok(ptr as usize)
+    }
+
+    /// Free.
+    pub fn sys_free(&mut self, ptr: usize) -> SysResult {
+        let mut layouts = MALLOC_LAYOUTS.lock();
+        match layouts.remove(&ptr) {
+            Some(lay) => unsafe {
+                alloc::alloc::dealloc(ptr as *mut u8, lay);
+            },
+            None => return Ok(0),
+        };
         Ok(0)
     }
 }

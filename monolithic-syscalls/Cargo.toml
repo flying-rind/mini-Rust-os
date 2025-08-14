@@ -17,3 +17,4 @@ log = "0.4.27"
 spin = "0.10.0"
 hal = { version = "0.1.0", path = "../hal" }
 bitflags = "2.9.1"
+lazy_static = "1.5.0"

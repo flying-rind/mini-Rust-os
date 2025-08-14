@@ -30,7 +30,7 @@ pub const PAGE_SIZE: usize = 4096;
 pub const KERNEL_OFFSET: usize = 0xFFFF_FF00_0000_0000;
 
 /// 内核堆内存大小(4M)
-const KERNEL_HEAP_SIZE: usize = 0x0040_0000;
+const KERNEL_HEAP_SIZE: usize = 0x00160_0000;
 
 /// 内核栈虚地址
 pub const KERNEL_STACK_BASE: usize = 0xFFFF_FF10_0000_0000;

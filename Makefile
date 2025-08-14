@@ -6,7 +6,7 @@ mode ?= release
 feature ?= monolithic
 # feature ?= hybrid
 
-build: ncore bootloader fs-img
+build: ncore bootloader misc/libmymalloc.a fs-img 
 
 ncore:
 	cd user-components && cargo build
@@ -22,11 +22,21 @@ fs-img:
 	rm -f $(FS_IMG)
 	cd rcore-fs-use && cargo run --release -- -s $(CURDIR)/user-rs/src/bin -t $(CURDIR)/user-rs/target/$(arch)/$(mode)/
 
+misc/libmymalloc.a:
+	cd mymalloc && cargo build
+	cp mymalloc/target/x86_64-unknown-none/debug/libmymalloc.a misc/
+
 test: build
 	cd kernel && cargo test -- --${boot}
 
 run: build
 	cd boot && cargo run -- --${boot}
+
+re:
+	cd musl && make re
+	cd user-c && make re
+	cd rcore-fs-use && cargo clean && cargo build
+	make run
 
 gdb: build
 	cd boot && cargo run -- --gdb --${boot}
@@ -42,9 +52,10 @@ clean:
 	cd hybrid-syscalls && cargo clean
 	cd monolithic-objects && cargo clean
 	cd monolithic-syscalls && cargo clean
-
+	cd mymalloc && cargo clean
 	cd user-c && make clean
 	cd user-rs && make clean
+	rm misc/libmymalloc.a
 
 count:
 	cloc . --exclude-dir=crates,target,musl,tutorial,sqlite3,busybox

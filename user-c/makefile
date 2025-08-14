@@ -11,17 +11,23 @@ SQLITE_DIR := sqlite3
 BUSYBOX_URL = https://github.com/mirror/busybox/archive/refs/heads/master.zip
 BUSYBOX_TAR = busybox.zip
 BUSYBOX_DIR = busybox
+# malloclib
+MALLOC_LIB = ../misc/libmymalloc.a
+MULIBC = ../musl/musl-1.2.5/lib/libc.a
 
 all: $(OBJ_TARGET) $(ELF_TARGET) apps
+	cd bin && find . -type f -name "*.o" -delete
 	
 $(OBJ_TARGET) $(ELF_TARGET):
 	mkdir -p $@
 
 clean: 
-	rm -rf $(SQLITE_DIR) $(SQLITE_TAR)
-	rm -rf $(BUSYBOX_DIR) $(BUSYBOX_TAR)
-	rm obj/*
-	rm bin/*
+	rm -f obj/*
+	rm -f bin/*
+
+re:
+	make clean
+	make all
 
 # Download and extract sqlite3.
 sqlite3:  $(SQLITE_TAR)
@@ -42,31 +48,35 @@ $(BUSYBOX_TAR):
 	mv busybox-master busybox
 	@echo "Busybox downloaded and extracted."
 
-apps: 	$(ELF_TARGET)/hello $(ELF_TARGET)/raw $(ELF_TARGET)/blank $(ELF_TARGET)/sqlite-test $(ELF_TARGET)/busybox $(ELF_TARGET)/mmap-test1 $(ELF_TARGET)/mmap-test2 \
-		$(ELF_TARGET)/writev-test $(ELF_TARGET)/getcwd-test $(ELF_TARGET)/open-test $(ELF_TARGET)/ash
+apps: 	$(ELF_TARGET)/sqlite-test 
+#$(ELF_TARGET)/hello $(ELF_TARGET)/malloc-test 
+#$(ELF_TARGET)/raw $(ELF_TARGET)/blank  $(ELF_TARGET)/mmap-test1 $(ELF_TARGET)/mmap-test2 \
+		$(ELF_TARGET)/writev-test $(ELF_TARGET)/getcwd-test $(ELF_TARGET)/open-test $(ELF_TARGET)/ash  #$(ELF_TARGET)/busybox 
 	 	
 
 $(ELF_TARGET)/%: src/%.c
-	$(MUCC) -static -o $@ $<
+	$(MUCC) -c -o $@.o $< 
+	$(MUCC) -o $@ --static  $@.o $(MULIBC) $(MALLOC_LIB)
 
 $(ELF_TARGET)/raw: src/raw.c
 	gcc -nostdlib -static $< -o $@
 
 $(ELF_TARGET)/sqlite-test: src/sqlite-test.c sqlite3
-	$(MUCC) -I./sqlite3 src/sqlite-test.c -c -o $(OBJ_TARGET)/sqlite-test.o
-	$(MUCC) -I./sqlite3 sqlite3/sqlite3.c -c -o $(OBJ_TARGET)/sqlite3.o
-	$(MUCC) --static $(OBJ_TARGET)/sqlite-test.o $(OBJ_TARGET)/sqlite3.o -o $@
+	CFLAGS="-DSQLITE_DEBUG=1 -DSQLITE_MEMDEBUG=1"
+	$(MUCC) -I./sqlite3 src/sqlite-test.c -c -fno-stack-protector -fno-builtin -o  $(OBJ_TARGET)/sqlite-test.o
+	$(MUCC) -I./sqlite3 sqlite3/sqlite3.c -c -fno-stack-protector -fno-builtin -o  $(OBJ_TARGET)/sqlite3.o
+	$(MUCC) --static -fno-stack-protector -fno-builtin -flto -o $@ $(OBJ_TARGET)/sqlite-test.o  $(OBJ_TARGET)/sqlite3.o $(MULIBC) $(MALLOC_LIB) 
 
-# Compile busy box with musl-libc, then copy busybox elf to bin.
-# $(ELF_TARGET)/busybox: $(BUSYBOX_TAR)
-# 	cp ../misc/.config busybox/.config
-# 	export PATH="$(MUCC_DIR):$$PATH" &&\
-# 	cd busybox && make -j 16
-# 	cp busybox/busybox bin/
+#Compile busy box with musl-libc, then copy busybox elf to bin.
+$(ELF_TARGET)/busybox: $(BUSYBOX_TAR)
+	cp ../misc/.config busybox/.config
+	export PATH="$(MUCC_DIR):$$PATH" &&\
+	cd busybox && make -j 16
+	cp busybox/busybox bin/
 
 $(ELF_TARGET)/ash:
 	cp ../misc/ash bin/
 
 # Now we just use pre-compiled busybox elf.
-$(ELF_TARGET)/busybox:
-	cp ../misc/busybox bin/
+# $(ELF_TARGET)/busybox:
+# 	cp ../misc/busybox bin/

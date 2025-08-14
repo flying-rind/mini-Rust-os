@@ -7,9 +7,9 @@
 #define realloc __libc_realloc
 #define free __libc_free
 
-#define SYS_malloc 10086
-#define SYS_realloc 10087
-#define SYS_free 10088
+// #define SYS_malloc 10086
+// #define SYS_realloc 10087
+// #define SYS_free 10088
 #define SYS_aligned_alloc 10089
 
 // extern long ky_malloc(size_t);
@@ -17,20 +17,24 @@
 // extern void ky_free(void *);
 // extern long ky_aligned_alloc(size_t, size_t);
 
+long mymalloc(int n);
+
 void *malloc(size_t n)
 {
-    long ptr = __syscall(SYS_malloc, n);
+    long ptr = mymalloc(n);
     if (ptr <= 0) {
         errno = -ptr;
         return 0;
     }
     return (void *)ptr;
 }
+
+long myrealloc(void* p, size_t n);
 
 void *realloc(void *p, size_t n)
 {
     // long ptr = ky_realloc(p, n);
-    long ptr = __syscall(SYS_realloc, p, n);
+    long ptr = myrealloc(p, n);
     if (ptr <= 0) {
         errno = -ptr;
         return 0;
@@ -38,9 +42,11 @@ void *realloc(void *p, size_t n)
     return (void *)ptr;
 }
 
+void myfree(void* p);
+
 void free(void *p)
 {
-    __syscall(SYS_free, p);
+    myfree(p);
 }
 
 void *aligned_alloc(size_t align, size_t len)

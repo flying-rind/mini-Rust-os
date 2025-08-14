@@ -12,17 +12,18 @@ $(MUSL_TAR):
 # Download and unzip the musl src code.
 $(MUSL_DIR): $(MUSL_TAR)
 	tar xvf $(MUSL_TAR)
-	rm $(MUSL_TAR)
 
 #Download and compile musl, get ready for busybox.
 musl: $(MUSL_DIR)/bin/musl-gcc prepare4busybox
 
-$(MUSL_DIR)/bin/musl-gcc:
-	cp -r ../mymalloc $(MUSL_DIR)/src/malloc/
+$(MUSL_DIR)/bin/musl-gcc: $(MUSL_DIR)
+	cp -r mymalloc $(MUSL_DIR)/src/malloc/
+	cp __libc_start_main.c $(MUSL_DIR)/src/env/
+	cp new-makefile $(MUSL_DIR)/Makefile
 	cd $(MUSL_DIR) && \
 	CFLAGS='-Os -ffunction-sections -fdata-sections' \
 	LDFLAGS='-Wl,--gc-sections' \
-	./configure --prefix=$(CURDIR)/$(MUSL_DIR) &&\
+	./configure --prefix=$(CURDIR)/$(MUSL_DIR) --with-malloc=mymalloc &&\
 	make -j$(shell nproc) && \
 	make install
 
@@ -50,6 +51,10 @@ $(MUINC_DIR)/asm-generic:
 	ln -s /usr/include/asm-generic asm-generic
 
 all: musl
+
+re:
+	make clean
+	make all
 
 clean: 
 	rm -rf $(MUSL_DIR)

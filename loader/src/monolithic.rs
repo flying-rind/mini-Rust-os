@@ -15,7 +15,6 @@ use monolithic_objects::SignalFrame;
 use monolithic_objects::SignalStackFlags;
 use monolithic_objects::SignalUserContext;
 use monolithic_objects::Sigset;
-// use monolithic_objects::set_current_thread;
 use monolithic_objects::sync::timer;
 use monolithic_objects::{Arc, Thread, ThreadState};
 use num_traits::FromPrimitive;
@@ -28,7 +27,7 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "shell";
+    let shell = "sqlite-test";
     // let shell = "shell";
     println!("Running monolithic kernel!");
     info!("Trying to enter user shell now!");
@@ -37,7 +36,7 @@ pub fn run_shell() {
             &inode,
             shell,
             // vec!["busybox".into()],
-            vec!["shell".into()],
+            vec!["sqlite-test".into()],
             Vec::new(),
         )
         .expect("Failed to create shell.");
