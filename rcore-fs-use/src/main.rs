@@ -41,7 +41,7 @@ fn main() {
         "rs_src_path = {}\nrs_target_path = {}",
         rs_src_path, rs_target_path
     );
-    pub const USER_IMAGE_SIZE: usize = 128 * 1024 * 1024;
+    pub const USER_IMAGE_SIZE: usize = 32 * 1024 * 1024;
     let block_file = Arc::new(BlockFile(Mutex::new({
         let f = OpenOptions::new()
             .read(true)
