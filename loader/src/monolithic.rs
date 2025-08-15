@@ -2,7 +2,6 @@
 
 use alloc::boxed::Box;
 use alloc::vec;
-use alloc::vec::Vec;
 use core::pin::Pin;
 use hal::arch::cpu::MachineContext;
 use hal::println;
@@ -27,7 +26,7 @@ const TIMER: usize = 32;
 
 /// 加载运行第一个用户程序Shell
 pub fn run_shell() {
-    let shell = "sqlite-test";
+    let shell = "ash";
     // let shell = "shell";
     println!("Running monolithic kernel!");
     info!("Trying to enter user shell now!");
@@ -36,8 +35,8 @@ pub fn run_shell() {
             &inode,
             shell,
             // vec!["busybox".into()],
-            vec!["sqlite-test".into()],
-            Vec::new(),
+            vec!["ash".into()],
+            vec![".".into()],
         )
         .expect("Failed to create shell.");
         thread.start(thread_fn);
@@ -119,8 +118,9 @@ async fn handle_user_trap(thread: Arc<Thread>, ctx: &mut Box<UserContext>) {
                 "[Trap Handler]: PAGEFAULT, addr: {:#x}, userspace rip: {:#x}",
                 addr, ctx.general.rip
             );
-            let vm = &thread.proc.lock().vm;
-            vm.show_areas();
+            // let vm = &thread.proc.lock().vm;
+            // vm.show_areas();
+            info!("Userspace : {:#?}", ctx.clone());
             panic!("page fault");
         }
         TIMER => {

@@ -76,7 +76,7 @@ impl MemoryArea {
 
     /// 在虚存区域的指定偏移处写入数据
     pub fn write_data(&self, offset: usize, data: &[u8]) {
-        assert!(offset + data.len() < self.size);
+        assert!(offset + data.len() <= self.size);
         let mut start = offset;
         let mut remain = data.len();
         let mut processed = 0;

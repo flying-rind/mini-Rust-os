@@ -66,11 +66,10 @@ pub fn kernel_main_monolithic(boot_info: &'static mut BootInfo) -> ! {
     logging::init();
     // 初始化堆
     hybrid_objects::mm::heap_init();
-    // 初始化内存管理
-    hybrid_objects::mm::init(&mut boot_info.memory_regions);
     // 初始化中断描述符表
     hybrid_objects::trap::init();
-
+    // 初始化内存管理
+    hybrid_objects::mm::init(&mut boot_info.memory_regions);
     // 初始化中断
     hybrid_objects::pic::init();
     // 初始化驱动

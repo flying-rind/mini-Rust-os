@@ -1,4 +1,4 @@
-MUSL_VERSION ?= 1.2.5
+MUSL_VERSION ?= 1.2.0
 MUSL_URL ?= https://musl.libc.org/releases/musl-$(MUSL_VERSION).tar.gz
 MUSL_TAR := musl-$(MUSL_VERSION).tar.gz
 MUSL_DIR = musl-$(MUSL_VERSION)
@@ -14,16 +14,15 @@ $(MUSL_DIR): $(MUSL_TAR)
 	tar xvf $(MUSL_TAR)
 
 #Download and compile musl, get ready for busybox.
-musl: $(MUSL_DIR)/bin/musl-gcc prepare4busybox
+musl: $(MUSL_DIR)/bin/musl-gcc #prepare4busybox
 
 $(MUSL_DIR)/bin/musl-gcc: $(MUSL_DIR)
-	cp -r mymalloc $(MUSL_DIR)/src/malloc/
-	cp __libc_start_main.c $(MUSL_DIR)/src/env/
-	cp new-makefile $(MUSL_DIR)/Makefile
+	# cp -r mymalloc $(MUSL_DIR)/src/malloc/
+	# cp __libc_start_main.c $(MUSL_DIR)/src/env/
+	# cp new-makefile $(MUSL_DIR)/Makefile
 	cd $(MUSL_DIR) && \
-	CFLAGS='-Os -ffunction-sections -fdata-sections' \
-	LDFLAGS='-Wl,--gc-sections' \
-	./configure --prefix=$(CURDIR)/$(MUSL_DIR) --with-malloc=mymalloc &&\
+	./configure --prefix=$(CURDIR)/$(MUSL_DIR) \
+	# --with-malloc=mymalloc &&\
 	make -j$(shell nproc) && \
 	make install
 

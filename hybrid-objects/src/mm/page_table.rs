@@ -13,7 +13,7 @@ use x86_64::structures::paging::PageTableFlags;
 static KERNEL_ELF_PTE: Cell<usize> = zero();
 
 /// 内核栈在当前四级页表中的页表项
-static KERNEL_STACK_PTE: Cell<usize> = zero();
+// static KERNEL_STACK_PTE: Cell<usize> = zero();
 
 /// 物理内存0在当前四级页表中对应的页表项
 static PHYS_PTE: Cell<usize> = zero();
@@ -36,13 +36,6 @@ impl PageTable {
     /// 分配一个物理页帧
     pub fn new() -> Self {
         let root_frame = PhysFrame::alloc_zero().unwrap();
-
-        // [Debug]
-        // println!(
-        //     "[Debugger] Created new page table, root_pa: 0x{:x}",
-        //     root_frame.0
-        // );
-
         // 设置共享地址空间
         let p4 = as_table(root_frame.0);
         // 共享内核代码
@@ -50,7 +43,7 @@ impl PageTable {
         // 共享物理内存
         p4[p4_index(PHYS_OFFSET)] = *PHYS_PTE;
         // 共享内核栈
-        p4[p4_index(KERNEL_STACK_BASE)] = *KERNEL_STACK_PTE;
+        // p4[p4_index(KERNEL_STACK_BASE)] = *KERNEL_STACK_PTE;
         PageTable {
             root_pa: root_frame.0,
             frames: Cell::new(vec![root_frame]),
@@ -233,7 +226,7 @@ pub(crate) fn init() {
     let cr3 = my_x86_64::get_cr3();
     let p4 = as_table(cr3);
     *KERNEL_ELF_PTE.get_mut() = p4[p4_index(KERNEL_OFFSET)];
-    *KERNEL_STACK_PTE.get_mut() = p4[p4_index(KERNEL_STACK_BASE)];
+    // *KERNEL_STACK_PTE.get_mut() = p4[p4_index(KERNEL_STACK_BASE)];
     *PHYS_PTE.get_mut() = p4[p4_index(PHYS_OFFSET)];
     // Cancel mapping in lowest addresses.
     p4[0] = 0;

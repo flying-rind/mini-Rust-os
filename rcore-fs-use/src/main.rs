@@ -35,20 +35,19 @@ impl Device for BlockFile {
 fn main() {
     let rs_src_path = "../user-rs/src/bin";
     let rs_target_path = "../user-rs/target/x86_64/release/";
-    let c_src_path = "../user-c/src";
     let c_target_path = "../user-c/bin/";
 
     println!(
         "rs_src_path = {}\nrs_target_path = {}",
         rs_src_path, rs_target_path
     );
-    pub const USER_IMAGE_SIZE: usize = 16 * 1024 * 1024;
+    pub const USER_IMAGE_SIZE: usize = 128 * 1024 * 1024;
     let block_file = Arc::new(BlockFile(Mutex::new({
         let f = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
-            .open(format!("{}{}", rs_target_path, "fs.img"))
+            .open(format!("{}{}", "../misc/", "fs.img"))
             .unwrap();
         f.set_len(USER_IMAGE_SIZE as _).unwrap();
         f
@@ -80,24 +79,24 @@ fn main() {
         .collect();
     println!("c-apps: {:?}", c_apps);
 
-    // Busybox.
-    // c_apps.push("busybox".to_string());
-
     // 将app挂载到文件系统
-
     for app in rs_apps {
         // load app data from host file system
         let mut host_file = File::open(format!("{}{}", rs_target_path, app)).unwrap();
         // debug
         println!("Loading app: {}", app);
         let mut all_data: Vec<u8> = Vec::new();
-        host_file.read_to_end(&mut all_data).unwrap();
+        host_file
+            .read_to_end(&mut all_data)
+            .expect("Failed to read app: {}");
         // create a file in easy-fs
         let inode = root_inode
             .create(app.as_str(), rcore_fs::vfs::FileType::File, 0o777)
             .unwrap();
         // write data to easy-fs
-        inode.write_at(0, all_data.as_slice()).unwrap();
+        inode
+            .write_at(0, all_data.as_slice())
+            .expect("Failed to write to inode");
     }
 
     // debug
@@ -108,7 +107,9 @@ fn main() {
         let mut host_file = File::open(format!("{}{}", c_target_path, app)).unwrap();
         println!("Loading app: {}", app);
         let mut all_data: Vec<u8> = Vec::new();
-        host_file.read_to_end(&mut all_data).unwrap();
+        host_file
+            .read_to_end(&mut all_data)
+            .expect("Failed to read app: ");
         // create a file in easy-fs
         let inode = root_inode
             .create(app.as_str(), rcore_fs::vfs::FileType::File, 0o777)

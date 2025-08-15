@@ -1,6 +1,9 @@
 //! 内存管理模块
 use bootloader_api::info::MemoryRegions;
 pub use frame_allocator::*;
+pub use heap_allocator::heap_init;
+pub use memory_area::*;
+pub use memory_set::*;
 pub use page_table::*;
 use x86_64::registers::control::Cr3;
 pub use x86_64::structures::paging::PageTableFlags;
@@ -12,14 +15,6 @@ mod memory_set;
 mod page_table;
 mod physframe;
 
-// mod physical_frame_group;
-// mod virtual_memory_block;
-// mod virtual_memory_space;
-
-pub use heap_allocator::heap_init;
-pub use memory_area::*;
-pub use memory_set::*;
-
 /// 内核映射物理内存偏移
 pub const PHYS_OFFSET: usize = 0xFFFF_8000_0000_0000;
 
@@ -30,7 +25,7 @@ pub const PAGE_SIZE: usize = 4096;
 pub const KERNEL_OFFSET: usize = 0xFFFF_FF00_0000_0000;
 
 /// 内核堆内存大小(4M)
-const KERNEL_HEAP_SIZE: usize = 0x00160_0000;
+const KERNEL_HEAP_SIZE: usize = 0x00200_0000;
 
 /// 内核栈虚地址
 pub const KERNEL_STACK_BASE: usize = 0xFFFF_FF10_0000_0000;
@@ -42,7 +37,11 @@ pub const KERNEL_STACK_SIZE: usize = 0x80_0000;
 pub const USER_STACK_SIZE: usize = 8 * 1024 * 1024;
 
 /// 用户栈（最低地址处）
-pub const USER_STACK_BASE: usize = 0x00008000_00000000 - USER_STACK_SIZE;
+pub const USER_STACK_BASE: usize = 0x0000_8000_0000_0000 - USER_STACK_SIZE;
+/// User heap space(low).
+pub const USER_HEAP_BASE: usize = 0x0000_7F00_0000_0000;
+/// User heap size.
+pub const USER_HEAP_SIZE: usize = 0x8 * 1024 * 1024;
 
 /// 任意级页表含的页表项个数
 pub const ENTRY_COUNT: usize = 512;

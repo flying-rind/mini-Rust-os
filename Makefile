@@ -1,12 +1,12 @@
 boot ?= uefi
 BUILD_ARGS = -Z build-std=core,alloc,compiler_builtins --target x86_64.json
 arch = x86_64
-FS_IMG = $(CURDIR)/user-rs/target/$(arch)/release/fs.img
+FS_IMG = misc/fs.img
 mode ?= release
 feature ?= monolithic
 # feature ?= hybrid
 
-build: ncore bootloader misc/libmymalloc.a fs-img 
+build: ncore bootloader fs-img 
 
 ncore:
 	cd user-components && cargo build
@@ -15,7 +15,7 @@ ncore:
 bootloader:
 	cd boot && cargo build
 
-fs-img:
+fs-img: #misc/libmymalloc.a
 	cd user-rs && make build feature=$(feature)
 	cd musl && make all
 	cd user-c && make all
@@ -33,8 +33,10 @@ run: build
 	cd boot && cargo run -- --${boot}
 
 re:
+	rm misc/libmymalloc.a && make misc/libmymalloc.a
 	cd musl && make re
 	cd user-c && make re
+	rm misc/fs.img
 	cd rcore-fs-use && cargo clean && cargo build
 	make run
 

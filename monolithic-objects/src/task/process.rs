@@ -246,6 +246,11 @@ impl Process {
         // entry point
         let entry_addr = elf.header.pt2.entry_point() as usize;
         let sp = Thread::new_user_stack(vm.clone(), args, envs, auxv);
+        // let flags =
+        //     PageTableFlags::USER_ACCESSIBLE | PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
+        // // Map user heap space.
+        // let heap_area = MemoryArea::new(USER_HEAP_BASE, USER_HEAP_SIZE, flags);
+        // vm.insert_area(heap_area);
         return Ok((vm, entry_addr, sp));
     }
 

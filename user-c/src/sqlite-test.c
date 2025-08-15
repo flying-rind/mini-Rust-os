@@ -1,60 +1,53 @@
 #include <stdio.h>
-#include "sqlite3.h"
+#include <sqlite3.h>
 
-int callback(void *, int, char **, char **);
+// Callback function for queries
+static int callback(void *NotUsed, int argc, char **argv, char **colName) {
+    for (int i = 0; i < argc; i++) {
+        printf("%s = %s\n", colName[i], argv[i] ? argv[i] : "NULL");
+    }
+    printf("\n");
+    return 0;
+}
 
-int main(int argc, char **argv)
-{
-    // 1. 打开数据库
-    sqlite3 *db = NULL;
+int main() {
+    sqlite3 *db;
     char *err_msg = NULL;
+    int rc;
 
-    int rc = sqlite3_open("/test.db", &db);
-    if (rc != SQLITE_OK)
-    {
+    // 1. Open or create a database
+    rc = sqlite3_open("test.db", &db);
+    if (rc != SQLITE_OK) {
         fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
         return 1;
     }
-    // 2. 写入数据
-    const char *sql = "DROP TABLE IF EXISTS Cars;"
-                      "CREATE TABLE Cars(Id INT, Name TEXT, Price INT);"
-                      "INSERT INTO Cars VALUES(1, 'Audi', 52642);"
-                      "INSERT INTO Cars VALUES(2, 'Skoda', 9000);";
-    rc = sqlite3_exec(db, sql, NULL, NULL, &err_msg);
-    if (rc != SQLITE_OK)
-    {
+
+    // 2. Create a table
+    const char *sql = "DROP TABLE IF EXISTS Users;"
+                      "CREATE TABLE Users(Id INT PRIMARY KEY, Name TEXT);"
+                      "INSERT INTO Users VALUES(1, 'Alice');"
+                      "INSERT INTO Users VALUES(2, 'Bob');";
+    
+    rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
+    if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL error: %s\n", err_msg);
         sqlite3_free(err_msg);
         sqlite3_close(db);
         return 1;
     }
 
-    sql = "SELECT * FROM Cars";
-    rc = sqlite3_exec(db, sql, callback, NULL, &err_msg);
-    if (rc != SQLITE_OK)
-    {
-        fprintf(stderr, "Failed to select data\n", err_msg);
-        fprintf(stderr, "SQL error: %s\n", err_msg);
+    // 3. Query the data
+    printf("Database contents:\n");
+    sql = "SELECT * FROM Users";
+    rc = sqlite3_exec(db, sql, callback, 0, &err_msg);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Query failed: %s\n", err_msg);
         sqlite3_free(err_msg);
-        sqlite3_close(db);
-        return 1;
     }
 
-
+    // 4. Close database
     sqlite3_close(db);
-
     return 0;
 }
 
-int callback(void *NotUsed, int argc, char **argv, char **azColName)
-{
-    NotUsed = NULL;
-    for (int i = 0; i < argc; ++i)
-    {
-        printf("%s = %s\n", azColName[i], (argv[i]? argv[i]:"NULL"));
-    }
-
-    printf("\n");
-    return 0;
-}

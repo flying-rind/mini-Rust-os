@@ -1,0 +1,3 @@
+./configure --prefix=/home/mangp/桌面/OS/mini-Rust-os/musl/musl-1.2.0 
+make -j16 
+make install

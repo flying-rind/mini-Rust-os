@@ -11,8 +11,8 @@ use user_syscall::println;
 use lazy_static::lazy_static;
 use spin::Mutex;
 
+pub const USER_HEAP_BASE: usize = 0x0000_7F00_0000_0000;
 const USER_HEAP_SIZE: usize = 0x8 * 1024 * 1024;
-static HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];
 
 #[global_allocator]
 static HEAP: LockedHeap<32> = LockedHeap::new();
@@ -20,8 +20,14 @@ static HEAP: LockedHeap<32> = LockedHeap::new();
 #[unsafe(no_mangle)]
 #[doc(hidden)]
 pub extern "C" fn init_rust_runtime() {
+    let start_addr = USER_HEAP_BASE;
+    println!(
+        "Init user heap!, heap start addr: {:#x}, end addr: {:#x}",
+        start_addr,
+        start_addr + USER_HEAP_SIZE
+    );
     unsafe {
-        HEAP.lock().init(HEAP_SPACE.as_ptr() as _, USER_HEAP_SIZE);
+        HEAP.lock().init(start_addr, USER_HEAP_SIZE);
     }
 }
 
